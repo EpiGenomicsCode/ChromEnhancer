@@ -69,7 +69,7 @@ def main():
          valid_data , valid_label = valid_data.to(device) , valid_label.to(device)
 
          target = model(valid_data)
-         label = label.unsqueeze(1)
+         valid_label = valid_label.unsqueeze(1)
 
          loss = loss_fn(target, valid_label)
          valid_loss += loss.item() 
