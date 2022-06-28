@@ -21,19 +21,32 @@ class Chromatin_Dataset(Dataset):
     def __getitem__(self, index):
         return self.data[index], self.labels[index]
 
+    def make_onehot(self, sequences, seq_length=32):    
+        fd = {  'A' : [1, 0, 0, 0], 'T': [0,1,0,0], 'G' : [0,0,1,0],'C': [0,0,0, 1], 'N': [0,0,0,0],
+                'a' : [1, 0, 0, 0], 't': [0,1,0,0], 'g': [0,0,1,0], 'c': [0,0,0,1],
+                'n' : [0,0,0,0]
+             }
+        onehot = [fd[base] for seq in sequences for base in seq]
+        onehot_np = np.reshape(onehot, (-1, seq_length, 4))
+        return onehot_np
+
     def readfiles(self, file_location="../Data/Bichrom_sample_data/"):
         chrom_filenames = glob(file_location+"*chrom*")
         label_filenames = glob(file_location+"*label*")
+        seq_filenames   = glob(file_location+"*seq*" )
 
         data  = []
         label = []
+        seq   = []
         print("Processing\n\tchrome files {}\n\tlabel files {}".format(chrom_filenames, label_filenames))
-        for files in zip(chrom_filenames, label_filenames):
+        for files in zip(chrom_filenames, label_filenames, seq_filenames):
             chrom_file = files[0]
             label_file = files[1]
+            seq_file   = files[2]
             if "val" not in chrom_file:
                 chrom_len = 0
                 label_len = 0
+                seq_len   = 0
                 with open(chrom_file) as infile:
                     for line in infile:
                         chrom_len+=1
@@ -42,7 +55,11 @@ class Chromatin_Dataset(Dataset):
                     for line in infile:
                         label_len+=1
                         label.append(torch.tensor(np.array(int(line)), dtype=torch.float32))
-                print("\t\t{}\t{}\n\t\t{}\t{}".format(chrom_file, chrom_len, label_file, label_len))
+                # with open(seq_file)  as infile:
+                #     for line in infile:
+                #         seq_len+=1
+                #         seq.append(torch.tensor(self.make_onehot(line), dtype=torch.float32))
+                print("\t\t{}\t{}\n\t\t{}\t{}\n\t\t\{}{}".format(chrom_file, chrom_len, label_file, label_len, seq_file, seq_len))
 
 
-        return data, label
+        return data, label, seq
