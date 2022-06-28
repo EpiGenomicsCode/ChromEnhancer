@@ -1,13 +1,15 @@
 from torch.utils.data import Dataset
 from glob import glob
 import numpy as np
+import torch
 
 class Chromatin_Dataset(Dataset):
     def __init__(self):
         super(Dataset, self).__init__()
         self.data, self.labels = self.readfiles()
-        self.data = np.array(self.data)
-        self.labels = np.array(self.labels)
+        self.input_shape = len(self.data[0])
+        self.data = self.data
+        self.labels = self.labels
 
         assert len(self.data) == len(self.labels)
 
@@ -35,11 +37,11 @@ class Chromatin_Dataset(Dataset):
                 with open(chrom_file) as infile:
                     for line in infile:
                         chrom_len+=1
-                        data.append([float(i) for i in line.split()])
+                        data.append(torch.tensor(np.array([float(i) for i in line.split()]),dtype=torch.float32))
                 with open(label_file)  as infile:
                     for line in infile:
                         label_len+=1
-                        label.append(int(line))
+                        label.append(torch.tensor(np.array(int(line)), dtype=torch.float32))
                 print("\t\t{}\t{}\n\t\t{}\t{}".format(chrom_file, chrom_len, label_file, label_len))
 
 
