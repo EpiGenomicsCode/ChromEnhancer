@@ -2,7 +2,7 @@
 # TODO:
 
 1. Figure out Data
-    * Big oof, not sure yet will need to look deeper into Bichrom construct data
+    * Meetin 6/27/22: Create a dataloader for the chromatin data with the label, similar to pandas dataframe maybe
 2. Build Network
     * A Transformer of some kind
     * Something like: https://github.com/yifengtao/genome-transformer
