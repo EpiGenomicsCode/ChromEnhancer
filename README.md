@@ -26,6 +26,16 @@
     2. Created a default model for binary classification
     3. Created the training and testing loop
 
+## 6/29/22 (Olivia)
+    1. Initialize preprocessing scripts directory structure
+    2. Add preprocessing scripts for downloading ENCODE data
+    3. Add preprocessing scripts for calling Peak Enhancers (partial)
+        - waiting on covariate files from gersteinlab
+        - testing runs without covariates until then
+    4. Initialize README
+        - describe all above
+        - sketch out formatting step in README
+
 # Resources
 
 * Something like: https://github.com/yifengtao/genome-transformer

@@ -1,0 +1,46 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=16gb
+#PBS -l walltime=30:00:00
+#PBS -A open
+#PBS -o logs/starrpeaker.log.out
+#PBS -e logs/starrpeaker.log.err
+#PBS -t 1-4
+
+module load gcc/9.3.1
+module load anaconda3
+source activate starrpeaker
+
+# UPDATE THIS PATH BEFORE SUBMISSION
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+cd $WRK
+
+DBAM=results/BAM
+DOUT=results/StarrpeakerResults
+
+[ -d logs ] || mkdir logs
+[ -d $DOUT ] || mkdir $DOUT
+
+METADATA=bam-samples.txt
+INFO=`sed "${PBS_ARRAYID}q;d" $METADATA`
+CLINE=`echo $INFO | awk '{print $1}'`
+STARR=`echo $INFO | awk '{print $3}'`
+INPUT=`echo $INFO | awk '{print $6}'`
+#echo $INFO
+
+BLACKLIST=input/ENCFF419RSJ.bed
+COVGC=input/gc5Base.bw
+COVRNAE=
+COVMAP=
+GENOME=input/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.pac
+#CHROMSIZES=input/hg38.chrom.sizes
+CHROMSIZES=input/GRCh38.chrom.sizeas.simple.sorted
+
+start=`date +%s`
+starrpeaker --prefix $DOUT/$CLINE --chromsize $CHROMSIZES --blacklist $BLACKLIST \
+	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold 0.05
+#	--cov $COVGC $COVMAP $COVRNAE \
+end=`date +%s`
+runtime=$((end-start))
+echo "Starrpeaker ${STARR}-${INPUT} ran in ${runtime}"
+

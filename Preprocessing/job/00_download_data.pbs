@@ -1,0 +1,40 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=16gb
+#PBS -l walltime=01:00:00
+#PBS -A open
+#PBS -o logs/download.data.log.out
+#PBS -e logs/download.data.log.err
+#PBS -t 1-4
+
+#module load gcc/8.3.1
+#module load samtools/1.10
+#module load anaconda3
+#source activate starrpeaker
+
+# UPDATE THIS PATH BEFORE SUBMISSION
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+cd $WRK
+
+DBAM=results/BAM1
+
+[ -d logs ] || mkdir logs
+[ -d $DBAM ] || mkdir -p $DBAM
+
+METADATA=input/bam-samples.txt
+ENCFF=`cut -f3 $METADATA | cat - <(cut -f6 $METADATA ) |sort |uniq |sed "${PBS_ARRAYID}q;d"`
+#echo $INFO
+
+cd $DBAM
+
+# ENCODE data download
+URL=https://www.encodeproject.org/files/$FINPUT/@@download/$ENCFF.bam
+echo "Fetching control input sample from $URL"
+wget $URL
+
+echo "Index control input sample $ENCFF..."
+samtools index $ENCFF.bam
+
+# Filter BAM file (ENCODE file already filtered according to starrpeaker specs)
+#samtools view -b -F 3852 -f 2 -q 40 $DBAM/$ENCFF.bam > $DFILTER/$ENCFF.bam
+
