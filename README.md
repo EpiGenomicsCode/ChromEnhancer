@@ -3,6 +3,10 @@
 
 1. Figure out Data
     * ~~Meeting 6/27/22: Create a dataloader for the chromatin data with the label, similar to pandas dataframe maybe~~
+    * Remove duplicates from data
+    * Fix make embedd alignment
+    * Look into tfrecords and training time 
+    * Maybe data augmentation
     * Add Seq data to the dataset **(is this needed)**
     * Create a validation dataset
 2. Build Network
@@ -11,6 +15,7 @@
 3. ~~Run Network~~
     * ~~Not Yet~~
 4. Collect Results
+    * AUC and PRC
 
 
 # Changelog
