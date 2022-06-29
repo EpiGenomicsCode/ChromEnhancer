@@ -59,7 +59,7 @@ class Chromatin_Dataset(Dataset):
                 #     for line in infile:
                 #         seq_len+=1
                 #         seq.append(torch.tensor(self.make_onehot(line), dtype=torch.float32))
-                print("\t\t{}\t{}\n\t\t{}\t{}\n\t\t\{}{}".format(chrom_file, chrom_len, label_file, label_len, seq_file, seq_len))
+                print("\t\t{}\t{}\n\t\t{}\t{}\n\t\t".format(chrom_file, chrom_len, label_file, label_len))
 
 
-        return data, label, seq
+        return data, label

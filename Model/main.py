@@ -26,7 +26,7 @@ def main():
 
    # Compile the model
    learning_rate = 0.01 
-   epochs = 3
+   epochs = 30
    optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
    loss_fn = nn.BCELoss()
 
