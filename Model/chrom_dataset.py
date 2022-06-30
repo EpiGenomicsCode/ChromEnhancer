@@ -22,13 +22,31 @@ class Chromatin_Dataset(Dataset):
         return self.data[index], self.labels[index]
 
     def make_onehot(self, sequences, seq_length=32):    
-        fd = {  'A' : [1, 0, 0, 0], 'T': [0,1,0,0], 'G' : [0,0,1,0],'C': [0,0,0, 1], 'N': [0,0,0,0],
-                'a' : [1, 0, 0, 0], 't': [0,1,0,0], 'g': [0,0,1,0], 'c': [0,0,0,1],
-                'n' : [0,0,0,0]
+        fd = {  'A' : [1, 0, 0, 0], 'T' : [0, 1, 0, 0], 'G' : [0, 0, 1, 0], 'C': [0, 0, 0, 1], 
+                'N' : [0, 0, 0, 0], 'a' : [1, 0, 0, 0], 't' : [0, 1, 0, 0],
+                'g' : [0, 0, 1, 0], 'c' : [0, 0, 0, 1],
+                'n' : [0, 0, 0, 0]
              }
         onehot = [fd[base] for seq in sequences for base in seq]
         onehot_np = np.reshape(onehot, (-1, seq_length, 4))
         return onehot_np
+
+
+    def removeDuplicated(self, data, label):
+        dataset = set()
+        newData =[]
+        newLabel =[]
+        for data in zip(data, label):
+            molData = data[0]
+            molLab  = data[1]
+            if not molData in dataset:
+                newData.append(molData)
+                newLabel.append(molLab)
+                dataset.add(molData)
+            else:
+                print("duplicate:{}\t{}".format(molLab, newData))
+
+        return newData, newLabel
 
     def readfiles(self, file_location="../Data/Bichrom_sample_data/"):
         chrom_filenames = glob(file_location+"*chrom*")
@@ -61,5 +79,6 @@ class Chromatin_Dataset(Dataset):
                 #         seq.append(torch.tensor(self.make_onehot(line), dtype=torch.float32))
                 print("\t\t{}\t{}\n\t\t{}\t{}\n\t\t".format(chrom_file, chrom_len, label_file, label_len))
 
+        data, label = self.removeDuplicated(data, label)
 
         return data, label
