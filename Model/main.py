@@ -13,7 +13,8 @@ import matplotlib.pyplot as plt
 def main():
    # Detect GPU or CPU
    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+   savePath = "model.pt"
+   
    # Load the data
    c10_17_ctf_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="CTCF-1"), batch_size=256,shuffle=True)
    c10_17_H3K4me3_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="H3K4me3-1"), batch_size=32,shuffle=True)
@@ -32,7 +33,7 @@ def main():
 
    # Compile the model
    learning_rate = 1e-5
-   epochs = 30
+   epochs = 100
    optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
    loss_fn = nn.BCELoss()
    # used to log training loss per epcoh
@@ -40,7 +41,7 @@ def main():
    test_losses   = []
 
    # Train the model
-   for epoch in tqdm(range(epochs), desc="Epochs"):
+   for epoch in tqdm(range(epochs)):
       # Set model to train mode and train on training data
       total_train_loss = 0
       for train_loader in trainer:
@@ -91,6 +92,14 @@ def main():
 
       train_losses.append(total_train_loss)
       test_losses.append(total_test_loss)
+      
+      plt.plot(train_losses)
+      plt.savefig("training losses")
+      plt.clf()
+      plt.plot(test_losses)
+      plt.savefig("testing loss")
+      plt.clf()
+      torch.save(model.state_dict(), savePath)
       print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t\t Testing Loss: {total_test_loss}')
       
    total_valid_loss = 0
@@ -110,9 +119,4 @@ def main():
    total_valid_loss /= len(validator)
    print("TOTAL VALID LOSS:{}".format(total_valid_loss))
 
-   plt.plot(total_train_loss)
-   plt.savefig("training losses")
-   plt.clf()
-   plt.plot(total_test_loss)
-   plt.savefig("testing loss")
 main()
