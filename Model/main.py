@@ -15,11 +15,13 @@ def main():
 
    # Load the data
    c10_17_ctf_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="CTCF-1"), batch_size=256,shuffle=True)
-   #c10_17_H3K4me3_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="H3K4me3-1"), batch_size=32,shuffle=True)
-   # c10_17_p300_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="p300-1"), batch_size=32,shuffle=True)
+   c10_17_H3K4me3_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="H3K4me3-1"), batch_size=32,shuffle=True)
+   c10_17_p300_1 = DataLoader(Chromatin_Dataset( chromType="chr10-chr17", chromName="p300-1"), batch_size=32,shuffle=True)
 
    trainer = [c10_17_ctf_1]
-   #validator = [c10_17_H3K4me3_1] 
+   tester = [c10_17_H3K4me3_1]
+   validator = [c10_17_p300_1]
+
 
 
    # Build the model 
@@ -32,13 +34,13 @@ def main():
    epochs = 30
    optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
    loss_fn = nn.BCELoss()
+   train_losses = []
+   tet_losses   = []
 
    # Train the model
    for epoch in tqdm(range(epochs), desc="Epochs"):
       # Set model to train mode and train on training data
       total_train_loss = 0
-      total_valid_loss = 0
-
       for train_loader in trainer:
          train_loss = 0.0
 
@@ -66,25 +68,42 @@ def main():
 
             # Calc loss
             train_loss += loss.item()
-         total_train_loss += train_loss
+            total_train_loss += train_loss
+         
       total_train_loss/=len(trainer)
 
-
-      for test_loader in validator:
-          # Set model to validation 
+      total_test_loss = 0
+      for test_loader in tester:
+         # Set model to validation 
          model.eval()
-         valid_loss = 0
-         for valid_data, valid_label in test_loader:
-            valid_data , valid_label = valid_data.to(device) , valid_label.to(device)
+         test_loss = 0
+         for test_data, test_label in test_loader:
+            test_data , test_label = test_data.to(device) , test_label.to(device)
 
-            target = model(valid_data)
-            valid_label = valid_label.unsqueeze(1)
+            target = model(test_data)
+            test_label = test_label.unsqueeze(1)
 
-            loss = loss_fn(target.to(torch.float32), valid_label.to(torch.float32))
-            valid_loss += loss.item() 
-         total_valid_loss+=valid_loss
-      total_valid_loss /= len(validator)
+            loss = loss_fn(target.to(torch.float32), test_label.to(torch.float32))
+            test_loss += loss.item() 
+         total_test_loss+=test_loss
+      total_test_loss /= len(validator)
 
-      print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t\t Validation Loss: {total_valid_loss}')
+      print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t\t Testing Loss: {total_test_loss}')
 
+   total_valid_loss = 0
+   for valid_loader in validator:
+      # Set model to validation 
+      model.eval()
+      valid_loss = 0
+      for valid_data, valid_label in valid_loader:
+         valid_data , valid_label = valid_data.to(device) , valid_label.to(device)
+
+         target = model(valid_data)
+         valid_label = valid_label.unsqueeze(1)
+
+         loss = loss_fn(target.to(torch.float32), valid_label.to(torch.float32))
+         valid_loss += loss.item() 
+      total_valid_loss+=valid_loss
+   total_valid_loss /= len(validator)
+   print("TOTAL VALID LOSS:{}".format(total_valid_loss))
 main()
