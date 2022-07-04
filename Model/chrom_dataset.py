@@ -1,25 +1,25 @@
+from pydoc import describe
+from typing import Dict
 from torch.utils.data import Dataset
 from glob import glob
 import numpy as np
 import torch
+from tqdm import tqdm
+import itertools
+import pandas as pd
 
 class Chromatin_Dataset(Dataset):
-    def __init__(self):
+    def __init__(self, chromType="chr10-chr17", chromName="CTCF-1", file_location="../Data/220627_DATA/TRAIN/*"):
         super(Dataset, self).__init__()
-        self.data, self.labels = self.readfiles()
-        self.input_shape = len(self.data[0])
+        self.data, self.labels = self.readfiles(chromType, chromName, file_location)
         self.data = self.data
         self.labels = self.labels
 
-        assert len(self.data) == len(self.labels)
-
-        self.length = len(self.data)
-        
     def __len__(self):
-        return len(self.data)
+        return len(self.labels)
         
     def __getitem__(self, index):
-        return self.data[index], self.labels[index]
+        return torch.tensor(self.data.iloc[index].to_numpy()), torch.tensor(self.labels[index])
 
     def make_onehot(self, sequences, seq_length=32):    
         fd = {  'A' : [1, 0, 0, 0], 'T' : [0, 1, 0, 0], 'G' : [0, 0, 1, 0], 'C': [0, 0, 0, 1], 
@@ -31,12 +31,11 @@ class Chromatin_Dataset(Dataset):
         onehot_np = np.reshape(onehot, (-1, seq_length, 4))
         return onehot_np
 
-
-    def removeDuplicated(self, data, label):
+    def removeDuplicate(self, data, label):
         dataset = set()
         newData =[]
         newLabel =[]
-        for data in zip(data, label):
+        for data in tqdm(zip(data, label), desc="Cleaning"):
             molData = data[0]
             molLab  = data[1]
             if not molData in dataset:
@@ -48,37 +47,27 @@ class Chromatin_Dataset(Dataset):
 
         return newData, newLabel
 
-    def readfiles(self, file_location="../Data/Bichrom_sample_data/"):
-        chrom_filenames = glob(file_location+"*chrom*")
-        label_filenames = glob(file_location+"*label*")
-        seq_filenames   = glob(file_location+"*seq*" )
+    def readfiles(self,chromeType,chromName, file_location):
+        files = glob(file_location)
+        labels = []
 
-        data  = []
-        label = []
-        seq   = []
-        print("Processing\n\tchrome files {}\n\tlabel files {}".format(chrom_filenames, label_filenames))
-        for files in zip(chrom_filenames, label_filenames, seq_filenames):
-            chrom_file = files[0]
-            label_file = files[1]
-            seq_file   = files[2]
-            if "val" not in chrom_file:
-                chrom_len = 0
-                label_len = 0
-                seq_len   = 0
-                with open(chrom_file) as infile:
-                    for line in infile:
-                        chrom_len+=1
-                        data.append(torch.tensor(np.array([float(i) for i in line.split()]),dtype=torch.float32))
-                with open(label_file)  as infile:
-                    for line in infile:
-                        label_len+=1
-                        label.append(torch.tensor(np.array(int(line)), dtype=torch.float32))
-                # with open(seq_file)  as infile:
-                #     for line in infile:
-                #         seq_len+=1
-                #         seq.append(torch.tensor(self.make_onehot(line), dtype=torch.float32))
-                print("\t\t{}\t{}\n\t\t{}\t{}\n\t\t".format(chrom_file, chrom_len, label_file, label_len))
+        for i in files:
+            if chromeType in i and chromName in i:
+                if ".chromtrack" in i:
+                    print("Processing: {}".format(i))
+                    value = []
+                    with open(i) as openfile:
+                        for line in openfile:
+                            value.append([float(i) for i in line.strip().split(" ")])
+                    data = pd.DataFrame(value)
+            if chromeType in i:
+                if ".label" in i:
+                    print("Processing: {}".format(i))
+                    value = []
+                    with open(i) as openfile:
+                        for line in openfile:
+                            value.append(float(line.strip()))
 
-        data, label = self.removeDuplicated(data, label)
+                    
 
-        return data, label
+        return data, value
