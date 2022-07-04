@@ -7,6 +7,7 @@ import torch
 from torch import nn
 from tqdm import tqdm 
 import pdb
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -34,8 +35,9 @@ def main():
    epochs = 30
    optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
    loss_fn = nn.BCELoss()
+   # used to log training loss per epcoh
    train_losses = []
-   tet_losses   = []
+   test_losses   = []
 
    # Train the model
    for epoch in tqdm(range(epochs), desc="Epochs"):
@@ -69,7 +71,6 @@ def main():
             # Calc loss
             train_loss += loss.item()
             total_train_loss += train_loss
-         
       total_train_loss/=len(trainer)
 
       total_test_loss = 0
@@ -88,8 +89,10 @@ def main():
          total_test_loss+=test_loss
       total_test_loss /= len(validator)
 
+      train_losses.append(total_train_loss)
+      test_losses.append(total_test_loss)
       print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t\t Testing Loss: {total_test_loss}')
-
+      
    total_valid_loss = 0
    for valid_loader in validator:
       # Set model to validation 
@@ -106,4 +109,10 @@ def main():
       total_valid_loss+=valid_loss
    total_valid_loss /= len(validator)
    print("TOTAL VALID LOSS:{}".format(total_valid_loss))
+
+   plt.plot(total_train_loss)
+   plt.savefig("training losses")
+   plt.clf()
+   plt.plot(total_test_loss)
+   plt.savefig("testing loss")
 main()
