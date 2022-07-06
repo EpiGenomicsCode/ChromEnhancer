@@ -31,21 +31,6 @@ class Chromatin_Dataset(Dataset):
         onehot_np = np.reshape(onehot, (-1, seq_length, 4))
         return onehot_np
 
-    def removeDuplicate(self, data, label):
-        dataset = set()
-        newData =[]
-        newLabel =[]
-        for data in tqdm(zip(data, label), desc="Cleaning"):
-            molData = data[0]
-            molLab  = data[1]
-            if not molData in dataset:
-                newData.append(molData)
-                newLabel.append(molLab)
-                dataset.add(molData)
-            else:
-                print("duplicate:{}\t{}".format(molLab, newData))
-
-        return newData, newLabel
 
     def readfiles(self,chromeType,chromName, file_location):
         files = glob(file_location)
@@ -61,7 +46,7 @@ class Chromatin_Dataset(Dataset):
                     with open(i) as openfile:
                         for line in openfile:
                             # TODO figure out different line lengths
-                            data.append([float(i) for i in line.strip().split(" ")[:100]])
+                            data.append([float(i) for i in line.strip().split(" ")])
                     data = np.array(data)
             if chromeType in i:
                 if ".label" in i:
