@@ -9,11 +9,9 @@ import itertools
 import pandas as pd
 import pdb
 class Chromatin_Dataset(Dataset):
-    def __init__(self, chromType="chr10-chr17", chromName="CTCF-1", file_location="../Data/220627_DATA/TRAIN/*"):
+    def __init__(self, chromType="chr10-chr17", chromName="CTCF-1", file_location="./Data/220627_DATA/TRAIN/*"):
         super(Dataset, self).__init__()
         self.data, self.labels = self.readfiles(chromType, chromName, file_location)
-        self.data = self.data
-        self.labels = self.labels
 
     def __len__(self):
         return len(self.labels)
@@ -42,11 +40,9 @@ class Chromatin_Dataset(Dataset):
                 if ".chromtrack" in i:
                     print("Processing: {}".format(i))
                     value = []
-                    line_num = 0
                     with open(i) as openfile:
                         for line in openfile:
-                            # TODO figure out different line lengths
-                            data.append([float(i) for i in line.strip().split(" ")])
+                            data.append([float(ii) for ii in line.strip().split(" ")])
                     data = np.array(data)
             if chromeType in i:
                 if ".label" in i:
