@@ -107,11 +107,13 @@ def plotData(train_losses, test_losses, test_accuracy):
     plt.clf()
 
 def calcAccuracy(real, gen):
-    total = 0
+    totalCount = 0
+    correct = 0
     for i in zip(real, gen):
+        totalCount+=1
         if i[0]==i[1]:
-            total+=1
-    return total/len(gen)
+            correct+=1
+    return correct/totalCount
 
 def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size, epochs):
     savePath = "output/model.pt"
