@@ -12,7 +12,7 @@ module load anaconda3
 source activate starrpeaker
 
 # UPDATE THIS PATH BEFORE SUBMISSION
-WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing/01_STARRseq_peakcalling
 cd $WRK
 
 DBAM=results/BAM
@@ -21,26 +21,29 @@ DOUT=results/StarrpeakerResults
 [ -d logs ] || mkdir logs
 [ -d $DOUT ] || mkdir $DOUT
 
-METADATA=bam-samples.txt
+METADATA=$WRK/input/bam-samples.txt
 INFO=`sed "${PBS_ARRAYID}q;d" $METADATA`
 CLINE=`echo $INFO | awk '{print $1}'`
 STARR=`echo $INFO | awk '{print $3}'`
 INPUT=`echo $INFO | awk '{print $6}'`
 #echo $INFO
 
-BLACKLIST=input/ENCFF419RSJ.bed
-COVGC=input/gc5Base.bw
-COVRNAE=
-COVMAP=
-GENOME=input/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.pac
+PVAL=0.1
+BLACKLIST=$WRK/input/ENCFF419RSJ.bed
+COVGC=$WRK/input/gc5Base.bw
+COVGC=$WRK/input/STARRPeaker_cov_GRCh38_ucsc-gc-5bp.bw
+COVRNAE=$WRK/input/STARRPeaker_cov_GRCh38_linearfold-folding-energy-100bp.bw
+COVMAP=$WRK/input/STARRPeaker_cov_GRCh38_gem-mappability-100mer.bw
+GENOME=$WRK/input/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.pac
 #CHROMSIZES=input/hg38.chrom.sizes
-CHROMSIZES=input/GRCh38.chrom.sizeas.simple.sorted
+CHROMSIZES=$WRK/input/GRCh38.chrom.sizes.simple.sorted
 
 start=`date +%s`
+
 starrpeaker --prefix $DOUT/$CLINE --chromsize $CHROMSIZES --blacklist $BLACKLIST \
-	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold 0.05
-#	--cov $COVGC $COVMAP $COVRNAE \
+	--cov $COVGC $COVMAP $COVRNAE \
+	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold $PVAL
+
 end=`date +%s`
 runtime=$((end-start))
 echo "Starrpeaker ${STARR}-${INPUT} ran in ${runtime}"
-

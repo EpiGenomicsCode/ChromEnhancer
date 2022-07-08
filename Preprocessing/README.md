@@ -119,7 +119,118 @@ When all scripts have been run sequentially, it will produce the following data 
 
 ```
 |--Preprocessing/01_STARRseq_peakcalling
-
+  |--README.md
+  |--input
+    |--bam-samples.txt
+    |--ENCFF419RSJ.bed
+    |--GRCh38.chrom.sizes.simple.sorted
+    |--STARRPeaker_cov_GRCh38_gem-mappability-100mer.bw
+    |--STARRPeaker_cov_GRCh38_linearfold-folding-energy-100bp.bw
+    |--STARRPeaker_cov_GRCh38_ucsc-gc-5bp.bw
+  |--job
+    |--00_download_data.pbs
+    |--01_run_starrpeaker.pbs
+    |--setup.sh
+  |--logs
+    |--download.data.log.err-1
+    |--download.data.log.err-2
+    |--download.data.log.err-3
+    |--download.data.log.err-4
+    |--download.data.log.err-5
+    |--download.data.log.err-6
+    |--download.data.log.err-7
+    |--download.data.log.err-8
+    |--download.data.log.out-1
+    |--download.data.log.out-2
+    |--download.data.log.out-3
+    |--download.data.log.out-4
+    |--download.data.log.out-5
+    |--download.data.log.out-6
+    |--download.data.log.out-7
+    |--download.data.log.out-8
+    |--starrpeaker.log.err-1
+    |--starrpeaker.log.err-2
+    |--starrpeaker.log.err-3
+    |--starrpeaker.log.err-4
+    |--starrpeaker.log.out-1
+    |--starrpeaker.log.out-2
+    |--starrpeaker.log.out-3
+    |--starrpeaker.log.out-4
+  |--results
+    |--BAM
+      |--ENCFF060IFE.bam
+      |--ENCFF060IFE.bam.bai
+      |--ENCFF229JXT.bam
+      |--ENCFF229JXT.bam.bai
+      |--ENCFF287SIA.bam
+      |--ENCFF287SIA.bam.bai
+      |--ENCFF316KQD.bam
+      |--ENCFF316KQD.bam.bai
+      |--ENCFF323CMG.bam
+      |--ENCFF323CMG.bam.bai
+      |--ENCFF391WAQ.bam
+      |--ENCFF391WAQ.bam.bai
+      |--ENCFF427PXM.bam
+      |--ENCFF427PXM.bam.bai
+      |--ENCFF503CJW.bam
+      |--ENCFF503CJW.bam.bai
+      |--ENCFF655GXX.bam
+      |--ENCFF655GXX.bam.bai
+      |--ENCFF672URE.bam
+      |--ENCFF672URE.bam.bai
+      |--ENCFF807BAQ.bam
+      |--ENCFF807BAQ.bam.bai
+      |--ENCFF848IIW.bam
+      |--ENCFF848IIW.bam.bai
+    |--StarrpeakerResults
+      |--A549.bam.bct
+      |--A549.bin.bed
+      |--A549.cov.tsv
+      |--A549.fc.bw
+      |--A549.input.bw
+      |--A549.input.frag.bed
+      |--A549.output.bw
+      |--A549.output.frag.bed
+      |--A549.peak.bed
+*     |--A549.peak.final.bed
+      |--A549.pval.bw
+      |--A549.qval.bw
+      |--HepG2.bam.bct
+      |--HepG2.bin.bed
+      |--HepG2.cov.tsv
+      |--HepG2.fc.bw
+      |--HepG2.input.bw
+      |--HepG2.input.frag.bed
+      |--HepG2.output.bw
+      |--HepG2.output.frag.bed
+      |--HepG2.peak.bed
+*      |--HepG2.peak.final.bed
+      |--HepG2.pval.bw
+      |--HepG2.qval.bw
+      |--K562.bam.bct
+      |--K562.bin.bed
+      |--K562.cov.tsv
+      |--K562.fc.bw
+      |--K562.input.bw
+      |--K562.input.frag.bed
+      |--K562.output.bw
+      |--K562.output.frag.bed
+      |--K562.peak.bed
+*      |--K562.peak.final.bed
+      |--K562.pval.bw
+      |--K562.qval.bw
+      |--MCF-7.bam.bct
+      |--MCF-7.bin.bed
+      |--MCF-7.cov.tsv
+      |--MCF-7.fc.bw
+      |--MCF-7.input.bw
+      |--MCF-7.input.frag.bed
+      |--MCF-7.output.bw
+      |--MCF-7.output.frag.bed
+      |--MCF-7.peak.bed
+*      |--MCF-7.peak.final.bed
+      |--MCF-7.pval.bw
+      |--MCF-7.qval.bw
 ```
 
 </details>
@@ -133,8 +244,8 @@ When all scripts have been run sequentially, it will produce the following data 
 ```
 |--Preprocessing/02_call_Enhancers
   |--Enhancer_Coord
-    |--A549_hg38_LenientEnhancer_1000bp.bed
-    |--A549_hg38_LenientEnhancer.bed
+ |--A549_hg38_LenientEnhancer_1000bp.bed
+  |--A549_hg38_LenientEnhancer.bed
     |--A549_hg38_StringentEnhancer_1000bp.bed
     |--A549_hg38_StringentEnhancer.bed
     |--HepG2_hg38_LenientEnhancer_1000bp.bed
