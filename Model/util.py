@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 from glob import glob
 from tqdm import tqdm 
-from sklearn import svm
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
@@ -40,9 +39,8 @@ def readfiles(chromeType,chromName, file_location):
     
     return clean(data, labels)
 
-def fitSVM(epochs, train, test, valid):
+def fitSVM(supportvectormachine, epochs, train, test, valid):
    print("Running the SVM")
-   supportvectormachine = svm.SVC(verbose=True, tol=1e-1,cache_size=1024, max_iter=epochs, kernel="poly", degree=7)
    for t in train:
       supportvectormachine.fit(t.data, t.labels)
 
@@ -54,46 +52,73 @@ def fitSVM(epochs, train, test, valid):
    
    return supportvectormachine
 
-def plotPCA(train):
-   x =train.data
-   pca = PCA(n_components=2)
-   principalComponents = pca.fit_transform(x)
-   principalDf = pd.DataFrame(data = principalComponents
-             , columns = ['principal component 1', 'principal component 2'])
-   labels = pd.DataFrame(train.labels, columns=["target"])
-   finalDf = pd.concat([principalDf, labels], axis=1)
-   finalDf.to_csv("./Data/PCA_compression.csv")
-   
-   colors  = ['b', 'r']
-   targets = [ 0 ,  1 ]
-   ax1 = plt.subplot(211)
+def plotPCA(chrom):
+    print("Processing PCA for {}".format(chrom.filename))
+    x =chrom.data
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(x)
+    principalDf = pd.DataFrame(data = principalComponents
+                , columns = ['principal component 1', 'principal component 2'])
+    labels = pd.DataFrame(chrom.labels, columns=["target"])
+    finalDf = pd.concat([principalDf, labels], axis=1)
+    finalDf.to_csv("./Data/PCA_compression.csv")
+    
+    colors  = ['b', 'r']
+    targets = [ 0 ,  1 ]
+    ax1 = plt.subplot(211)
 
-   ax1.set_ylabel('Principal Component 2', fontsize = 15)
-   ax1.set_title('2 component PCA, target = 0', fontsize = 20)
+    ax1.set_ylabel('Principal Component 2', fontsize = 15)
+    ax1.set_title('2 component PCA, target = 0', fontsize = 20)
 
-   indicesToKeep = finalDf['target'] == 0
-   ax1.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
-               , finalDf.loc[indicesToKeep, 'principal component 2']
-               , c = 'r'
-               , s = 50
-             )
-   
-   ax2 = plt.subplot(212,sharex=ax1)
-   ax2.set_title('2 component PCA, target = 1', fontsize = 20)
-   ax2.set_xlabel('Principal Component 1', fontsize = 15)
+    indicesToKeep = finalDf['target'] == 0
+    ax1.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
+                , finalDf.loc[indicesToKeep, 'principal component 2']
+                , c = 'r'
+                , s = 50
+                )
+    
+    ax2 = plt.subplot(212,sharex=ax1)
+    ax2.set_title('2 component PCA, target = 1', fontsize = 20)
+    ax2.set_xlabel('Principal Component 1', fontsize = 15)
 
 
-   indicesToKeep = finalDf['target'] == 1
-   ax2.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
-               , finalDf.loc[indicesToKeep, 'principal component 2']
-               , c = 'b'
-               , s = 50
-             )
-   plt.tight_layout()
-   plt.savefig("output/PCA_"+train.filename+".png")
+    indicesToKeep = finalDf['target'] == 1
+    ax2.scatter(finalDf.loc[indicesToKeep, 'principal component 1']
+                , finalDf.loc[indicesToKeep, 'principal component 2']
+                , c = 'b'
+                , s = 50
+                )
+    plt.tight_layout()
+    plt.savefig("output/PCA_"+chrom.filename+".png")
+
+def normalizer(value,  listLength):
+    return value/listLength
+
+def plotData(train_losses, test_losses, test_accuracy):
+    plt.plot(train_losses, label="training")
+    plt.plot(test_losses, label="testing")
+    plt.legend()
+    plt.savefig("output/losses.png")
+    plt.clf()
+    plt.plot(test_accuracy, label="accuracy")
+    plt.plot([1 for i in range(len(test_accuracy))], label="perfection")
+    plt.legend()
+    plt.savefig("output/test_accuracy.png")
+    plt.clf()
+
+def calcAccuracy(real, gen):
+    total = 0
+    for i in zip(real, gen):
+        if i[0]==i[1]:
+            total+=1
+    return total/len(gen)
 
 def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size, epochs):
+    savePath = "output/model.pt"
+
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
 
     # used to log training loss per epcoh
@@ -105,6 +130,7 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
     for epoch in tqdm(range(epochs), position=0, leave=True):
         # Set model to train mode and train on training data
         total_train_loss = 0
+        model.train()
         for train_loader in trainer:
             train_loader = DataLoader(train_loader, batch_size=batch_size,shuffle=True)
             for data, label in train_loader:
@@ -119,6 +145,7 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
 
                 # Clean the data
                 target = torch.flatten(target)
+                label = torch.flatten(label)
 
                 # Calculate the Loss
                 loss = loss_fn(target.to(torch.float32), label.to(torch.float32))
@@ -131,54 +158,37 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
 
                 # save loss
                 total_train_loss += loss.item()
-             # normalize for each data point
             total_train_loss/=len(train_loader)
-        # normalize for each chometype
-        total_train_loss/=len(trainer)
 
         total_test_loss = 0
         total_accuracy = 0
+        model.eval()
+
         for test_loader in tester:
             test_loader = DataLoader(test_loader, batch_size=batch_size,shuffle=True)
-
-            # Set model to validation 
-            model.eval()
             for test_data, test_label in test_loader:
                 test_data , test_label = test_data.to(device) , test_label.to(device)
 
                 target = model(test_data)
-                test_label = test_label.unsqueeze(1)
+                target = torch.flatten(target)
+                test_label = torch.flatten(test_label)
 
                 loss = loss_fn(target.to(torch.float32), test_label.to(torch.float32))
                 total_test_loss += loss.item() 
-
-                target = torch.round(target)
-                total_accuracy += torch.sum(test_label == target).item()
-            
-            total_accuracy/=len(test_loader)
+                total_accuracy += calcAccuracy(test_label, target)
             total_test_loss/=len(test_loader)
-        total_accuracy/=len(validator)
-        total_accuracy/=batch_size
-        total_test_loss /= len(validator)
+            total_accuracy/=len(test_loader)
+            
+        train_losses.append(normalizer( total_train_loss, len(trainer)  ))
+        test_losses.append(normalizer(  total_test_loss , len(tester)   ))
+        test_accuracy.append(normalizer(total_accuracy  , len(tester)   ))
 
-        train_losses.append(total_train_loss)
-        test_losses.append(total_test_loss)
-        test_accuracy.append(total_accuracy)
-      
-        plt.plot(train_losses)
-        plt.savefig("output/training_losses.png")
-        plt.clf()
-        plt.plot(test_losses)
-        plt.savefig("output/testing_losses.png")
-        plt.clf()
+        plotData(train_losses, test_losses, test_accuracy)
         torch.save(model.state_dict(), savePath)
-        plt.plot(test_accuracy)
-        plt.savefig("output/test_accuracy.png")
-        plt.clf()
 
         print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t Testing Loss: {total_test_loss} \t Test Avg. Accuracy: {total_accuracy}')
       
-    total_valid_loss = 0
+    total_valid_accuracy = 0
     for valid_loader in validator:
         valid_loader = DataLoader(valid_loader, batch_size=batch_size,shuffle=True)
 
@@ -189,10 +199,11 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
             valid_data , valid_label = valid_data.to(device) , valid_label.to(device)
 
             target = model(valid_data)
-            valid_label = valid_label.unsqueeze(1)
+            target = torch.flatten(target)
+            valid_label = torch.flatten(valid_label)
 
-            loss = loss_fn(target.to(torch.float32), valid_label.to(torch.float32))
-            valid_loss += loss.item() 
-        total_valid_loss+=valid_loss
-    total_valid_loss /= len(validator)
-    print("TOTAL VALID LOSS:{}".format(total_valid_loss))
+            total_valid_accuracy += calcAccuracy(valid_label, target)
+        total_valid_accuracy/=len(valid_loader)
+        
+
+    print("Validation accuracy:{}".format(normalizer(total_valid_accuracy, len(validator))))
