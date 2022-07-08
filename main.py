@@ -38,8 +38,8 @@ def main():
    HOLD_c10_17_PolII_2     = Chromatin_Dataset(chromType="chr17", chromName="PolII-2", file_location="./Data/220627_DATA/HOLDOUT/*")
    
    trainer   = [c10_17_ctf_1      , c10_17_ctf_2,c10_17_H3K27ac_1,c10_17_H3K27ac_2,c10_17_H3K4me3_1, c10_17_H3K4me3_2, c10_17_p300_1,c10_17_p300_2, c10_17_PolII_1,c10_17_PolII_2 ]
-   tester    = [HOLD_c10_17_ctf_1 , HOLD_c10_17_H3K27ac_1, HOLD_c10_17_H3K4me3_1]
-   validator = [HOLD_c10_17_p300_1, HOLD_c10_17_PolII_1]#[HOLD_c10_17_ctf_2, HOLD_c10_17_H3K27ac_2, HOLD_c10_17_H3K4me3_2, HOLD_c10_17_p300_2, HOLD_c10_17_PolII_2]
+   tester    = [HOLD_c10_17_ctf_1 , HOLD_c10_17_H3K27ac_1, HOLD_c10_17_H3K4me3_1, HOLD_c10_17_p300_1, HOLD_c10_17_PolII_1]
+   validator = [HOLD_c10_17_ctf_2, HOLD_c10_17_H3K27ac_2, HOLD_c10_17_H3K4me3_2, HOLD_c10_17_p300_2, HOLD_c10_17_PolII_2]
    
    # Train the SVM
    # supportvectormachine = svm.SVC(verbose=True, tol=1e-1,cache_size=1024, max_iter=epochs, kernel="poly", degree=7)
@@ -57,7 +57,7 @@ def main():
    # paramets
    
    # Detect GPU or CPU
-   epochs = 10
+   epochs = 1000
    batch_size = 32
    learning_rate = 1e-3
    inputSize = 100
@@ -67,7 +67,7 @@ def main():
    print(model)
 
    # Compile the model
-   optimizer = torch.optim.SGD(model.parameters(),lr=learning_rate)
+   optimizer = torch.optim.RMSprop(model.parameters(),lr=learning_rate)
    loss_fn = nn.BCEWithLogitsLoss()
 
    trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size, epochs)

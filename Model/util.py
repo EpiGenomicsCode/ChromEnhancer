@@ -1,3 +1,4 @@
+from cProfile import label
 import torch
 import numpy as np
 import pandas as pd
@@ -12,7 +13,7 @@ from torch.utils.data import DataLoader
 def clean(data, labels):
     newdata = []
     newlabel = []
-    for i in zip(data.values, labels.values):
+    for i in zip(data, labels):
         dataValue = i[0]
         labelValue = i[1]
         if np.sum(dataValue) != 0:
@@ -34,10 +35,8 @@ def readfiles(chromeType,chromName, file_location):
             if ".label" in i:
                 print("Processing: {}".format(i))
                 labels = pd.read_csv(i, delimiter=" ")
-
-
     
-    return clean(data, labels)
+    return data.values, labels.values
 
 def fitSVM(supportvectormachine, epochs, train, test, valid):
    print("Running the SVM")
