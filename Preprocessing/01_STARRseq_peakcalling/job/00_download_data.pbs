@@ -28,7 +28,7 @@ ENCFF=`cut -f3 $METADATA | cat - <(cut -f6 $METADATA ) |sort |uniq |sed "${PBS_A
 cd $DBAM
 
 # ENCODE data download
-URL=https://www.encodeproject.org/files/$FINPUT/@@download/$ENCFF.bam
+URL=https://www.encodeproject.org/files/$ENCFF/@@download/$ENCFF.bam
 echo "Fetching control input sample from $URL"
 wget $URL
 
