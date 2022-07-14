@@ -8,35 +8,34 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 
+from sklearn import preprocessing
 
+#id="A549", chromType= ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"], label="chr10-chr17", file_location="./Data/220708_DATA/TRAIN/*"
 
-def clean(data, labels):
-    newdata = []
-    newlabel = []
-    for i in zip(data, labels):
-        dataValue = i[0]
-        labelValue = i[1]
-        if np.sum(dataValue) != 0:
-            newdata.append(dataValue)
-            newlabel.append(labelValue)
-    return newdata, newlabel
-
-def readfiles(chromeType,chromName, file_location):
+def readfiles(id, chromType, label, file_location):
     files = glob(file_location)
     labels = []
-    data = []
+    data = {}
 
-    for i in files:
-        if chromeType in i and chromName in i:
-            if ".chromtrack" in i:
-                print("Processing: {}".format(i))
-                data = pd.read_csv(i, delimiter=" ")
-        if chromeType in i:
-            if ".label" in i:
-                print("Processing: {}".format(i))
-                labels = pd.read_csv(i, delimiter=" ")
+    for fileType in chromType:
+        filename = [i for i in files if id in i and fileType in i and "chromtrack" in i and label in i]
+        assert len(filename) != 0
+        print("Processing: {}".format(filename[0]))
+        fileName = filename[0]
+
+        data[fileType] = pd.read_csv(fileName, delimiter=" ")
     
-    return data.values, labels.values
+    
+    horizontalConcat = pd.DataFrame()
+    for fileType in chromType:
+        horizontalConcat = pd.concat([horizontalConcat, data[fileType]],axis=1)
+
+    labelFileName = [i for i in files if ".label" in i and id in i and label in i]
+    assert len(labelFileName) > 0
+    print("Processing: {}".format(labelFileName[0])) 
+    label = pd.read_csv(labelFileName[0], delimiter=" ")
+
+    return np.array(horizontalConcat.values), np.array(label.values)
 
 def fitSVM(supportvectormachine, epochs, train, test, valid):
    print("Running the SVM")
@@ -94,26 +93,58 @@ def normalizer(value,  listLength):
     return value/listLength
 
 def plotData(train_losses, test_losses, test_accuracy):
+
     plt.plot(train_losses, label="training")
     plt.plot(test_losses, label="testing")
     plt.legend()
     plt.savefig("output/losses.png")
     plt.clf()
-    plt.plot(test_accuracy, label="accuracy")
-    plt.plot([1 for i in range(len(test_accuracy))], label="perfection")
+    
+    precision = [i[0] for i in test_accuracy]
+    recall = [i[1] for i in test_accuracy]
+    F1 = [i[2] for i in test_accuracy]
+
+    plt.plot(precision, label="precision")
     plt.legend()
-    plt.savefig("output/test_accuracy.png")
+    plt.savefig("output/precision.png")
     plt.clf()
 
-def calcAccuracy(real, gen):
-    totalCount = 0
-    correct = 0
-    for i in zip(real, gen):
-        totalCount+=1
-        if i[0]==i[1]:
-            correct+=1
-    return correct/totalCount
+    
+    plt.plot(recall, label="recall")
+    plt.legend()
+    plt.savefig("output/recall.png")
+    plt.clf()
 
+    
+    plt.plot(F1, label="F1")
+    plt.legend()
+    plt.savefig("output/F1.png")
+    plt.clf()
+
+def calcPRF(real, gen):
+    truePositive = 0
+    falsePositives = 0
+    trueNegitive = 0
+    falseNegitive = 0
+    epsilon = 1e-4
+    for i in zip(real, gen):
+        if i[0] == 1:
+            if i[1] == 1:
+                truePositive+=1
+            else:
+                falseNegitive+=1
+        else:
+            if i[1]==1:
+                falsePositives+=1
+            else:
+                trueNegitive+=1
+    # epsilon added to avoid divide by zero error
+    precision = truePositive/(truePositive+falsePositives+epsilon)
+    recall = truePositive/(truePositive+falseNegitive+epsilon)
+    F1 = 2*(precision*recall)/(epsilon+precision+recall)
+
+    return precision, recall,F1
+ 
 def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size, epochs):
     savePath = "output/model.pt"
 
@@ -148,7 +179,9 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
                 target = torch.flatten(target)
                 label = torch.flatten(label)
 
-                # Calculate the Loss
+                # Calculate the Lo
+                print("data:{}\nlabel:{}\npred:{}".format(data.shape, label.shape, target.shape))
+                quit()
                 loss = loss_fn(target.to(torch.float32), label.to(torch.float32))
 
                 # Calculate the gradient
@@ -162,9 +195,10 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
             total_train_loss/=len(train_loader)
 
         total_test_loss = 0
-        total_accuracy = 0
+        precision = 0
+        recall = 0
+        F1 = 0
         model.eval()
-
         for test_loader in tester:
             test_loader = DataLoader(test_loader, batch_size=batch_size,shuffle=True)
             for test_data, test_label in test_loader:
@@ -176,20 +210,32 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
 
                 loss = loss_fn(target.to(torch.float32), test_label.to(torch.float32))
                 total_test_loss += loss.item() 
-                total_accuracy += calcAccuracy(test_label, target)
+                p, r, f = calcPRF(test_label, target)
+                precision += p
+                recall += r
+                F1 += f
             total_test_loss/=len(test_loader)
-            total_accuracy/=len(test_loader)
-            
+            precision/=len(test_loader)
+            recall/=len(test_loader)
+            F1/=len(test_loader)
+        
+        precision/=len(tester)
+        recall/=len(tester)
+        F1/=len(tester)
+        
         train_losses.append(normalizer( total_train_loss, len(trainer)  ))
         test_losses.append(normalizer(  total_test_loss , len(tester)   ))
-        test_accuracy.append(normalizer(total_accuracy  , len(tester)   ))
+        test_accuracy.append([precision, recall, F1])
 
         plotData(train_losses, test_losses, test_accuracy)
         torch.save(model.state_dict(), savePath)
 
-        print(f'Epoch {epoch+1} \t\t Training Loss: {total_train_loss} \t Testing Loss: {total_test_loss} \t Test Avg. Accuracy: {total_accuracy}')
-      
-    total_valid_accuracy = 0
+        print("Epoch:{}\tTraining Loss:{:.3f}\tTesting Loss:{:.3f}\tTest Avg. Prec:{:.3f}\tTest Avg. recall:{:.3f}\tTest Avg. F1: {:.3f}".format(epoch+1,total_train_loss, total_test_loss,precision,recall,F1))
+    
+    precision = 0
+    recall = 0
+    F1 =0
+    total_PRC = 0
     for valid_loader in validator:
         valid_loader = DataLoader(valid_loader, batch_size=batch_size,shuffle=True)
 
@@ -203,8 +249,17 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
             target = torch.flatten(target)
             valid_label = torch.flatten(valid_label)
 
-            total_valid_accuracy += calcAccuracy(valid_label, target)
-        total_valid_accuracy/=len(valid_loader)
+            p,r,f = calcPRF(valid_label, target)
+            precision += p
+            recall += r
+            F1 += f
+        precision/=len(valid_loader)
+        recall/=len(valid_loader)
+        F1/=len(valid_loader)
         
+    
+    precision/=len(validator)
+    recall/=len(validator)
+    F1/=len(validator)
 
-    print("Validation accuracy:{}".format(normalizer(total_valid_accuracy, len(validator))))
+    print("Validation Precision:{}\tRecall:{}\tF1:{}".format(precision, recall, F1))
