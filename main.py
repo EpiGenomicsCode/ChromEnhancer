@@ -15,23 +15,38 @@ def main():
 
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
 
-    K562_chr10_17 = Chromatin_Dataset(id="K562",
-                                      chromType=[
-                                          "CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"],
-                                      label="chr10-chr17",
-                                      file_location="./Data/220708_DATA/TRAIN/*")
+    K562_chr10_17 = Chromatin_Dataset(
+        id="K562",
+        chromType=[
+            "CTCF-1",
+            "H3K4me3-1",
+            "H3K27ac-1",
+            "p300-1",
+            "PolII-1"],
+        label="chr10-chr17",
+        file_location="./Data/220708_DATA/TRAIN/*")
 
-    K562_chr10 = Chromatin_Dataset(id="K562",
-                                   chromType=[
-                                       "CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"],
-                                   label="chr10",
-                                   file_location="./Data/220708_DATA/HOLDOUT/*")
+    K562_chr10 = Chromatin_Dataset(
+        id="K562",
+        chromType=[
+            "CTCF-1",
+            "H3K4me3-1",
+            "H3K27ac-1",
+            "p300-1",
+            "PolII-1"],
+        label="chr10",
+        file_location="./Data/220708_DATA/HOLDOUT/*")
 
-    K562_chr17 = Chromatin_Dataset(id="K562",
-                                   chromType=[
-                                       "CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"],
-                                   label="chr17",
-                                   file_location="./Data/220708_DATA/HOLDOUT/*")
+    K562_chr17 = Chromatin_Dataset(
+        id="K562",
+        chromType=[
+            "CTCF-1",
+            "H3K4me3-1",
+            "H3K27ac-1",
+            "p300-1",
+            "PolII-1"],
+        label="chr17",
+        file_location="./Data/220708_DATA/HOLDOUT/*")
 
     trainer = [K562_chr10_17]
     tester = [K562_chr10]
