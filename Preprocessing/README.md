@@ -1,69 +1,180 @@
+## Overview
+This folder contains the information required to completely regenerate the data files used in training and validating the EnhancerNN prediction algorithm.
 
+All analysis is performed against the GRCh38 human reference genome.
 
-This directory is for processing ENCODE datasets into 
+## Final folder structure
+When all scripts have been run sequentially, it will produce the following data files in this folder structure:
 
-
-## Set-up 
-Install Starrpeaker according to the [documentation]:(https://github.com/gersteinlab/starrpeaker). 
+<details>
+<summary> Preprocessing/00_download_ENCODE
+</summary>
 
 ```
-conda create -n starrpeaker python=2.7 pybedtools
-conda activate starrpeaker
-pip install git+https://github.com/gersteinlab/starrpeaker
-starrpeaker -h
+|--Preprocessing/00_download_ENCODE/ATAC
+  |--ATAC
+    |--A549_ATAC_hg38_ENCFF899OMR.bed.gz
+    |--HepG2_ATAC_hg38_ENCFF439EIO.bed.gz
+    |--K562_ATAC_hg38_ENCFF333TAT.bed.gz
+    |--MCF7_ATAC_hg38_ENCFF821OEF.bed.gz
+  |--STARR
+    |--A549_STARR_hg38_ENCFF646OQS.bed.gz
+    |--HepG2_STARR_hg38_ENCFF047LDJ.bed.gz
+    |--K562_STARR_hg38_ENCFF045TVA.bed.gz
+    |--MCF7_STARR_hg38_ENCFF826BPU.bed.gz
+  |--BAM
+    |--K562_H3K4me3_ENCFF236SNL.bam
+    |--K562_H3K4me3_ENCFF661UGK.bam
+    |--K562_H3K27ac_ENCFF301TVL.bam
+    |--K562_H3K27ac_ENCFF879BWC.bam
+    |--K562_CTCF_ENCFF198CVB.bam
+    |--K562_CTCF_ENCFF488CXC.bam
+    |--K562_p300_ENCFF200PYZ.bam
+    |--K562_p300_ENCFF982AFE.bam
+    |--K562_POLR2A_ENCFF201SIE.bam
+    |--K562_POLR2A_ENCFF267TTN.bam
+    |--A549_H3K4me3_ENCFF973TUQ.bam
+    |--A549_H3K4me3_ENCFF643FMK.bam
+    |--A549_H3K4me3_ENCFF428UWO.bam
+    |--A549_H3K27ac_ENCFF393XCS.bam
+    |--A549_H3K27ac_ENCFF117TAC.bam
+    |--A549_H3K27ac_ENCFF273YZW.bam
+    |--A549_CTCF_ENCFF280TYK.bam
+    |--A549_CTCF_ENCFF835YDD.bam
+    |--A549_p300_ENCFF040EMK.bam
+    |--A549_p300_ENCFF138AMX.bam
+    |--A549_POLR2A_ENCFF641ZJE.bam
+    |--A549_POLR2A_ENCFF816DKP.bam
+    |--HepG2_H3K4me3_ENCFF360OCU.bam
+    |--HepG2_H3K4me3_ENCFF060PGB.bam
+    |--HepG2_H3K27ac_ENCFF805KGN.bam
+    |--HepG2_H3K27ac_ENCFF686HFQ.bam
+    |--HepG2_CTCF_ENCFF012FMD.bam
+    |--HepG2_CTCF_ENCFF487UUI.bam
+    |--HepG2_p300_ENCFF352YDX.bam
+    |--HepG2_p300_ENCFF953FZD.bam
+    |--HepG2_POLR2A_ENCFF835GBL.bam
+    |--HepG2_POLR2A_ENCFF845YGC.bam
+    |--MCF7_H3K4me3_ENCFF716OCC.bam
+    |--MCF7_H3K4me3_ENCFF371XST.bam
+    |--MCF7_H3K27ac_ENCFF692SZU.bam
+    |--MCF7_H3K27ac_ENCFF096GIM.bam
+    |--MCF7_CTCF_ENCFF049OXC.bam
+    |--MCF7_CTCF_ENCFF959AJO.bam
+    |--MCF7_p300_ENCFF359OVO.bam
+    |--MCF7_p300_ENCFF596FSA.bam
+    |--MCF7_POLR2A_ENCFF191BDN.bam
+    |--MCF7_POLR2A_ENCFF193BNK.bam
+    |--K562_H3K4me3_ENCFF236SNL.bam.bai
+    |--K562_H3K4me3_ENCFF661UGK.bam.bai
+    |--K562_H3K27ac_ENCFF301TVL.bam.bai
+    |--K562_H3K27ac_ENCFF879BWC.bam.bai
+    |--K562_CTCF_ENCFF198CVB.bam.bai
+    |--K562_CTCF_ENCFF488CXC.bam.bai
+    |--K562_p300_ENCFF200PYZ.bam.bai
+    |--K562_p300_ENCFF982AFE.bam.bai
+    |--K562_POLR2A_ENCFF201SIE.bam.bai
+    |--K562_POLR2A_ENCFF267TTN.bam.bai
+    |--A549_H3K4me3_ENCFF973TUQ.bam.bai
+    |--A549_H3K4me3_ENCFF643FMK.bam.bai
+    |--A549_H3K4me3_ENCFF428UWO.bam.bai
+    |--A549_H3K27ac_ENCFF393XCS.bam.bai
+    |--A549_H3K27ac_ENCFF117TAC.bam.bai
+    |--A549_H3K27ac_ENCFF273YZW.bam.bai
+    |--A549_CTCF_ENCFF280TYK.bam.bai
+    |--A549_CTCF_ENCFF835YDD.bam.bai
+    |--A549_p300_ENCFF040EMK.bam.bai
+    |--A549_p300_ENCFF138AMX.bam.bai
+    |--A549_POLR2A_ENCFF641ZJE.bam.bai
+    |--A549_POLR2A_ENCFF816DKP.bam.bai
+    |--HepG2_H3K4me3_ENCFF360OCU.bam.bai
+    |--HepG2_H3K4me3_ENCFF060PGB.bam.bai
+    |--HepG2_H3K27ac_ENCFF805KGN.bam.bai
+    |--HepG2_H3K27ac_ENCFF686HFQ.bam.bai
+    |--HepG2_CTCF_ENCFF012FMD.bam.bai
+    |--HepG2_CTCF_ENCFF487UUI.bam.bai
+    |--HepG2_p300_ENCFF352YDX.bam.bai
+    |--HepG2_p300_ENCFF953FZD.bam.bai
+    |--HepG2_POLR2A_ENCFF835GBL.bam.bai
+    |--HepG2_POLR2A_ENCFF845YGC.bam.bai
+    |--MCF7_H3K4me3_ENCFF716OCC.bam.bai
+    |--MCF7_H3K4me3_ENCFF371XST.bam.bai
+    |--MCF7_H3K27ac_ENCFF692SZU.bam.bai
+    |--MCF7_H3K27ac_ENCFF096GIM.bam.bai
+    |--MCF7_CTCF_ENCFF049OXC.bam.bai
+    |--MCF7_CTCF_ENCFF959AJO.bam.bai
+    |--MCF7_p300_ENCFF359OVO.bam.bai
+    |--MCF7_p300_ENCFF596FSA.bam.bai
+    |--MCF7_POLR2A_ENCFF191BDN.bam.bai
+    |--MCF7_POLR2A_ENCFF193BNK.bam.bai
 ```
 
-## Download Reference Files
-Get the GRCh38 genome build-specific reference files for running the Starrpeaker on the datasets.
-`bash job/setup.sh`
+</details>
 
+<br>
 
-## Download datasets from ENCODE
-ENCODE file codes are pulled and uniqued from `input/bam-samples.txt` in the third column and the sixth column (STARRseq-input control pairs). These include the merged replicates of STARR-seq data for K564, A549, HepG2, and MCF-7 with their input controls.
+<details>
+<summary> Preprocessing/01_STARRseq_peakcalling
+</summary>
 
-Update the `WRK=` path in the `job/00_download_data.pbs` submission script. Also update the configurations of the submission to use the appropriate allocation name (and optionally adjust memory and cpu to fit your allocation criteria).
-
-`qsub job/00_download_data.pbs`
-
-This should write 6 BAM-formatted and indexed files to a new directory `results/BAM/` (input controls are shared between certain samples). STDERR and STDOUT written to files in `logs`.
-
-
-## Call Enhancer Peaks with Starrpeaker
-Get a set of peak annotations using Starrpeaker that will identify enhancers within each cell line (output named with appropriate prefix that includes the cell line).
-
-Update the `WRK=` path in the `job/00_download_data.pbs` submission script. Also update the configurations of the submission to use the appropriate allocation name (and optionally adjust memory and cpu to fit your allocation criteria).
-
-`qsub job/01_run_starrpeaker.pbs`
-
-This should write 4 sets of Starrpeaker output to a new directory `results/StarrpeakerResults/`. STDERR and STDOUT written to files in `logs`.
-
-
-## Process data into appropriate chromtrack format (unfinished)
-The peak annotations will be processed into the appropriate data folder in a format that Jamil can input and process for the NN.
-
-This means creating the various HOLDOUT-TRAIN chunk combinations:
 ```
-Data/ENCODEdata
-|--HOLDOUT
-  |--CLNAME_enhancer_chr7.bed
-  |--CLNAME_enhancer_chr8.bed
-  |--CLNAME_enhancer_chr9.bed
-  |--CLNAME_enhancer_chr10.bed
-  |--CLNAME_enhancer_chr11.bed
-  |--CLNAME_enhancer_chr12.bed
-  |--CLNAME_enhancer_chr13.bed
-  |--CLNAME_enhancer_chr14.bed
-  |--CLNAME_enhancer_chr15.bed
-  |--CLNAME_enhancer_chr16.bed
-  |--CLNAME_enhancer_chr17.bed
-  |--CLNAME_enhancer_chrX.bed
-|--TRAIN
-  |--TRAIN/CLNAME_chr10-chr17_train.bed
-  |--TRAIN/CLNAME_chr11-chr7_train.bed
-  |--TRAIN/CLNAME_chr12-chr8_train.bed
-  |--TRAIN/CLNAME_chr13-chr9_train.bed
-  |--TRAIN/CLNAME_chr14-chrX_train.bed
+|--Preprocessing/01_STARRseq_peakcalling
+
 ```
 
-`qsub job/02_format_data.pbs (TODO)`
+</details>
 
+<br>
+
+<details>
+<summary> Preprocessing/02_call_Enhancers
+</summary>
+
+```
+|--Preprocessing/02_call_Enhancers
+  |--Enhancer_Coord
+    |--A549_hg38_LenientEnhancer_1000bp.bed
+    |--A549_hg38_LenientEnhancer.bed
+    |--A549_hg38_StringentEnhancer_1000bp.bed
+    |--A549_hg38_StringentEnhancer.bed
+    |--HepG2_hg38_LenientEnhancer_1000bp.bed
+    |--HepG2_hg38_LenientEnhancer.bed
+    |--HepG2_hg38_StringentEnhancer_1000bp.bed
+    |--HepG2_hg38_StringentEnhancer.bed
+    |--K562_hg38_LenientEnhancer_1000bp.bed
+    |--K562_hg38_LenientEnhancer.bed
+    |--K562_hg38_StringentEnhancer_1000bp.bed
+    |--K562_hg38_StringentEnhancer.bed
+    |--MCF7_hg38_LenientEnhancer_1000bp.bed
+    |--MCF7_hg38_LenientEnhancer.bed
+    |--MCF7_hg38_StringentEnhancer_1000bp.bed
+    |--MCF7_hg38_StringentEnhancer.bed
+```
+
+</details>
+
+<br>
+
+<details>
+<summary> Preprocessing/03_generate_Training_data_CHR-holdout
+</summary>
+
+```
+|--Preprocessing/03_generate_Training_data_CHR-holdout
+
+```
+
+</details>
+
+<br>
+
+<details>
+<summary> Preprocessing/04_generate_Training_data_Cellline
+</summary>
+
+```
+|--Preprocessing/04_generate_Training_data_Cellline
+
+```
+
+</details>
