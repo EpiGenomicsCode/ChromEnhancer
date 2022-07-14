@@ -89,9 +89,6 @@ def plotPCA(chrom):
     plt.tight_layout()
     plt.savefig("output/PCA_"+chrom.filename+".png")
 
-def normalizer(value,  listLength):
-    return value/listLength
-
 def plotData(train_losses, test_losses, test_accuracy):
 
     plt.plot(train_losses, label="training")
@@ -126,7 +123,7 @@ def calcPRF(real, gen):
     falsePositives = 0
     trueNegitive = 0
     falseNegitive = 0
-    epsilon = 1e-4
+    epsilon = 1e-8
     for i in zip(real, gen):
         if i[0] == 1:
             if i[1] == 1:
@@ -138,6 +135,7 @@ def calcPRF(real, gen):
                 falsePositives+=1
             else:
                 trueNegitive+=1
+
     # epsilon added to avoid divide by zero error
     precision = truePositive/(truePositive+falsePositives+epsilon)
     recall = truePositive/(truePositive+falseNegitive+epsilon)
@@ -159,40 +157,30 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
     test_accuracy = []
 
    # Train the model
-    for epoch in tqdm(range(epochs), position=0, leave=True):
+    for epoch in range(epochs):
         # Set model to train mode and train on training data
         total_train_loss = 0
         model.train()
         for train_loader in trainer:
             train_loader = DataLoader(train_loader, batch_size=batch_size,shuffle=True)
-            for data, label in train_loader:
+            for data, label in tqdm(train_loader, desc="training"):
                 # Load data appropriatly
                 data, label = data.to(device), label.to(device)
-
                 # Clear gradients
                 optimizer.zero_grad()
-
                 # Forward Pass
                 target = model(data)
-
                 # Clean the data
                 target = torch.flatten(target)
                 label = torch.flatten(label)
-
                 # Calculate the Lo
-                print("data:{}\nlabel:{}\npred:{}".format(data.shape, label.shape, target.shape))
-                quit()
                 loss = loss_fn(target.to(torch.float32), label.to(torch.float32))
-
                 # Calculate the gradient
                 loss.backward()
-
                 # Update Weight
                 optimizer.step()
-
                 # save loss
                 total_train_loss += loss.item()
-            total_train_loss/=len(train_loader)
 
         total_test_loss = 0
         precision = 0
@@ -201,36 +189,30 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
         model.eval()
         for test_loader in tester:
             test_loader = DataLoader(test_loader, batch_size=batch_size,shuffle=True)
-            for test_data, test_label in test_loader:
+            for test_data, test_label in tqdm(test_loader, desc="testing"):
                 test_data , test_label = test_data.to(device) , test_label.to(device)
 
                 target = model(test_data)
                 target = torch.flatten(target)
                 test_label = torch.flatten(test_label)
-
+                
                 loss = loss_fn(target.to(torch.float32), test_label.to(torch.float32))
                 total_test_loss += loss.item() 
                 p, r, f = calcPRF(test_label, target)
                 precision += p
                 recall += r
                 F1 += f
-            total_test_loss/=len(test_loader)
-            precision/=len(test_loader)
-            recall/=len(test_loader)
-            F1/=len(test_loader)
+
         
-        precision/=len(tester)
-        recall/=len(tester)
-        F1/=len(tester)
         
-        train_losses.append(normalizer( total_train_loss, len(trainer)  ))
-        test_losses.append(normalizer(  total_test_loss , len(tester)   ))
+        train_losses.append(total_train_loss)
+        test_losses.append(total_test_loss)
         test_accuracy.append([precision, recall, F1])
 
         plotData(train_losses, test_losses, test_accuracy)
         torch.save(model.state_dict(), savePath)
 
-        print("Epoch:{}\tTraining Loss:{:.3f}\tTesting Loss:{:.3f}\tTest Avg. Prec:{:.3f}\tTest Avg. recall:{:.3f}\tTest Avg. F1: {:.3f}".format(epoch+1,total_train_loss, total_test_loss,precision,recall,F1))
+        print("Epoch:{}\tTraining Loss:{:.3f}\tTesting Loss:{:.3f}\tTest Prec:{:.3f}\tTest recall:{:.3f}\tTest F1: {:.3f}".format(epoch+1,total_train_loss, total_test_loss,precision,recall,F1))
     
     precision = 0
     recall = 0
@@ -253,13 +235,5 @@ def trainModel(trainer, tester, validator, model, optimizer, loss_fn, batch_size
             precision += p
             recall += r
             F1 += f
-        precision/=len(valid_loader)
-        recall/=len(valid_loader)
-        F1/=len(valid_loader)
         
-    
-    precision/=len(validator)
-    recall/=len(validator)
-    F1/=len(validator)
-
     print("Validation Precision:{}\tRecall:{}\tF1:{}".format(precision, recall, F1))
