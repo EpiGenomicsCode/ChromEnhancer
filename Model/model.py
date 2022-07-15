@@ -2,33 +2,33 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+#inputsize = 1
+#seq_len=500
+# numlayers = 2
 
 class Chromatin_Network(nn.Module):
-    def __init__(self, input_shape):
+    
+    def __init__(self, input_size=1, hidden_size=3, num_classes=1, num_layers=20):
         super(Chromatin_Network, self).__init__()
-        self.conv1 = nn.Conv2d(1, 3, 2)
-        self.drop1 = nn.Dropout(.25)
-
-        self.conv2 = nn.Conv2d(3, 6, 3)
-        self.drop2 = nn.Dropout(.5)
-
-        self.fc1 = nn.Linear(6 * 7 * 7, 256)
-        self.fc2 = nn.Linear(256, 128)
-        self.fc3 = nn.Linear(128, 1)
+        self.num_layers = num_layers
+        self.hidden_size=hidden_size
+        self.mem = nn.GRU(input_size,hidden_size,num_layers,batch_first=True)
+        
+        self.lin1 = nn.Linear(hidden_size,num_classes)
 
     def forward(self, x):
-        x = x.reshape(-1, 1, 10, 10)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        x = torch.relu(self.conv1(x))
-        x = self.drop1(x)
+        # x -> (batch, seq, input)
+        x = x.reshape(-1, 500, 1)
 
-        x = torch.relu(self.conv2(x))
-        x = self.drop2(x)
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
 
-        x = torch.flatten(x, start_dim=1)
+        # out -> (batch, seq, hidden)
+        out, _ = self.mem(x, h0)
 
-        x = torch.relu(self.fc1(x))
-        x = torch.relu(self.fc2(x))
-        x = torch.sigmoid(self.fc3(x))
+        out = out[:,-1,:]
 
-        return x
+        out = F.softmax(self.lin1(out))
+
+        return torch.round(out)

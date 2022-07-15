@@ -40,6 +40,9 @@ def readfiles(id, chromType, label, file_location):
     print("Processing: {}".format(labelFileName[0]))
     label = pd.read_csv(labelFileName[0], delimiter=" ")
 
+    print(horizontalConcat.describe(include="all"))
+    print("=======\n\n")
+
     return np.array(horizontalConcat.values), np.array(label.values)
 
 

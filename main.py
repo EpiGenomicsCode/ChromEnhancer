@@ -53,10 +53,10 @@ def main():
     validator = [K562_chr17]
 
     # Train the SVM
-    # supportvectormachine = svm.SVC(verbose=True, tol=1e-1,cache_size=1024, max_iter=epochs, kernel="poly", degree=7)
+    # supportvectormachine = svm.SVC(verbose=True, tol=1e-1,cache_size=1024, kernel="poly", degree=7)
     # supportvectormachine = fitSVM(supportvectormachine, epochs, trainer, tester, validator)
 
-    # # PCA plot
+    # PCA plot
     # for t in trainer:
     #    plotPCA(t)
     # for t in tester:
@@ -64,16 +64,15 @@ def main():
     # for t in validator:
     #    plotPCA(t)
 
-    # paramets
-
+    
     # Detect GPU or CPU
-    epochs = 3
-    batch_size = 256
+    epochs = 30
+    batch_size = 32
     learning_rate = 1e-3
     inputSize = 500
 
     # Build the model
-    model = Chromatin_Network(input_shape=inputSize)
+    model = Chromatin_Network()
     print(model)
 
     # Compile the model
