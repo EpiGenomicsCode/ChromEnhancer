@@ -8,7 +8,7 @@ from torch.utils.data import random_split as rnd_splt
 
 from Model.chrom_dataset import Chromatin_Dataset
 from Model.model import Chromatin_Network
-from Model.util import fitSVM, plotPCA, trainModel
+from Model.util import fitSVM, plotPCA, runModel
 
 
 def main():
@@ -17,34 +17,19 @@ def main():
 
     K562_chr10_17 = Chromatin_Dataset(
         id="K562",
-        chromType=[
-            "CTCF-1",
-            "H3K4me3-1",
-            "H3K27ac-1",
-            "p300-1",
-            "PolII-1"],
+        chromType=chromtypes,
         label="chr10-chr17",
         file_location="./Data/220708_DATA/TRAIN/*")
 
     K562_chr10 = Chromatin_Dataset(
         id="K562",
-        chromType=[
-            "CTCF-1",
-            "H3K4me3-1",
-            "H3K27ac-1",
-            "p300-1",
-            "PolII-1"],
+        chromType=chromtypes,
         label="chr10",
         file_location="./Data/220708_DATA/HOLDOUT/*")
 
     K562_chr17 = Chromatin_Dataset(
         id="K562",
-        chromType=[
-            "CTCF-1",
-            "H3K4me3-1",
-            "H3K27ac-1",
-            "p300-1",
-            "PolII-1"],
+        chromType=chromtypes,
         label="chr17",
         file_location="./Data/220708_DATA/HOLDOUT/*")
 
@@ -57,19 +42,18 @@ def main():
     # supportvectormachine = fitSVM(supportvectormachine, epochs, trainer, tester, validator)
 
     # PCA plot
-    # for t in trainer:
-    #    plotPCA(t)
-    # for t in tester:
-    #    plotPCA(t)
-    # for t in validator:
-    #    plotPCA(t)
+    for t in trainer:
+       plotPCA(t)
+    for t in tester:
+       plotPCA(t)
+    for t in validator:
+       plotPCA(t)
 
     
     # Detect GPU or CPU
-    epochs = 30
-    batch_size = 32
-    learning_rate = 1e-3
-    inputSize = 500
+    epochs = 50
+    batch_size = 64
+    learning_rate = .2
 
     # Build the model
     model = Chromatin_Network()
@@ -79,7 +63,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     loss_fn = nn.BCEWithLogitsLoss()
 
-    trainModel(
+    runModel(
         trainer,
         tester,
         validator,
