@@ -8,18 +8,20 @@ from torch.utils.data import random_split as rnd_splt
 
 from Model.chrom_dataset import Chromatin_Dataset
 from Model.model import Chromatin_Network
-from Model.util import fitSVM, plotPCA, runModel
+from Model.util import fitSVM, plotPCA, runModel, validate, loadModel
 
+# TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
+# correct validation & and PRC do multiple models on multiple data
 
 def main():
-
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
 
     K562_chr10_17 = Chromatin_Dataset(
         id="K562",
         chromType=chromtypes,
         label="chr10-chr17",
-        file_location="./Data/220708_DATA/TRAIN/*")
+        file_location="./Data/220708_DATA/TRAIN/*") # 499100
 
     K562_chr10 = Chromatin_Dataset(
         id="K562",
@@ -51,9 +53,9 @@ def main():
 
     
     # Detect GPU or CPU
-    epochs = 50
+    epochs = 5
     batch_size = 64
-    learning_rate = .2
+    learning_rate = 1e-4
 
     # Build the model
     model = Chromatin_Network()
@@ -72,6 +74,11 @@ def main():
         loss_fn,
         batch_size,
         epochs)
+    
+    model = loadModel()
+    output = validate(model, validator, device)
+    print(output[0])
+
 
 
 main()

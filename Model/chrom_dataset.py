@@ -31,7 +31,7 @@ class Chromatin_Dataset(Dataset):
         self.filename = id + "_" + label
 
         assert len(self.data) == len(self.labels)
-        print(self.data.shape)
+        
 
     def __len__(self):
         return len(self.labels)
