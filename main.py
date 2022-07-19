@@ -44,16 +44,16 @@ def main():
     # supportvectormachine = fitSVM(supportvectormachine, epochs, trainer, tester, validator)
 
     # PCA plot
-    for t in trainer:
-       plotPCA(t)
-    for t in tester:
-       plotPCA(t)
-    for t in validator:
-       plotPCA(t)
+    # for t in trainer:
+    #    plotPCA(t)
+    # for t in tester:
+    #    plotPCA(t)
+    # for t in validator:
+    #    plotPCA(t)
 
     
     # Detect GPU or CPU
-    epochs = 5
+    epochs = 10
     batch_size = 64
     learning_rate = 1e-4
 
@@ -76,8 +76,9 @@ def main():
         epochs)
     
     model = loadModel()
-    output = validate(model, validator, device)
-    print(output[0])
+    output = validate(model, validator, device)[0].detach().cpu()
+    print(output)
+    
 
 
 

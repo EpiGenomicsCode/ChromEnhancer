@@ -25,6 +25,7 @@ class Chromatin_Network(nn.Module):
         x = self.relu(self.layer_2(x))
         x = self.batchnorm2(x)
         x = self.dropout(x)
-        x = F.softmax(self.layer_out(x), dim=1)
+        x = torch.sigmoid(self.layer_out(x))
+
         
         return x

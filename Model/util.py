@@ -135,7 +135,8 @@ def binary_acc(y_pred, y_real):
 
 def updateMetric(pred, real, method="train"):
     global metrics
-    pred = pred.detach().cpu()
+    # TODO SHOULD I BE ROUNDING THIS?
+    pred = torch.round(pred.detach().cpu())
     real = real.detach().cpu()
 
     if method=="train":
@@ -155,29 +156,6 @@ def plotMetric():
         plt.plot(metrics[i], label=i)
         plt.savefig("output/{}.png".format(i))
 
-
-    plt.clf()
-    plt.plot(metrics["trainAcc"], label="train")
-    plt.plot(metrics["testAcc"], label="test")
-    plt.legend()
-    plt.savefig("output/Acc.png")
-    
-    plt.clf()
-    plt.plot(metrics["trainF1"], label="train")
-    plt.plot(metrics["testF1"], label="test")
-    plt.legend()
-    plt.savefig("output/F1.png")
-    
-    plt.clf()
-    plt.plot(metrics["trainPrec"], label="train")
-    plt.plot(metrics["testPrec"], label="test")
-    plt.legend()
-    plt.savefig("output/Prec.png")
-    
-    plt.clf()
-    plt.plot(metrics["trainLoss"], label="loss")
-    plt.legend()
-    plt.savefig("output/loss.png")
     
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
@@ -224,6 +202,7 @@ def test(tester, batch_size, device, model):
 
 def validate(model, validator, device):
     allOut = []
+    model = model.to(device)
     for valid_loader in validator:
         # Set model to validation
         model.eval()
