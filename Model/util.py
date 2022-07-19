@@ -222,7 +222,7 @@ def validate(model, validator, device):
         plt.ylabel('True Positive Rate')
         plt.title('Receiver operating characteristic example')
         plt.legend(loc="lower right")
-        plt.savefig("output/roc.png")
+        plt.savefig("output/{}_roc.png".format(valid_loader.filename))
         allOut.append(target)
     return allOut
 
@@ -241,7 +241,7 @@ def runModel(
         batch_size,
         epochs):
     global metrics
-    savePath = "output/model.pt"
+    savePath = "output/model_{}.pt".format(model.name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))

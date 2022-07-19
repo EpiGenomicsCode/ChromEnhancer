@@ -8,8 +8,9 @@ import torch.nn.functional as F
 
 class Chromatin_Network(nn.Module):
     
-    def __init__(self, input_size=1, hidden_size=30, num_classes=1, num_layers=30):
+    def __init__(self, name):
         super(Chromatin_Network, self).__init__()
+        self.name = name
         self.layer_1 = nn.Linear(500, 64) 
         self.layer_2 = nn.Linear(64, 64)
         self.layer_out = nn.Linear(64, 1) 
