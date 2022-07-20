@@ -1,36 +1,41 @@
+from Model.runner import runner, validator
+from Model.chrom_dataset import Chromatin_Dataset
 import torch
-import pandas as pd
-from torch import nn
-from sklearn import svm
-from sklearn.preprocessing import StandardScaler
-from torch.utils.data import random_split as rnd_splt
-
-from Model.runner import getK562
-from Model.model import Chromatin_Network
-from Model.util import fitSVM, plotPCA, runModel, validate, loadModel
 
 # TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
 # correct validation & and PRC do multiple models on multiple data
 
 def main():
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-
-    trainer, tester, validator = getK562(chromtypes)
-    modelK562 = Chromatin_Network("K562")
-    runModel(
-                trainer,
-                tester,
-                validator,
-                model=modelK562,
-                optimizer=torch.optim.Adam(modelK562.parameters(), lr=1e-4),
-                loss_fn=nn.BCEWithLogitsLoss(),
-                batch_size=64,
-                epochs=10
+    
+    runner(chromtypes,  
+            id="A549", 
+            trainLabel="chr10-chr17", 
+            testLabel="chr10", 
+            validLabel="chr17"
+            )
+    
+    runner(chromtypes,  
+            id="HepG2", 
+            trainLabel="chr10-chr17", 
+            testLabel="chr10", 
+            validLabel="chr17"
             )
 
-    
+    runner(chromtypes,  
+        id="K562", 
+        trainLabel="chr10-chr17", 
+        testLabel="chr10", 
+        validLabel="chr17"
+        )
 
+    # valid = Chromatin_Dataset(
+    #                             id="K562",
+    #                             chromType=chromtypes,
+    #                             label="chr17",
+    #                             file_location="./Data/220708_DATA/HOLDOUT/*"
+    #                         )
+    # pred, real = validator(modelFilename="output/model_K562.pt", chromData=valid, device="cpu")
 
 
 main()
