@@ -7,26 +7,29 @@ import torch
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    
+    epochs = 30
     runner(chromtypes,  
             id="A549", 
             trainLabel="chr10-chr17", 
             testLabel="chr10", 
-            validLabel="chr17"
+            validLabel="chr17",
+            epochs=epochs, batchSize=64
             )
     
     runner(chromtypes,  
             id="HepG2", 
             trainLabel="chr10-chr17", 
             testLabel="chr10", 
-            validLabel="chr17"
+            validLabel="chr17",
+            epochs=epochs, batchSize=64
             )
 
     runner(chromtypes,  
         id="K562", 
         trainLabel="chr10-chr17", 
         testLabel="chr10", 
-        validLabel="chr17"
+        validLabel="chr17",
+        epochs=epochs, batchSize=64
         )
 
     # valid = Chromatin_Dataset(
