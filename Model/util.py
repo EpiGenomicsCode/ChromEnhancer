@@ -9,6 +9,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
+from collections import OrderedDict
 
 from sklearn import metrics as m
 
@@ -18,16 +19,6 @@ from sklearn import preprocessing
 
 metrics = {}
 
-metrics["trainLoss"] = []
-
-metrics["trainF1"] = []
-metrics["testF1"] = []
-
-metrics["trainPrec"] = []
-metrics["testPrec"] = []
-
-metrics["trainAcc"] = []
-metrics["testAcc"] = []
 
 
 def readfiles(id, chromType, label, file_location):
@@ -148,13 +139,13 @@ def updateMetric(pred, real, method="train"):
         metrics["testF1"][-1] += m.f1_score(real, pred)
         metrics["testPrec"][-1] += m.precision_score(real, pred)
 
-def plotMetric():
+def plotMetric(filename):
     global metrics
     for i in metrics.keys():
         print("{}\t\t{}".format(i, np.round(metrics[i],3)))
         plt.clf()
         plt.plot(metrics[i], label=i)
-        plt.savefig("output/{}.png".format(i))
+        plt.savefig("output/{}_{}.png".format(filename, i))
 
     
 
@@ -209,8 +200,24 @@ def validate(model, validator, device):
         target = model(torch.tensor(valid_loader.data, dtype=torch.float32).to(device))
         target = torch.flatten(target)
         fpr, tpr, _ = m.roc_curve(valid_loader.labels, target.detach().cpu())
+        pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target.detach().cpu())
 
         roc_auc = m.auc(fpr, tpr)
+        data = list(OrderedDict.fromkeys(zip(pre,rec)))
+        
+        prc_auc = m.auc(sorted(pre), rec)
+        
+        plt.clf()
+        plt.plot(pre, rec, color="darkgreen", 
+                label='PRC curve (area = %0.2f' % prc_auc)
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('Precision')
+        plt.ylabel('Recall')
+        plt.title('PRC Curve')
+        plt.legend(loc="lower right")
+        plt.savefig("output/{}_prc.png".format(valid_loader.filename))
+        plt.clf()
 
         plt.figure()
         plt.plot(fpr, tpr, color='darkorange',
@@ -220,17 +227,12 @@ def validate(model, validator, device):
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        plt.title('Receiver operating characteristic example')
+        plt.title('ROC Curve')
         plt.legend(loc="lower right")
         plt.savefig("output/{}_roc.png".format(valid_loader.filename))
         allOut.append(target)
     return allOut
 
-def loadModel(modelFileName="output/model.pt"):
-    model = Chromatin_Network()
-    model.load_state_dict(torch.load(modelFileName))
-    return model
-    
 def runModel(
         trainer,
         tester,
@@ -241,6 +243,19 @@ def runModel(
         batch_size,
         epochs):
     global metrics
+    metrics.clear()
+        
+    metrics["trainLoss"] = []
+
+    metrics["trainF1"] = []
+    metrics["testF1"] = []
+
+    metrics["trainPrec"] = []
+    metrics["testPrec"] = []
+
+    metrics["trainAcc"] = []
+    metrics["testAcc"] = []
+
     savePath = "output/model_{}.pt".format(model.name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -266,6 +281,6 @@ def runModel(
         train(trainer, batch_size, device, optimizer, model, loss_fn)
         model.eval()
         test(tester, batch_size, device, model)
-        plotMetric()
+        plotMetric(model.name)
         torch.save(model.state_dict(), savePath)
     validate(model, validator, device)
