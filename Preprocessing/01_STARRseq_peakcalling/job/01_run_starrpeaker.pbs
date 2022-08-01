@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=4
 #PBS -l pmem=16gb
-#PBS -l walltime=30:00:00
+#PBS -l walltime=50:00:00
 #PBS -A open
 #PBS -o logs/starrpeaker.log.out
 #PBS -e logs/starrpeaker.log.err
@@ -11,36 +11,37 @@ module load gcc/9.3.1
 module load anaconda3
 source activate starrpeaker
 
-# UPDATE THIS PATH BEFORE SUBMISSION
-WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing/01_STARRseq_peakcalling
 cd $WRK
 
 DBAM=results/BAM
-DOUT=results/StarrpeakerResults
+DOUT=results/OUTPUT
 
 [ -d logs ] || mkdir logs
 [ -d $DOUT ] || mkdir $DOUT
 
-METADATA=bam-samples.txt
+METADATA=input/bam-samples.txt
 INFO=`sed "${PBS_ARRAYID}q;d" $METADATA`
 CLINE=`echo $INFO | awk '{print $1}'`
 STARR=`echo $INFO | awk '{print $3}'`
 INPUT=`echo $INFO | awk '{print $6}'`
 #echo $INFO
 
-BLACKLIST=input/ENCFF419RSJ.bed
-COVGC=input/gc5Base.bw
-COVRNAE=
-COVMAP=
-GENOME=input/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.pac
+# These files mostly added from setup.sh and following directions in the README
+BLACKLIST=$WRK/input/ENCFF419RSJ.bed
+COVGC=$WRK/input/gc5Base.bw
+COVGC=$WRK/input/STARRPeaker_cov_GRCh38_ucsc-gc-5bp.bw
+COVRNAE=$WRK/input/STARRPeaker_cov_GRCh38_linearfold-folding-energy-100bp.bw
+COVMAP=$WRK/input/STARRPeaker_cov_GRCh38_gem-mappability-100mer.bw
+GENOME=$WRK/input/GRCh38_no_alt_analysis_set_GCA_000001405.15.fasta.gz.pac
 #CHROMSIZES=input/hg38.chrom.sizes
-CHROMSIZES=input/GRCh38.chrom.sizeas.simple.sorted
+CHROMSIZES=$WRK/input/GRCh38.chrom.sizes.simple.sorted
+PVAL=0.1
 
 start=`date +%s`
-starrpeaker --prefix $DOUT/$CLINE --chromsize $CHROMSIZES --blacklist $BLACKLIST \
-	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold 0.05
-#	--cov $COVGC $COVMAP $COVRNAE \
+starrpeaker --prefix $DOUT/$CLINE\_pval$PVAL --chromsize $CHROMSIZES --blacklist $BLACKLIST \
+	--cov $COVGC $COVMAP $COVRNAE \
+	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold $PVAL
 end=`date +%s`
 runtime=$((end-start))
 echo "Starrpeaker ${STARR}-${INPUT} ran in ${runtime}"
-

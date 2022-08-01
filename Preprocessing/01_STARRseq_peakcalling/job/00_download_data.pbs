@@ -5,7 +5,7 @@
 #PBS -A open
 #PBS -o logs/download.data.log.out
 #PBS -e logs/download.data.log.err
-#PBS -t 1-4
+#PBS -t 1-6
 
 #module load gcc/8.3.1
 #module load samtools/1.10
@@ -13,10 +13,10 @@
 #source activate starrpeaker
 
 # UPDATE THIS PATH BEFORE SUBMISSION
-WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing/01_STARRseq_peakcalling
 cd $WRK
 
-DBAM=results/BAM1
+DBAM=results/BAM
 
 [ -d logs ] || mkdir logs
 [ -d $DBAM ] || mkdir -p $DBAM
@@ -37,4 +37,3 @@ samtools index $ENCFF.bam
 
 # Filter BAM file (ENCODE file already filtered according to starrpeaker specs)
 #samtools view -b -F 3852 -f 2 -q 40 $DBAM/$ENCFF.bam > $DFILTER/$ENCFF.bam
-
