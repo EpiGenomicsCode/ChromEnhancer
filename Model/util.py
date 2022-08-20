@@ -1,6 +1,5 @@
 from cProfile import label
 import re
-from Model.model import Chromatin_Network
 import torch
 import numpy as np
 import pandas as pd
@@ -12,14 +11,9 @@ from torch.utils.data import DataLoader
 from collections import OrderedDict
 
 from sklearn import metrics as m
-
-
-
 from sklearn import preprocessing
 
 metrics = {}
-
-
 
 def readfiles(id, chromType, label, file_location):
     files = glob(file_location)
@@ -142,12 +136,11 @@ def updateMetric(pred, real, method="train"):
 def plotMetric(filename):
     global metrics
     for i in metrics.keys():
-        print("{}\t\t{}".format(i, np.round(metrics[i],3)))
+        print("{}\t\t{}".format(i, np.round(metrics[i],3)[-1]))
         plt.clf()
+        plt.title(i)
         plt.plot(metrics[i], label=i)
-        plt.savefig("output/{}_{}.png".format(filename, i))
-
-    
+        plt.savefig("output/{}_{}.png".format(i, filename))
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
     global metrics
@@ -190,7 +183,6 @@ def test(tester, batch_size, device, model):
             test_label = torch.flatten(test_label)
             updateMetric(target, test_label, "test")
 
-
 def validate(model, validator, device):
     allOut = []
     model = model.to(device)
@@ -216,7 +208,7 @@ def validate(model, validator, device):
         plt.ylabel('Recall')
         plt.title('PRC Curve')
         plt.legend(loc="lower right")
-        plt.savefig("output/{}_prc.png".format(valid_loader.filename))
+        plt.savefig("output/{}_prc.png".format(model.name))
         plt.clf()
 
         plt.figure()
@@ -229,7 +221,7 @@ def validate(model, validator, device):
         plt.ylabel('True Positive Rate')
         plt.title('ROC Curve')
         plt.legend(loc="lower right")
-        plt.savefig("output/{}_roc.png".format(valid_loader.filename))
+        plt.savefig("output/{}_roc.png".format(model.name))
         allOut.append(target)
     return allOut
 
@@ -263,7 +255,8 @@ def runModel(
     model = model.to(device)
 
     # Train the model
-    for epoch in range(epochs):      
+    for epoch in range(epochs):     
+        print("-----{}------".format(epoch)) 
         metrics["trainLoss"].append(0)
 
         metrics["trainF1"].append(0)

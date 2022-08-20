@@ -1,43 +1,72 @@
 from Model.chrom_dataset import Chromatin_Dataset
-from Model.model import Chromatin_Network
+from Model.model import *
 from Model.util import  runModel, validate
 import torch
 from torch import nn
 
 
-def getData(chromtypes, id, trainLabel, testLabel, validLabel):
-    chr10_17 = Chromatin_Dataset(
+def getData(chromtypes, 
+            id, 
+            trainLabel, 
+            testLabel, 
+            validLabel,
+            fileLocation="./Data/220708/DATA"
+        ):
+
+    chr_train = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=trainLabel,
-        file_location="./Data/220708_DATA/TRAIN/*")
+        file_location=fileLocation+"/TRAIN/*")
 
-    chr10 = Chromatin_Dataset(
+    chr_test = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=testLabel,
-        file_location="./Data/220708_DATA/HOLDOUT/*")
+        file_location=fileLocation+"/HOLDOUT/*")
 
-    chr17 = Chromatin_Dataset(
+    chr_valid = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=validLabel,
-        file_location="./Data/220708_DATA/HOLDOUT/*")
+        file_location=fileLocation+"/HOLDOUT/*")
 
-    trainer = [chr10_17]
-    tester = [chr10]
-    validator = [chr17]
+    trainer = [chr_train]
+    tester = [chr_test]
+    validator = [chr_valid]
 
     return trainer, tester, validator   
 
 
-def runner(chromtypes,  id="K562", trainLabel="chr10-chr17", testLabel="chr10", validLabel="chr17", epochs=2, batchSize=64):
-    model = Chromatin_Network(id)
+def runner(chromtypes,  
+            id="K562", 
+            trainLabel="chr10-chr17", 
+            testLabel="chr10", 
+            validLabel="chr17", 
+            epochs=2, 
+            batchSize=64,
+            fileLocation="./Data/220802_DATA", 
+            modelType=1
+        ):
+
+    
+
     trainer, tester, validator = getData(chromtypes,  
                             id=id, 
                             trainLabel=trainLabel, 
                             testLabel=testLabel, 
-                            validLabel=validLabel)
+                            validLabel=validLabel,
+                            fileLocation=fileLocation)
+
+    name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, fileLocation, modelType)
+    name = name.replace("/", "-")
+    name = name.replace(".","")
+
+    if modelType == 1:
+        model = Chromatin_Network1(name)
+    if modelType == 2:
+        model = Chromatin_Network2(name)    
+
     
     runModel(   trainer,
                 tester,
