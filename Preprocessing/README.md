@@ -11,7 +11,7 @@ When all scripts have been run sequentially, it will produce the following data 
 </summary>
 
 ```
-|--Preprocessing/00_download_ENCODE/ATAC
+|--Preprocessing/00_download_ENCODE
   |--ATAC
     |--A549_ATAC_hg38_ENCFF899OMR.bed.gz
     |--HepG2_ATAC_hg38_ENCFF439EIO.bed.gz
@@ -133,22 +133,22 @@ When all scripts have been run sequentially, it will produce the following data 
 ```
 |--Preprocessing/02_call_Enhancers
   |--Enhancer_Coord
-    |--A549_hg38_LenientEnhancer_1000bp.bed
-    |--A549_hg38_LenientEnhancer.bed
-    |--A549_hg38_StringentEnhancer_1000bp.bed
-    |--A549_hg38_StringentEnhancer.bed
-    |--HepG2_hg38_LenientEnhancer_1000bp.bed
-    |--HepG2_hg38_LenientEnhancer.bed
-    |--HepG2_hg38_StringentEnhancer_1000bp.bed
-    |--HepG2_hg38_StringentEnhancer.bed
-    |--K562_hg38_LenientEnhancer_1000bp.bed
-    |--K562_hg38_LenientEnhancer.bed
-    |--K562_hg38_StringentEnhancer_1000bp.bed
-    |--K562_hg38_StringentEnhancer.bed
-    |--MCF7_hg38_LenientEnhancer_1000bp.bed
-    |--MCF7_hg38_LenientEnhancer.bed
-    |--MCF7_hg38_StringentEnhancer_1000bp.bed
-    |--MCF7_hg38_StringentEnhancer.bed
+    |--A549_hg38_LenientEnhancer_1000bp.bed.gz
+    |--A549_hg38_LenientEnhancer.bed.gz
+    |--A549_hg38_StringentEnhancer_1000bp.bed.gz
+    |--A549_hg38_StringentEnhancer.bed.gz
+    |--HepG2_hg38_LenientEnhancer_1000bp.bed.gz
+    |--HepG2_hg38_LenientEnhancer.bed.gz
+    |--HepG2_hg38_StringentEnhancer_1000bp.bed.gz
+    |--HepG2_hg38_StringentEnhancer.bed.gz
+    |--K562_hg38_LenientEnhancer_1000bp.bed.gz
+    |--K562_hg38_LenientEnhancer.bed.gz
+    |--K562_hg38_StringentEnhancer_1000bp.bed.gz
+    |--K562_hg38_StringentEnhancer.bed.gz
+    |--MCF7_hg38_LenientEnhancer_1000bp.bed.gz
+    |--MCF7_hg38_LenientEnhancer.bed.gz
+    |--MCF7_hg38_StringentEnhancer_1000bp.bed.gz
+    |--MCF7_hg38_StringentEnhancer.bed.gz
 ```
 
 </details>
@@ -161,6 +161,34 @@ When all scripts have been run sequentially, it will produce the following data 
 
 ```
 |--Preprocessing/03_generate_Training_data_CHR-holdout
+  |--GRCh38_BED
+    |--GRCh38_1000bp.bed.gz
+  |--HOLDOUT
+    |--CELLLINE_LenientEnhancer_chrZ.bed
+    |--CELLLINE_LenientEnhancer_chrZ.label
+    |--CELLLINE_StringentEnhancer_chrZ.bed
+    |--CELLLINE_StringentEnhancer_chrZ.label
+    |--CELLINE_chrZ_CTCF-REP#_combined.chromtrack.gz
+    |--CELLINE_chrZ_H3K27ac-REP#_combined.chromtrack.gz
+    |--CELLINE_chrZ_H3K4me3-REP#_combined.chromtrack.gz
+    |--CELLINE_chrZ_PolII-REP#_combined.chromtrack.gz
+    |--CELLINE_chrZ_p300-REP#_combined.chromtrack.gz
+  |--TRAIN
+    |--CELLLINE_chr10-chr17_train.bed
+    |--CELLLINE_chr11-chr7_train.bed
+    |--CELLLINE_chr12-chr8_train.bed
+    |--CELLLINE_chr13-chr9_train.bed
+    |--CELLLINE_chr14-chrX_train.bed
+    |--CELLLINE_chr10-chr17_train.label
+    |--CELLLINE_chr11-chr7_train.label
+    |--CELLLINE_chr12-chr8_train.label
+    |--CELLLINE_chr13-chr9_train.label
+    |--CELLLINE_chr14-chrX_train.label
+    |--CELLLINE_chrZ-chrA_train_CTCF-REP#_combined.chromtrack.gz
+    |--CELLLINE_chrZ-chrA_train_H3K27ac-REP#_combined.chromtrack.gz
+    |--CELLLINE_chrZ-chrA_train_H3K4me3-REP#_combined.chromtrack.gz
+    |--CELLLINE_chrZ-chrA_train_PolII-REP#_combined.chromtrack.gz
+    |--CELLLINE_chrZ-chrA_train_p300-REP#_combined.chromtrack.gz
 
 ```
 
@@ -174,7 +202,29 @@ When all scripts have been run sequentially, it will produce the following data 
 
 ```
 |--Preprocessing/04_generate_Training_data_Cellline
+  |--GRCh38_BED
+    |--GRCh38_1000bp.bed.gz
+  |--HOLDOUT
+    |--CELLLINE_LenientEnhancer.bed.gz
+    |--CELLLINE_LenientEnhancer.label
+    |--CELLLINE_StringentEnhancer.bed.gz
+    |--CELLLINE_StringentEnhancer.label
+    |--CELLINE_CTCF-REP#_combined.chromtrack.gz
+    |--CELLINE_H3K27ac-REP#_combined.chromtrack.gz
+    |--CELLINE_H3K4me3-REP#_combined.chromtrack.gz
+    |--CELLINE_PolII-REP#_combined.chromtrack.gz
+    |--CELLINE_p300-REP#_combined.chromtrack.gz
+  |--TRAIN
+    |--CELLLINE_train.bed
+    |--CELLLINE_train.label
+    |--CELLLINE_train_CTCF-REP#_combined.chromtrack.gz
+    |--CELLLINE_train_H3K27ac-REP#_combined.chromtrack.gz
+    |--CELLLINE_train_H3K4me3-REP#_combined.chromtrack.gz
+    |--CELLLINE_train_PolII-REP#_combined.chromtrack.gz
+    |--CELLLINE_train_p300-REP#_combined.chromtrack.gz
 
 ```
 
 </details>
+
+<br>
