@@ -3,7 +3,7 @@ from Model.model import *
 from Model.util import  runModel, validate
 import torch
 from torch import nn
-
+import timeit
 
 def getData(chromtypes, 
             id, 
@@ -49,7 +49,8 @@ def runner(chromtypes,
             modelType=1
         ):
 
-    
+
+    start = timeit.default_timer()
 
     trainer, tester, validator = getData(chromtypes,  
                             id=id, 
@@ -62,10 +63,23 @@ def runner(chromtypes,
     name = name.replace("/", "-")
     name = name.replace(".","")
 
+    stop = timeit.default_timer()
+    print("Reading Data time: {}".format(stop-start))
+
+    start = timeit.default_timer()
     if modelType == 1:
         model = Chromatin_Network1(name)
     if modelType == 2:
-        model = Chromatin_Network2(name)    
+        model = Chromatin_Network2(name)   
+    if modelType == 3:
+        model = Chromatin_Network3(name)   
+
+    print(model) 
+
+    stop = timeit.default_timer()
+    print("Generating Model time: {}".format(stop-start))
+    start = timeit.default_timer()
+
 
     
     runModel(   trainer,
@@ -77,10 +91,20 @@ def runner(chromtypes,
                 batch_size=batchSize, 
                 epochs=epochs
             )
+    stop = timeit.default_timer()
+    print('Running Model time: {}'.format(stop - start))
+    
 
 
-def loadModel(modelFileName):
-    model = Chromatin_Network("validator")
+
+def loadModel(modelFileName, modelType):
+    if modelType == 1:
+        model = Chromatin_Network1("validator")
+    if modelType == 2:
+        model = Chromatin_Network2("validator")  
+    if modelType == 3:
+        model = Chromatin_Network3("validator")  
+
     model.load_state_dict(torch.load(modelFileName))
     return model
     

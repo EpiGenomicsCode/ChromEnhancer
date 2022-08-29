@@ -10,10 +10,9 @@ from sklearn.decomposition import PCA
 from torch.utils.data import DataLoader
 from collections import OrderedDict
 
-from sklearn import metrics as m
+import gc
 from sklearn import preprocessing
-
-metrics = {}
+from sklearn import metrics as m
 
 def readfiles(id, chromType, label, file_location):
     files = glob(file_location)
@@ -41,13 +40,7 @@ def readfiles(id, chromType, label, file_location):
     print("Processing: {}".format(labelFileName[0]))
     label = pd.read_csv(labelFileName[0], delimiter=" ", header=None)
 
-    # print("Before remove Duplicate")
-    # print(horizontalConcat.shape)
-    # horizontalConcat = horizontalConcat.drop_duplicates(keep="last").round(5)
-    # print(horizontalConcat.shape)
-    # print("After remove Duplicate")
-
-    return np.array(horizontalConcat.values), np.array(label.values)
+    return np.array(horizontalConcat.values[:]), np.array(label.values[:])
 
 def fitSVM(supportvectormachine, epochs, train, test, valid):
     print("Running the SVM")
@@ -110,40 +103,17 @@ def plotPCA(chrom):
     plt.savefig("output/PCA_" + chrom.filename + ".png")
 
 def binary_acc(y_pred, y_real):
-    y_pred_tag = torch.round(torch.sigmoid(y_pred))
+    y_pred_tag = y_pred
 
-    correct_results_sum = (y_pred_tag == y_real).sum().float()
+    correct_results_sum = (y_pred_tag == y_real).sum()
     acc = correct_results_sum/y_real.shape[0]
-    acc = torch.round(acc * 100)
+    acc = np.round(acc * 100)
     
     return acc
 
-def updateMetric(pred, real, method="train"):
-    global metrics
-    # TODO SHOULD I BE ROUNDING THIS?
-    pred = torch.round(pred.detach().cpu())
-    real = real.detach().cpu()
-
-    if method=="train":
-        metrics["trainAcc"][-1] += binary_acc(pred, real)
-        metrics["trainF1"][-1] += m.f1_score(real, pred)
-        metrics["trainPrec"][-1] += m.precision_score(real, pred)
-    else:
-        metrics["testAcc"][-1] += binary_acc(pred, real)
-        metrics["testF1"][-1] += m.f1_score(real, pred)
-        metrics["testPrec"][-1] += m.precision_score(real, pred)
-
-def plotMetric(filename):
-    global metrics
-    for i in metrics.keys():
-        print("{}\t\t{}".format(i, np.round(metrics[i],3)[-1]))
-        plt.clf()
-        plt.title(i)
-        plt.plot(metrics[i], label=i)
-        plt.savefig("output/{}_{}.png".format(i, filename))
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
-    global metrics
+
 
     for train_loader in trainer:
         train_loader = DataLoader(
@@ -163,15 +133,12 @@ def train(trainer, batch_size, device, optimizer, model, loss_fn):
                 target.to(
                     torch.float32), label.to(
                     torch.float32))
-            metrics["trainLoss"][-1]+=loss.item()
             # Calculate the gradient
             loss.backward()
             # Update Weight
             optimizer.step()
-            updateMetric(target, label, "train")
 
 def test(tester, batch_size, device, model):
-    global metrics
     for test_loader in tester:
         test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
 
@@ -181,18 +148,20 @@ def test(tester, batch_size, device, model):
             target = model(test_data)
             target = torch.flatten(target)
             test_label = torch.flatten(test_label)
-            updateMetric(target, test_label, "test")
 
 def validate(model, validator, device):
     allOut = []
-    model = model.to(device)
+    model = model.to("cpu")
     for valid_loader in validator:
         # Set model to validation
         model.eval()
-        target = model(torch.tensor(valid_loader.data, dtype=torch.float32).to(device))
+        target = []
+        for data in valid_loader.data:
+            target.append(model(torch.tensor(np.array([data]), dtype=torch.float32).to("cpu")))
+        target = torch.tensor(target)
         target = torch.flatten(target)
-        fpr, tpr, _ = m.roc_curve(valid_loader.labels, target.detach().cpu())
-        pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target.detach().cpu())
+        fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
+        pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
 
         roc_auc = m.auc(fpr, tpr)
         data = list(OrderedDict.fromkeys(zip(pre,rec)))
@@ -208,7 +177,7 @@ def validate(model, validator, device):
         plt.ylabel('Recall')
         plt.title('PRC Curve')
         plt.legend(loc="lower right")
-        plt.savefig("output/{}_prc.png".format(model.name))
+        plt.savefig("output/prc/{}_prc.png".format(model.name))
         plt.clf()
 
         plt.figure()
@@ -221,8 +190,15 @@ def validate(model, validator, device):
         plt.ylabel('True Positive Rate')
         plt.title('ROC Curve')
         plt.legend(loc="lower right")
-        plt.savefig("output/{}_roc.png".format(model.name))
+        plt.savefig("output/roc/{}_roc.png".format(model.name))
         allOut.append(target)
+        
+        f = open("output/coord/{}.csv".format(model.name), "w+")
+        f.write("pre,{}\n".format(str(pre)))
+        f.write("rec,{}\n".format(str(rec)))
+        f.write("fpr,{}\n".format(str(fpr)))
+        f.write("tpr,{}\n".format(str(tpr)))
+        f.close()
     return allOut
 
 def runModel(
@@ -234,21 +210,7 @@ def runModel(
         loss_fn,
         batch_size,
         epochs):
-    global metrics
-    metrics.clear()
-        
-    metrics["trainLoss"] = []
-
-    metrics["trainF1"] = []
-    metrics["testF1"] = []
-
-    metrics["trainPrec"] = []
-    metrics["testPrec"] = []
-
-    metrics["trainAcc"] = []
-    metrics["testAcc"] = []
-
-    savePath = "output/model_{}.pt".format(model.name)
+    savePath = "output/model_weight_bias/model_{}.pt".format(model.name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))
@@ -257,23 +219,21 @@ def runModel(
     # Train the model
     for epoch in range(epochs):     
         print("-----{}------".format(epoch)) 
-        metrics["trainLoss"].append(0)
-
-        metrics["trainF1"].append(0)
-        metrics["testF1"].append(0)
-
-        metrics["trainPrec"].append(0)
-        metrics["testPrec"].append(0)
-
-        metrics["trainAcc"].append(0)
-        metrics["testAcc"].append(0)
-
 
         # Set model to train mode and train on training data
         model.train()
         train(trainer, batch_size, device, optimizer, model, loss_fn)
         model.eval()
         test(tester, batch_size, device, model)
-        plotMetric(model.name)
         torch.save(model.state_dict(), savePath)
+        gc.collect()
+
     validate(model, validator, device)
+
+
+    print("\t\t\t{}".format((torch.cuda.memory_summary())))
+    model = model.to("cpu")
+    del model
+    gc.collect()
+    torch.cuda.empty_cache()
+    print("\t\t\t{}".format((torch.cuda.memory_summary())))

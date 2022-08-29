@@ -7,8 +7,8 @@ import torch
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    epochs = 30
-    batch_size = 128
+    epochs = 1
+    batch_size = 32
 
     runner(chromtypes,  
             id="A549", 
@@ -19,7 +19,28 @@ def main():
             fileLocation="./Data/220802_DATA", 
             modelType=1
             )
-    
+
+    runner(chromtypes,  
+        id="A549", 
+        trainLabel="chr10-chr17", 
+        testLabel="chr10", 
+        validLabel="chr17",
+        epochs=epochs, batchSize=batch_size,
+        fileLocation="./Data/220802_DATA", 
+        modelType=2
+        )
+        
+    # runner(chromtypes,  
+    #         id="A549", 
+    #         trainLabel="chr10-chr17", 
+    #         testLabel="chr10", 
+    #         validLabel="chr17",
+    #         epochs=epochs, batchSize=batch_size,
+    #         fileLocation="./Data/220802_DATA", 
+    #         modelType=3
+    #         )
+
+
     runner(chromtypes,  
             id="HepG2", 
             trainLabel="chr10-chr17", 
@@ -31,6 +52,26 @@ def main():
             )
 
     runner(chromtypes,  
+            id="HepG2", 
+            trainLabel="chr10-chr17", 
+            testLabel="chr10", 
+            validLabel="chr17",
+            epochs=epochs, batchSize=batch_size,
+            fileLocation="./Data/220802_DATA", 
+            modelType=2
+            )
+
+    # runner(chromtypes,  
+    #         id="HepG2", 
+    #         trainLabel="chr10-chr17", 
+    #         testLabel="chr10", 
+    #         validLabel="chr17",
+    #         epochs=epochs, batchSize=batch_size,
+    #         fileLocation="./Data/220802_DATA", 
+    #         modelType=3
+    #         )
+
+    runner(chromtypes,  
         id="K562", 
         trainLabel="chr10-chr17", 
         testLabel="chr10", 
@@ -39,6 +80,26 @@ def main():
         fileLocation="./Data/220802_DATA", 
         modelType=1
         )
+
+    runner(chromtypes,  
+        id="K562", 
+        trainLabel="chr10-chr17", 
+        testLabel="chr10", 
+        validLabel="chr17",
+        epochs=epochs, batchSize=batch_size,
+        fileLocation="./Data/220802_DATA", 
+        modelType=2
+        )
+    
+    # runner(chromtypes,  
+    #     id="K562", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=3
+    #     )
 
     runner(chromtypes,  
         id="MCF7", 
@@ -49,37 +110,7 @@ def main():
         fileLocation="./Data/220802_DATA", 
         modelType=1
         )    
-
-    runner(chromtypes,  
-        id="A549", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=2
-        )
     
-    runner(chromtypes,  
-            id="HepG2", 
-            trainLabel="chr10-chr17", 
-            testLabel="chr10", 
-            validLabel="chr17",
-            epochs=epochs, batchSize=batch_size,
-            fileLocation="./Data/220802_DATA", 
-            modelType=2
-            )
-
-    runner(chromtypes,  
-        id="K562", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=2
-        )
-
     runner(chromtypes,  
         id="MCF7", 
         trainLabel="chr10-chr17", 
@@ -89,6 +120,19 @@ def main():
         fileLocation="./Data/220802_DATA", 
         modelType=2
         )  
+
+    # runner(chromtypes,  
+    #     id="MCF7", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=3
+    #     )    
+
+
+    
 
     # valid = Chromatin_Dataset(
     #                             id="K562",
