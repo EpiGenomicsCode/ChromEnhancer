@@ -1,21 +1,24 @@
 
 # TODO:
 
-1. Figure out Data
+1. ~~Figure out Data~~
     * ~~Meeting 6/27/22: Create a dataloader for the chromatin data with the label, similar to pandas dataframe maybe~~
-    * Remove duplicates from data
-    * Fix make embedd alignment
-    * Look into tfrecords and training time 
-    * Maybe data augmentation
-    * Add Seq data to the dataset **(is this needed)**
-    * Create a validation dataset
-2. Build Network
+    * ~~Remove duplicates from data~~
+    * ~~Fix make embedd alignment~~
+    * ~~Look into records and training time ~~
+    * ~~Create a validation dataset~~
+2. Build Network (homogenous)
     * ~~Simple Neural Network~~
-    * A Transformer of some kind?
+    * Figure out LSTM model
 3. ~~Run Network~~
-    * ~~Not Yet~~
 4. Collect Results
-    * AUC and PRC
+    * ~~AUC and PRC~~
+    * Input Study
+5. Do a PSO study on the input variables (understandability of NN?)
+    * Should this be its own repo for a PSO model study?
+
+Once we get the results we need to focus on moving over to a heterogenous model
+
 
 
 # Changelog

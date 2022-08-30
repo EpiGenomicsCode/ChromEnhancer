@@ -1,5 +1,5 @@
-from Model.runner import runner, validator
-from Model.chrom_dataset import Chromatin_Dataset
+from Chrom_Proj.runner import runner, validator
+from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
 
 # TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
@@ -7,7 +7,7 @@ import torch
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    epochs = 1
+    epochs = 2
     batch_size = 32
 
     runner(chromtypes,  
