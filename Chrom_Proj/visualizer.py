@@ -33,6 +33,8 @@ def plotAll(location):
 
     data["pre"].sort()
     data["rec"].sort()
+    data["fpr"].sort()
+    data["tpr"].sort()
     plt.xlabel('Precision')
     plt.ylabel('Recall')
     plt.title('PRC Curve')
@@ -79,7 +81,7 @@ def plotAll(location):
                 tprConvert.append(float(i))
             except:
                 continue
-        plt.plot(fprConvert, tprConvert, label="CH:{}_Model:{}_AUC:{}".format( pre[0].split("_")[2], pre[0].split("_")[-1][0], round(m.auc(sorted(preConvert), recConvert),2) ))
+        plt.plot(fprConvert, tprConvert, label="CH:{}_Model:{}_AUC:{}".format( pre[0].split("_")[2], pre[0].split("_")[-1][0], round(m.auc(sorted(fprConvert), tprConvert),2) ))
         print("==================")
     plt.plot([0,1], [0,1])
     plt.legend()
