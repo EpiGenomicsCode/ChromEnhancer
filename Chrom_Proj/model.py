@@ -2,6 +2,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+"""
+Different Neural Networks
+"""
 # Convolutional Neural Network
 class Chromatin_Network1(nn.Module):
     def __init__(self, name):

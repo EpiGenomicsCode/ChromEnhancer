@@ -12,7 +12,7 @@ def getData(chromtypes,
             validLabel,
             fileLocation="./Data/220708/DATA"
         ):
-
+    
     chr_train = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
@@ -110,7 +110,7 @@ def loadModel(modelFileName, modelType):
     
 
 def validator(modelFilename, chromData, device):
-    model = loadModel(modelFilename)
+    model = runner.loadModel(modelFilename)
     model = model.to(device)
     model.eval()
     return validate(model, [chromData], device), chromData.labels

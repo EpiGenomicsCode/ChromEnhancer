@@ -1,8 +1,8 @@
+from curses.ascii import EM
 import glob
 from sklearn import metrics as m
 import matplotlib.pyplot as plt
-import tqdm
-
+import pandas as pd
 
 def processFile(file):
     f = open(file, "r")
@@ -13,7 +13,10 @@ def processFile(file):
     return data
 
 def combine_coord(location):
-    files = glob.glob(location)
+    print("looking at {}".format("location"))
+    files = glob.glob(location+"*")
+    print("found files: {}".format(files))
+    assert len(files) !=0
     data = {"pre":[],"rec":[],"fpr":[],"tpr":[],}
     for file in files:
         if "pre" in file:
@@ -62,7 +65,7 @@ def plotAll(location):
         print("==================")
     plt.plot([0,1], [0,1])
     plt.legend()
-    plt.savefig("prc_FULL.png")
+    plt.savefig("output/dataVis/prc_FULL.png")
     plt.clf()
     #==============================
     plt.xlabel('False Positive Rate')
@@ -91,13 +94,6 @@ def plotAll(location):
         print("==================")
     plt.plot([0,1], [0,1])
     plt.legend()
-    plt.savefig("roc_FULL.png")
+    plt.savefig("output/dataVis/roc_FULL.png")
     plt.clf()
 
-# def vizData():
-#     trainer, tester, validator = getData(chromtypes="A549",  
-#                             id=id, 
-#                             trainLabel="chr10-chr17", 
-#                             testLabel="chr10", 
-#                             validLabel="chr17",
-#                             fileLocation="./Data/220802_DATA")

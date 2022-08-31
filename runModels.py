@@ -1,6 +1,8 @@
 from Chrom_Proj.runner import runner, validator
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
+import Chrom_Proj.visualizer as v
+
 
 # TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
 # correct validation & and PRC do multiple models on multiple data
@@ -120,6 +122,8 @@ def main():
         fileLocation="./Data/220802_DATA", 
         modelType=2
         )  
+
+    v.plotAll("output/coord")
 
     # runner(chromtypes,  
     #     id="MCF7", 

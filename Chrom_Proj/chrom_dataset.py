@@ -11,6 +11,9 @@ from Chrom_Proj.util import readfiles
 
 
 class Chromatin_Dataset(Dataset):
+    """
+    This Chromatine Dataset for pytorch
+    """
     def __init__(
             self,
             id="A549",
@@ -23,11 +26,17 @@ class Chromatin_Dataset(Dataset):
             label="chr10-chr17",
             file_location="./Data/220708_DATA/TRAIN/*"):
         """
-        chromType = label
-        chronName = chrome
+        initalizer function:
+            Input:
+                id: String: the Chromatine Name
+                chromType: List of Strings: the order for chromatine
+                label: String: the training data to use
+                file_location: String: Location of the dataset
         """
         super(Dataset, self).__init__()
         self.data, self.labels = readfiles(id, chromType, label, file_location)
+        self.data = self.data
+        self.labels = self.labels
         self.filename = id + "_" + label
 
         assert len(self.data) == len(self.labels)
