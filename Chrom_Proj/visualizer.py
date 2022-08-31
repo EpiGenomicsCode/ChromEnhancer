@@ -64,7 +64,13 @@ def plotAll(location):
     plt.legend()
     plt.savefig("prc_FULL.png")
     plt.clf()
-    #==============================, 
+    #==============================
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend()
+    plt.xlim(0,1)
+    plt.ylim(0,1)
     for pre,rec in zip(data["fpr"], data["tpr"]):
         print("processing: {}".format(pre[0]))
         print("processing: {}".format(rec[0]))
