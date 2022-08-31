@@ -7,7 +7,7 @@ import torch
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    epochs = 2
+    epochs = 10
     batch_size = 32
 
     runner(chromtypes,  
