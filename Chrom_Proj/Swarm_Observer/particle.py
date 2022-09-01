@@ -4,7 +4,7 @@ import torch
 
 class particle:
     def __init__(self):
-        self.position = torch.rand(1,500)/100
+        self.position = torch.tensor(np.random.ranf((1,500)), dtype=torch.float32)/1000
         self.score = 0
         self.mass = 0
         self.force = 0

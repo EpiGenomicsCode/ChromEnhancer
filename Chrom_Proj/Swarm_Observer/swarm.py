@@ -23,6 +23,7 @@ class swarm:
         for particle in self.swarm:
             particle.score = self.model(particle.position).item()
 
+
         for particle in self.swarm:
             if self.gbest == self.gworse == self.solution == None:
                 self.gbest = self.gworse = self.solution = particle
@@ -64,7 +65,11 @@ class swarm:
     def moveForce(self):
         for particle in self.swarm:
             particle.force /= particle.mass
-            particle.position += np.multiply(np.random.rand(), particle.force)
+            particle.position +=  particle.force
+            particle.position = [max(0,i) for i in particle.position[0].tolist()]
+            particle.position = [min(1,i) for i in particle.position]
+            particle.position = torch.tensor([particle.position])
+
             particle.history.append(particle.position)
         
 
@@ -87,6 +92,6 @@ class swarm:
     def __str__(self):
         info = ""
         for p in self.swarm:
-            info += str(p.score)+"\t"
+            info += str(p.position[0][:3]) + "\t"+ str(p.score)+"\n"
 
         return info + "\n"
