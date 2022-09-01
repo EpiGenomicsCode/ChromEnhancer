@@ -37,7 +37,6 @@ def getData(chromtypes,
 
     return trainer, tester, validator   
 
-
 def runner(chromtypes,  
             id="K562", 
             trainLabel="chr10-chr17", 
@@ -94,9 +93,6 @@ def runner(chromtypes,
     stop = timeit.default_timer()
     print('Running Model time: {}'.format(stop - start))
     
-
-
-
 def loadModel(modelFileName, modelType):
     if modelType == 1:
         model = Chromatin_Network1("validator")
@@ -108,9 +104,8 @@ def loadModel(modelFileName, modelType):
     model.load_state_dict(torch.load(modelFileName))
     return model
     
-
-def validator(modelFilename, chromData, device):
-    model = runner.loadModel(modelFilename)
+def validator(modelFilename, chromData, device, modelType):
+    model = loadModel(modelFilename, modelType)
     model = model.to(device)
     model.eval()
     return validate(model, [chromData], device), chromData.labels

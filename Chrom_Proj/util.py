@@ -12,6 +12,7 @@ from sklearn import preprocessing
 from sklearn import metrics as m
 
 def readfiles(id, chromType, label, file_location):
+    print(file_location)
     files = glob(file_location)
     labels = []
     data = {}

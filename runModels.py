@@ -1,4 +1,4 @@
-from Chrom_Proj.runner import runner, validator
+from Chrom_Proj.runner import runner
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
 import Chrom_Proj.visualizer as v
@@ -43,25 +43,25 @@ def main():
     #         )
 
 
-    runner(chromtypes,  
-            id="HepG2", 
-            trainLabel="chr10-chr17", 
-            testLabel="chr10", 
-            validLabel="chr17",
-            epochs=epochs, batchSize=batch_size,
-            fileLocation="./Data/220802_DATA", 
-            modelType=1
-            )
+    # runner(chromtypes,  
+    #         id="HepG2", 
+    #         trainLabel="chr10-chr17", 
+    #         testLabel="chr10", 
+    #         validLabel="chr17",
+    #         epochs=epochs, batchSize=batch_size,
+    #         fileLocation="./Data/220802_DATA", 
+    #         modelType=1
+    #         )
 
-    runner(chromtypes,  
-            id="HepG2", 
-            trainLabel="chr10-chr17", 
-            testLabel="chr10", 
-            validLabel="chr17",
-            epochs=epochs, batchSize=batch_size,
-            fileLocation="./Data/220802_DATA", 
-            modelType=2
-            )
+    # runner(chromtypes,  
+    #         id="HepG2", 
+    #         trainLabel="chr10-chr17", 
+    #         testLabel="chr10", 
+    #         validLabel="chr17",
+    #         epochs=epochs, batchSize=batch_size,
+    #         fileLocation="./Data/220802_DATA", 
+    #         modelType=2
+    #         )
 
     # runner(chromtypes,  
     #         id="HepG2", 
@@ -73,25 +73,25 @@ def main():
     #         modelType=3
     #         )
 
-    runner(chromtypes,  
-        id="K562", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=1
-        )
+    # runner(chromtypes,  
+    #     id="K562", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=1
+    #     )
 
-    runner(chromtypes,  
-        id="K562", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=2
-        )
+    # runner(chromtypes,  
+    #     id="K562", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=2
+    #     )
     
     # runner(chromtypes,  
     #     id="K562", 
@@ -103,27 +103,25 @@ def main():
     #     modelType=3
     #     )
 
-    runner(chromtypes,  
-        id="MCF7", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=1
-        )    
+    # runner(chromtypes,  
+    #     id="MCF7", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=1
+    #     )    
     
-    runner(chromtypes,  
-        id="MCF7", 
-        trainLabel="chr10-chr17", 
-        testLabel="chr10", 
-        validLabel="chr17",
-        epochs=epochs, batchSize=batch_size,
-        fileLocation="./Data/220802_DATA", 
-        modelType=2
-        )  
-
-    v.plotAll("output/coord")
+    # runner(chromtypes,  
+    #     id="MCF7", 
+    #     trainLabel="chr10-chr17", 
+    #     testLabel="chr10", 
+    #     validLabel="chr17",
+    #     epochs=epochs, batchSize=batch_size,
+    #     fileLocation="./Data/220802_DATA", 
+    #     modelType=2
+    #     )  
 
     # runner(chromtypes,  
     #     id="MCF7", 
@@ -134,17 +132,6 @@ def main():
     #     fileLocation="./Data/220802_DATA", 
     #     modelType=3
     #     )    
-
-
-    
-
-    # valid = Chromatin_Dataset(
-    #                             id="K562",
-    #                             chromType=chromtypes,
-    #                             label="chr17",
-    #                             file_location="./Data/220708_DATA/HOLDOUT/*"
-    #                         )
-    # pred, real = validator(modelFilename="output/model_K562.pt", chromData=valid, device="cpu")
 
 
 main()

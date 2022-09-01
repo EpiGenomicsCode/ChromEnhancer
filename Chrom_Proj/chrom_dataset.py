@@ -24,7 +24,7 @@ class Chromatin_Dataset(Dataset):
                 "p300-1",
                 "PolII-1"],
             label="chr10-chr17",
-            file_location="./Data/220708_DATA/TRAIN/*"):
+            file_location="./Data/220802_DATA/TRAIN/*"):
         """
         initalizer function:
             Input:
