@@ -32,8 +32,8 @@ def saveOutput(swarm, model, fileName="swarmOutput.csv"):
     for particle in s.swarm:
         values = []
         for location in particle.history[1:]:
-            values = location[0].tolist()
-            values.append(np.round(model(location).item(),3))
+            values = [round(i,5) for i in location[0].tolist()]
+            values.append(np.round(model(location).item(),5))
             data.append(values)
     data = pd.DataFrame(data)
     data.to_csv(fileName, index=False, header=False)
