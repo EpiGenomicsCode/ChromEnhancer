@@ -3,15 +3,31 @@ from Chrom_Proj.runner import loadModel
 import pdb
 import numpy as np
 import pandas as pd
+import glob
+import gc
 
 def main():
-    model = loadModel(modelFileName="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt", modelType=1)
-    num_particles = 5
-    gravity = 10
-    epochs = 5
-    s = swarm.swarm(num_particles, gravity,  epochs, model)
-    s.run()
+    files = sorted(glob.glob("./output/model_weight_bias/*.pt"))
+    for f in files:
+        print("Processing: {}".format(f.split("/")[-1]))
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]))
+        saveOutput(s, model,  f[:-3]+"_Swarm.csv")
+        del model
+        gc.collect()
+        
+        
 
+
+def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt"
+            , modelType=1, numParticles=10, gravity=10, epochs=10):
+    model = loadModel(modelFileName=modelLocation, modelType=modelType)
+    model.eval()
+    s = swarm.swarm(numParticles, gravity,  epochs, model)
+    s.run()
+    return s, model
+
+def saveOutput(swarm, model, fileName="swarmOutput.csv"):
+    s = swarm
     data = []
     for particle in s.swarm:
         values = []
@@ -20,7 +36,7 @@ def main():
             values.append(np.round(model(location).item(),3))
             data.append(values)
     data = pd.DataFrame(data)
-    data.to_csv("SwarmOutput.csv", index=False, header=False)
+    data.to_csv(fileName, index=False, header=False)
 
 
 

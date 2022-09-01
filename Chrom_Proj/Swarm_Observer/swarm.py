@@ -68,7 +68,7 @@ class swarm:
             particle.position +=  particle.force
             particle.position = [max(0,i) for i in particle.position[0].tolist()]
             particle.position = [min(1,i) for i in particle.position]
-            particle.position = torch.tensor([particle.position])
+            particle.position = torch.tensor([particle.position], dtype=torch.float32)
 
             particle.history.append(particle.position)
         
@@ -79,7 +79,7 @@ class swarm:
             self.norMass()
             self.calcForce(i)
             self.moveForce()            
-            print("epoch:{}\n{}".format(i, str(self)))
+            # print("epoch:{}\n{}".format(i, str(self)))
 
 
         # print("==================")
