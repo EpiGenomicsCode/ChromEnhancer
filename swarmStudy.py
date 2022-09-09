@@ -14,9 +14,6 @@ def main():
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         del model
         gc.collect()
-        
-        
-
 
 def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt"
             , modelType=1, numParticles=10, gravity=10, epochs=10):
@@ -30,15 +27,13 @@ def saveOutput(swarm, model, fileName="swarmOutput.csv"):
     s = swarm
     data = []
     for particle in s.swarm:
-        values = []
-        for location in particle.history[1:]:
-            values = [round(i,5) for i in location[0].tolist()]
-            values.append(np.round(model(location).item(),5))
-            data.append(values)
+        history = particle.history[-1].tolist()
+        history[0].append(model(particle.history[-1]).item())
+        data.append(history[0])
+
+
     data = pd.DataFrame(data)
     data.to_csv(fileName, index=False, header=False)
 
-
-
-
 main()
+

@@ -64,6 +64,7 @@ def runner(chromtypes,
 
     stop = timeit.default_timer()
     print("Reading Data time: {}".format(stop-start))
+    print("Generating model:\t{}\n\n".format(name))
 
     start = timeit.default_timer()
     if modelType == 1:
