@@ -10,13 +10,13 @@ def main():
     files = sorted(glob.glob("./output/model_weight_bias/*.pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]))
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=100,gravity=10,epochs=50)
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         del model
         gc.collect()
 
 def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt"
-            , modelType=1, numParticles=10, gravity=10, epochs=10):
+            , modelType=1, numParticles=100, gravity=10, epochs=10):
     model = loadModel(modelFileName=modelLocation, modelType=modelType)
     model.eval()
     s = swarm.swarm(numParticles, gravity,  epochs, model)
@@ -33,6 +33,7 @@ def saveOutput(swarm, model, fileName="swarmOutput.csv"):
 
 
     data = pd.DataFrame(data)
+    data = data.round(4)
     data.to_csv(fileName, index=False, header=False)
 
 main()

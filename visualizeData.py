@@ -1,6 +1,8 @@
 import Chrom_Proj.visualizer as v
 
 def main():
-    v.plotAll("output/coord/")
+    ids = ["A549", "HepG2", "K562", "MCF7" ]
+    for id in ids:
+        v.plotAll("output/coord/", id)
 
 main()

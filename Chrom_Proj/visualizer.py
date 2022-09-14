@@ -1,4 +1,3 @@
-from curses.ascii import EM
 import glob
 from sklearn import metrics as m
 import matplotlib.pyplot as plt
@@ -12,9 +11,9 @@ def processFile(file):
 
     return data
 
-def combine_coord(location):
+def combine_coord(location, name):
     print("looking at {}".format("location"))
-    files = glob.glob(location+"*")
+    files = glob.glob(location+"*{}*".format(name))
     print("found files: {}".format(files))
     assert len(files) !=0
     data = {"pre":[],"rec":[],"fpr":[],"tpr":[],}
@@ -30,8 +29,10 @@ def combine_coord(location):
 
     return data
 
-def plotAll(location):
-    data = combine_coord(location)
+def plotAll(location, name):
+    plt.rcParams["figure.figsize"] = [20.00, 3.50]
+    plt.rcParams["figure.autolayout"] = True
+    data = combine_coord(location,name)
     plt.clf()
 
     data["pre"].sort()
@@ -61,11 +62,11 @@ def plotAll(location):
                 recConvert.append(float(i))
             except:
                 continue
-        plt.plot(preConvert, recConvert, label="CH:{}_Model:{}_AUC:{}".format( pre[0].split("_")[2], pre[0].split("_")[-1][0], round(m.auc(sorted(preConvert), recConvert),2) ))
+        plt.plot(preConvert, recConvert, label="{}_AUC:{}".format(pre[0][pre[0].rindex("/")+1:], round(m.auc(sorted(preConvert), recConvert),2) ))
         print("==================")
     plt.plot([0,1], [0,1])
-    plt.legend()
-    plt.savefig("output/dataVis/prc_FULL.png")
+    plt.legend(bbox_to_anchor=(1.1, 1.05))
+    plt.savefig("output/dataVis/prc_{}_FULL.png".format(name))
     plt.clf()
     #==============================
     plt.xlabel('False Positive Rate')
@@ -90,10 +91,10 @@ def plotAll(location):
                 tprConvert.append(float(i))
             except:
                 continue
-        plt.plot(fprConvert, tprConvert, label="CH:{}_Model:{}_AUC:{}".format( pre[0].split("_")[2], pre[0].split("_")[-1][0], round(m.auc(sorted(fprConvert), tprConvert),2) ))
+        plt.plot(fprConvert, tprConvert, label=":{}_AUC:{}".format(pre[0][pre[0].rindex("/")+1:], round(m.auc(sorted(fprConvert), tprConvert),2) ))
         print("==================")
     plt.plot([0,1], [0,1])
-    plt.legend()
-    plt.savefig("output/dataVis/roc_FULL.png")
+    plt.legend(bbox_to_anchor=(1.1, 1.05))
+    plt.savefig("output/dataVis/roc_{}_FULL.png".format(name))
     plt.clf()
 
