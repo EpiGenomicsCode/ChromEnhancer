@@ -10,7 +10,7 @@ def main():
     files = sorted(glob.glob("./output/model_weight_bias/*.pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=10,gravity=10,epochs=50)
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=10,gravity=1,epochs=10)
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         del model
         gc.collect()
