@@ -9,14 +9,14 @@ import Chrom_Proj.visualizer as v
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    epochs = 30
+    epochs = 2
     batch_size = 128
 
     ids = ["A549", "HepG2", "K562", "MCF7" ]
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    models = [1, 2]
+    models = [4]
 
     for id in ids:
         for trainLabel in trainLabels:
@@ -40,6 +40,7 @@ def main():
                                             fileLocation="./Data/220802_DATA", 
                                             modelType=modelType
                                             )
+                                    
 
 
 

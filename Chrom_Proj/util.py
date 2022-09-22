@@ -11,6 +11,8 @@ import gc
 from sklearn import preprocessing
 from sklearn import metrics as m
 
+import pdb
+
 def readfiles(id, chromType, label, file_location):
     print(file_location)
     files = glob(file_location)
@@ -78,80 +80,82 @@ def test(tester, batch_size, device, model):
 def validate(model, validator, device):
     allOut = []
     model = model.to("cpu")
+
     for valid_loader in validator:
         # Set model to validation
         model.eval()
         target = []
-        for data in valid_loader.data:
+        for data in tqdm(valid_loader.data, desc="validating"):
             target.append(model(torch.tensor(np.array([data]), dtype=torch.float32).to("cpu")))
-        target = torch.tensor(target)
-        target = torch.flatten(target)
-        fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
-        pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
 
-        roc_auc = m.auc(fpr, tpr)
-        data = list(OrderedDict.fromkeys(zip(pre,rec)))
-        
-        prc_auc = m.auc(sorted(pre), rec)
-        
-        plt.clf()
-        plt.plot(pre, rec, color="darkgreen", 
-                label='PRC curve (area = %0.2f' % prc_auc)
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('Precision')
-        plt.ylabel('Recall')
-        plt.title('PRC Curve')
-        plt.legend(loc="lower right")
-        plt.savefig("output/prc/{}_prc.png".format(model.name))
-        plt.clf()
+    target = torch.tensor(target)
+    target = torch.flatten(target)
+    fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
+    pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
 
-        plt.figure()
-        plt.plot(fpr, tpr, color='darkorange',
-                label='ROC curve (area = %0.2f)' % roc_auc)
-        plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('ROC Curve')
-        plt.legend(loc="lower right")
-        plt.savefig("output/roc/{}_roc.png".format(model.name))
-        allOut.append(target)
-        
-        f = open("output/coord/pre_{}.csv".format(model.name), "w+")
-        f.write("pre\n")
-        data = ""
-        for i in pre:
-            data += str(i) + ","
-        f.write(data+"\n")
-        f.close()
+    roc_auc = m.auc(fpr, tpr)
+    data = list(OrderedDict.fromkeys(zip(pre,rec)))
+    
+    prc_auc = m.auc(sorted(pre), rec)
 
-        f = open("output/coord/rec_{}.csv".format(model.name), "w+")
-        f.write("rec\n")
-        data = ""
-        for i in rec:
-            data += str(i) + ","
-        f.write(data+"\n")
-        f.close()
-        
-        
-        f = open("output/coord/fpr_{}.csv".format(model.name), "w+")
-        f.write("fpr\n")
-        data = ""
-        for i in fpr:
-            data += str(i) + ","
-        f.write(data+"\n")
-        f.close()
+    plt.clf()
+    plt.plot(pre, rec, color="darkgreen", 
+            label='PRC curve (area = %0.2f' % prc_auc)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Precision')
+    plt.ylabel('Recall')
+    plt.title('PRC Curve')
+    plt.legend(loc="lower right")
+    plt.savefig("output/prc/{}_prc.png".format(model.name))
+    plt.clf()
+
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange',
+            label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend(loc="lower right")
+    plt.savefig("output/roc/{}_roc.png".format(model.name))
+    allOut.append(target)
+    
+    f = open("output/coord/pre_{}.csv".format(model.name), "w+")
+    f.write("pre\n")
+    data = ""
+    for i in pre:
+        data += str(i) + ","
+    f.write(data+"\n")
+    f.close()
+
+    f = open("output/coord/rec_{}.csv".format(model.name), "w+")
+    f.write("rec\n")
+    data = ""
+    for i in rec:
+        data += str(i) + ","
+    f.write(data+"\n")
+    f.close()
+    
+    
+    f = open("output/coord/fpr_{}.csv".format(model.name), "w+")
+    f.write("fpr\n")
+    data = ""
+    for i in fpr:
+        data += str(i) + ","
+    f.write(data+"\n")
+    f.close()
 
 
-        f = open("output/coord/tpr_{}.csv".format(model.name), "w+")
-        f.write("tpr\n")
-        data = ""
-        for i in tpr:
-            data += str(i) + ","
-        f.write(data+"\n")
-        f.close()
+    f = open("output/coord/tpr_{}.csv".format(model.name), "w+")
+    f.write("tpr\n")
+    data = ""
+    for i in tpr:
+        data += str(i) + ","
+    f.write(data+"\n")
+    f.close()
 
     return allOut
 
@@ -181,7 +185,8 @@ def runModel(
         test(tester, batch_size, device, model)
         torch.save(model.state_dict(), savePath)
         gc.collect()
-
+    
+    print("Validating")
     validate(model, validator, device)
 
 

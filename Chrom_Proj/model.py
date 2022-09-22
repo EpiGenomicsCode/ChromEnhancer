@@ -8,7 +8,7 @@ from torch.autograd import Variable
 """
 Different Neural Networks
 """
-# Convolutional Neural Network
+# CNN -> DNN
 class Chromatin_Network1(nn.Module):
     def __init__(self, name):
         super(Chromatin_Network1,self).__init__()
@@ -41,7 +41,7 @@ class Chromatin_Network1(nn.Module):
 
         return x
 
-# Deep Neural Network
+# DNN
 class Chromatin_Network2(nn.Module):
     def __init__(self, name):
         super(Chromatin_Network2, self).__init__()
@@ -70,9 +70,9 @@ class Chromatin_Network2(nn.Module):
         
         return x
 
-# LSTM
+# LSTM -> DNN
 class Chromatin_Network3(nn.Module):
-    def __init__(self, name, input_size=1, hidden_size=30, num_layers=3):
+    def __init__(self, name, hidden_size=30, num_layers=3):
         super(Chromatin_Network3, self).__init__()
         self.name = name
         self.num_layers = num_layers
@@ -111,3 +111,91 @@ class Chromatin_Network3(nn.Module):
 
         return out
 
+# DNN -> LSTM
+class Chromatin_Network4(nn.Module):
+    def __init__(self, name, hidden_size=1, num_layers=3):
+        super(Chromatin_Network4, self).__init__()
+        self.name = name
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        
+        self.lin1 = nn.Linear(500,300)
+        self.lin2 = nn.Linear(300,200)
+        self.lin3 = nn.Linear(200,100)
+        
+
+        self.lstm = nn.LSTM(input_size=100, hidden_size=1,
+                          num_layers=num_layers, batch_first=True) #lstm
+
+
+        self.h_0 = None
+        self.c_0 = None
+        self.hidden = None
+
+    def forward(self, x):
+
+
+
+        out = F.relu(self.lin1(x))
+        out = F.relu(self.lin2(out))
+        out = F.relu(self.lin3(out))
+
+
+
+        if self.h_0 == None:    
+            h_0 = Variable(torch.zeros(self.num_layers, 1)).to(x.device) #hidden state
+            c_0 = Variable(torch.zeros(self.num_layers, 1)).to(x.device) #internal state
+            self.hidden = (h_0, c_0)
+        
+
+        output, self.hidden = self.lstm(out, self.hidden) #lstm with input, hidden, and internal state
+
+        out = torch.sigmoid(output)
+
+
+        return out
+
+
+# CNN -> LSTM
+class Chromatin_Network4(nn.Module):
+    def __init__(self, name, hidden_size=1, num_layers=3):
+        super(Chromatin_Network4, self).__init__()
+        self.name = name
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        
+        
+        self.layer_1 = nn.Conv1d(1, 3, 10) 
+        self.layer_2 = nn.Conv1d(3, 5, 50) 
+        self.layer_3 = nn.Conv1d(5, 10, 100)
+        
+
+        self.lstm = nn.LSTM(input_size=100, hidden_size=1,
+                          num_layers=num_layers, batch_first=True) #lstm
+
+
+        self.h_0 = None
+        self.c_0 = None
+        self.hidden = None
+
+    def forward(self, x):
+        x = x.reshape(-1, 1, x.shape[1])
+        x = self.relu1(self.layer_1(x))
+        x = self.relu2(self.layer_2(x))
+        x = self.relu3(self.layer_3(x))
+
+        x = torch.flatten(x, start_dim=1)
+        pdb.set_trace()
+
+        if self.h_0 == None:    
+            h_0 = Variable(torch.zeros(self.num_layers, 1)).to(x.device) #hidden state
+            c_0 = Variable(torch.zeros(self.num_layers, 1)).to(x.device) #internal state
+            self.hidden = (h_0, c_0)
+        
+
+        output, self.hidden = self.lstm(out, self.hidden) #lstm with input, hidden, and internal state
+
+        out = torch.sigmoid(output)
+
+
+        return out

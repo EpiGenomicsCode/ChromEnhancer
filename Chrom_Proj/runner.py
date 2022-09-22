@@ -73,6 +73,8 @@ def runner(chromtypes,
         model = Chromatin_Network2(name)   
     if modelType == 3:
         model = Chromatin_Network3(name)   
+    if modelType == 4:
+        model = Chromatin_Network4(name)   
 
     print(model) 
 

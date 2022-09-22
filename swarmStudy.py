@@ -5,12 +5,13 @@ import numpy as np
 import pandas as pd
 import glob
 import gc
+import matplotlib.pyplot as plt
 
 def main():
     files = sorted(glob.glob("./output/model_weight_bias/*.pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=10,gravity=1,epochs=10)
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=1000,gravity=0,epochs=10)
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         del model
         gc.collect()
@@ -34,7 +35,12 @@ def saveOutput(swarm, model, fileName="swarmOutput.csv"):
 
     data = pd.DataFrame(data)
     data = data.round(4)
-    data.to_csv(fileName, index=False, header=False)
+    data.to_csv("./output/swarm/"+fileName[fileName.rfind("/")+1:], index=False, header=False)
+
+    plt.clf()
+    for index,row in data.iterrows():
+        plt.plot(list(row))
+    plt.savefig("./output/swarm/"+fileName[fileName.rfind("/")+1:-3]+".png")
 
 main()
 
