@@ -30,7 +30,7 @@ def combine_coord(location, name):
     return data
 
 def plotAll(location, name):
-    plt.rcParams["figure.figsize"] = [20.00, 3.50]
+    plt.rcParams["figure.figsize"] = [15.00, 10.00]
     plt.rcParams["figure.autolayout"] = True
     data = combine_coord(location,name)
     plt.clf()
