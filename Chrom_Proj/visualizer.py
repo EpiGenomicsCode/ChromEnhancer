@@ -45,8 +45,10 @@ def plotAll(location, name):
     plt.legend()
     plt.xlim(0,1)
     plt.ylim(0,1)
-    
+    index = 0
+ 
     for pre,rec in zip(data["pre"], data["rec"]):
+    
         print("processing: {}".format(pre[0]))
         print("processing: {}".format(rec[0]))
         
@@ -62,12 +64,17 @@ def plotAll(location, name):
                 recConvert.append(float(i))
             except:
                 continue
-        plt.plot(preConvert, recConvert, label="{}_AUC:{}".format(pre[0][pre[0].rindex("/")+1:], round(m.auc(sorted(preConvert), recConvert),2) ))
+
+        plt.plot(preConvert, recConvert, label="Model {}_AUC:{}".format(pre[0].split("_")[-1:][0], round(m.auc(sorted(preConvert), recConvert),2) ))
+        index+=1
+        if index == 5:
+            index = 0
+            plt.plot([0,1], [0,1])
+            plt.legend(bbox_to_anchor=(1.1, 1.05))
+            plt.savefig("output/dataVis/prc_{}_{}.png".format(name, pre[0].split("_")[4]))
+            plt.clf()
         print("==================")
-    plt.plot([0,1], [0,1])
-    plt.legend(bbox_to_anchor=(1.1, 1.05))
-    plt.savefig("output/dataVis/prc_{}_FULL.png".format(name))
-    plt.clf()
+    
     #==============================
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -75,6 +82,7 @@ def plotAll(location, name):
     plt.legend()
     plt.xlim(0,1)
     plt.ylim(0,1)
+    index = 0
     for pre,rec in zip(data["fpr"], data["tpr"]):
         print("processing: {}".format(pre[0]))
         print("processing: {}".format(rec[0]))
@@ -91,10 +99,14 @@ def plotAll(location, name):
                 tprConvert.append(float(i))
             except:
                 continue
-        plt.plot(fprConvert, tprConvert, label=":{}_AUC:{}".format(pre[0][pre[0].rindex("/")+1:], round(m.auc(sorted(fprConvert), tprConvert),2) ))
-        print("==================")
-    plt.plot([0,1], [0,1])
-    plt.legend(bbox_to_anchor=(1.1, 1.05))
-    plt.savefig("output/dataVis/roc_{}_FULL.png".format(name))
-    plt.clf()
+        plt.plot(fprConvert, tprConvert, label="Model {}_AUC:{}".format(pre[0].split("_")[-1][0], round(m.auc(sorted(fprConvert), tprConvert),2) ))
+        index+=1
+        if index==5:
+            plt.plot([0,1], [0,1])
+            plt.legend(bbox_to_anchor=(1.1, 1.05))
+            plt.savefig("output/dataVis/roc_{}_{}.png".format(name,pre[0].split("_")[4]))
+            plt.clf()
+            index = 0
 
+        print("==================")
+    

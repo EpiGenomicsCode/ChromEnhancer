@@ -157,9 +157,9 @@ class Chromatin_Network4(nn.Module):
 
 
 # CNN -> LSTM
-class Chromatin_Network4(nn.Module):
+class Chromatin_Network5(nn.Module):
     def __init__(self, name, hidden_size=1, num_layers=3):
-        super(Chromatin_Network4, self).__init__()
+        super(Chromatin_Network5, self).__init__()
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
@@ -170,13 +170,17 @@ class Chromatin_Network4(nn.Module):
         self.layer_3 = nn.Conv1d(5, 10, 100)
         
 
-        self.lstm = nn.LSTM(input_size=100, hidden_size=1,
+        self.lstm = nn.LSTM(input_size=3430, hidden_size=1,
                           num_layers=num_layers, batch_first=True) #lstm
 
 
         self.h_0 = None
         self.c_0 = None
         self.hidden = None
+
+        self.relu1 = nn.ReLU()
+        self.relu2 = nn.ReLU()
+        self.relu3 = nn.ReLU()
 
     def forward(self, x):
         x = x.reshape(-1, 1, x.shape[1])
@@ -185,7 +189,7 @@ class Chromatin_Network4(nn.Module):
         x = self.relu3(self.layer_3(x))
 
         x = torch.flatten(x, start_dim=1)
-        pdb.set_trace()
+        
 
         if self.h_0 == None:    
             h_0 = Variable(torch.zeros(self.num_layers, 1)).to(x.device) #hidden state
@@ -193,7 +197,7 @@ class Chromatin_Network4(nn.Module):
             self.hidden = (h_0, c_0)
         
 
-        output, self.hidden = self.lstm(out, self.hidden) #lstm with input, hidden, and internal state
+        output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
 
         out = torch.sigmoid(output)
 
