@@ -9,7 +9,7 @@ import Chrom_Proj.visualizer as v
 
 def main():
     chromtypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    epochs = 2
+    epochs = 10
     batch_size = 128
 
     ids = ["A549", "HepG2", "K562", "MCF7" ]

@@ -105,6 +105,10 @@ def loadModel(modelFileName, modelType):
         model = Chromatin_Network2("validator")  
     if modelType == 3:
         model = Chromatin_Network3("validator")  
+    if modelType == 4:
+        model = Chromatin_Network4("validator")  
+    if modelType == 5:
+        model = Chromatin_Network5("validator")  
 
     model.load_state_dict(torch.load(modelFileName))
     return model

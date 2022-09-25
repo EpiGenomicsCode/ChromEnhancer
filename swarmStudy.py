@@ -8,10 +8,10 @@ import gc
 import matplotlib.pyplot as plt
 
 def main():
-    files = sorted(glob.glob("./output/model_weight_bias/*.pt"))
+    files = sorted(glob.glob("./output/model_weight_bias/*epoch_10*pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=1000,gravity=0,epochs=10)
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=100,gravity=0,epochs=10)
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         del model
         gc.collect()
