@@ -110,3 +110,9 @@ def plotAll(location, name):
 
         print("==================")
     
+def plotCluster(plotData, filename):
+    for key in plotData.keys():
+        for data in plotData[key]:
+            plt.plot(data)
+        plt.savefig("{}_cluster_{}.png".format(filename, key))
+        plt.clf()

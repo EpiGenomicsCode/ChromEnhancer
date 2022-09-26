@@ -6,13 +6,19 @@ import pandas as pd
 import glob
 import gc
 import matplotlib.pyplot as plt
+from sklearn.cluster import AgglomerativeClustering
+from Chrom_Proj.visualizer import plotCluster
 
 def main():
+    n_clusters = 5
     files = sorted(glob.glob("./output/model_weight_bias/*epoch_10*pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=100,gravity=0,epochs=10)
+        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=10,gravity=0,epochs=10)
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
+        plotData = clusterSwarm(s, n_clusters)
+        print("saving clusters to {}".format(f[:-3]))
+        plotCluster(plotData, "output/cluster/{}".format(f[f.rindex("/")+1:-3]))
         del model
         gc.collect()
 
@@ -41,6 +47,28 @@ def saveOutput(swarm, model, fileName="swarmOutput.csv"):
     for index,row in data.iterrows():
         plt.plot(list(row))
     plt.savefig("./output/swarm/"+fileName[fileName.rfind("/")+1:-3]+".png")
+
+
+def clusterSwarm(swarm, n_clusters):
+    hc = AgglomerativeClustering(n_clusters=n_clusters, linkage="ward")
+    positions = np.array([birb.position.tolist() for birb in swarm.swarm])
+    positions = np.squeeze(positions, axis=1)
+    hc = hc.fit(positions)
+    predictedLabels = hc.labels_
+    plotData = {}
+    for comb in zip(positions, predictedLabels):
+        if not comb[1] in plotData.keys():
+            plotData[comb[1]] = [comb[0]]
+        else:
+            plotData[comb[1]].append(comb[0])
+
+    return plotData
+
+
+
+
+
+
 
 main()
 
