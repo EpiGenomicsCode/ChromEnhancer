@@ -92,6 +92,9 @@ def validate(model, validator, device):
     target = torch.flatten(target)
     fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
     pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
+    ##
+    # PRINT fpr, tpr, pre, rec to file
+    ##
 
     roc_auc = m.auc(fpr, tpr)
     data = list(OrderedDict.fromkeys(zip(pre,rec)))

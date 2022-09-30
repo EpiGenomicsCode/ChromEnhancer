@@ -1,3 +1,4 @@
+from cProfile import label
 import glob
 from sklearn import metrics as m
 import matplotlib.pyplot as plt
@@ -30,6 +31,7 @@ def combine_coord(location, name):
     return data
 
 def plotAll(location, name):
+    labelLocation = (.65, 1.2)
     plt.rcParams["figure.figsize"] = [15.00, 10.00]
     plt.rcParams["figure.autolayout"] = True
     data = combine_coord(location,name)
@@ -64,13 +66,15 @@ def plotAll(location, name):
                 recConvert.append(float(i))
             except:
                 continue
-
-        plt.plot(preConvert, recConvert, label="Model {}_AUC:{}".format(pre[0].split("_")[-1:][0], round(m.auc(sorted(preConvert), recConvert),2) ))
+        labelName = pre[0][pre[0].index("id_")+3:]
+        labelName = labelName.split("_")
+        labelName = labelName[0] + " " + labelName[2] + " Model " + labelName[-1][0]
+        plt.plot(preConvert, recConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(preConvert), recConvert),2) ))
         index+=1
         if index == 5:
             index = 0
             plt.plot([0,1], [0,1])
-            plt.legend(bbox_to_anchor=(1.1, 1.05))
+            plt.legend(bbox_to_anchor=labelLocation)
             plt.savefig("output/dataVis/prc_{}_{}.png".format(name, pre[0].split("_")[4]))
             plt.clf()
         print("==================")
@@ -99,11 +103,15 @@ def plotAll(location, name):
                 tprConvert.append(float(i))
             except:
                 continue
-        plt.plot(fprConvert, tprConvert, label="Model {}_AUC:{}".format(pre[0].split("_")[-1][0], round(m.auc(sorted(fprConvert), tprConvert),2) ))
+        labelName = pre[0][pre[0].index("id_")+3:]
+        labelName = labelName.split("_")
+        labelName = labelName[0] + " " + labelName[2] + " Model " + labelName[-1][0]
+        
+        plt.plot(fprConvert, tprConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(fprConvert), tprConvert),2) ))
         index+=1
         if index==5:
             plt.plot([0,1], [0,1])
-            plt.legend(bbox_to_anchor=(1.1, 1.05))
+            plt.legend(bbox_to_anchor=labelLocation)
             plt.savefig("output/dataVis/roc_{}_{}.png".format(name,pre[0].split("_")[4]))
             plt.clf()
             index = 0
