@@ -73,8 +73,9 @@ def plotAll(location, name):
         index+=1
         if index == 5:
             index = 0
-            plt.plot([0,1], [0,1])
             plt.legend(bbox_to_anchor=labelLocation)
+            plt.xlabel("False Positive Rate")
+            plt.ylabel("True Positive Rate")
             plt.savefig("output/dataVis/prc_{}_{}.png".format(name, pre[0].split("_")[4]))
             plt.clf()
         print("==================")
@@ -111,6 +112,8 @@ def plotAll(location, name):
         index+=1
         if index==5:
             plt.plot([0,1], [0,1])
+            plt.xlabel("Recall")
+            plt.ylabel("Precision")
             plt.legend(bbox_to_anchor=labelLocation)
             plt.savefig("output/dataVis/roc_{}_{}.png".format(name,pre[0].split("_")[4]))
             plt.clf()
