@@ -3,6 +3,10 @@ import glob
 from sklearn import metrics as m
 import matplotlib.pyplot as plt
 import pandas as pd
+import numpy as np
+import pdb
+import seaborn as sns
+
 
 def processFile(file):
     f = open(file, "r")
@@ -122,8 +126,23 @@ def plotAll(location, name):
         print("==================")
     
 def plotCluster(plotData, filename):
-    for key in plotData.keys():
-        for data in plotData[key]:
-            plt.plot(data)
-        plt.savefig("{}_cluster_{}.png".format(filename, key))
-        plt.clf()
+    totalData = []
+    x = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
+    y = ["C1","C2","C3","C4","C5"]
+    plt.clf()
+
+    Data = []
+    for cluster in plotData.keys():
+        clusterData = np.sum(plotData[cluster], 0)
+        clusterSections = [
+                                sum(clusterData[:100]),
+                                sum(clusterData[100:200]),
+                                sum(clusterData[200:300]),
+                                sum(clusterData[300:400]),
+                                sum(clusterData[400:])
+                          ]
+        Data.append(clusterSections)
+    
+    sns.heatmap(np.array(Data).T, linewidth=.5, xticklabels=y, yticklabels=x) 
+    plt.savefig("./output/cluster/clusters_{}.png".format(filename[filename.rfind("/")+1:]))
+    
