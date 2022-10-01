@@ -20,7 +20,7 @@ def main():
         saveOutput(s, model,  f[:-3]+"_Swarm.csv")
         plotData = clusterSwarm(s, n_clusters)
         print("saving clusters to {}".format(f[:-3]))
-        plotCluster(plotData, "output/cluster/{}".format(f[f.rindex("/")+1:-3]))
+        plotCluster(plotData, "output/cluster/{}".format(f[f.rindex("/")+1:-3]), numParticles)
         del model
         gc.collect()
 

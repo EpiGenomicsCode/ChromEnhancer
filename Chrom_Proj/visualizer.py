@@ -125,7 +125,7 @@ def plotAll(location, name):
 
         print("==================")
     
-def plotCluster(plotData, filename):
+def plotCluster(plotData, filename, particles):
     totalData = []
     x = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     y = ["C1","C2","C3","C4","C5"]
@@ -141,8 +141,11 @@ def plotCluster(plotData, filename):
                                 sum(clusterData[300:400]),
                                 sum(clusterData[400:])
                           ]
-        Data.append(clusterSections)
+        Data.append(np.divide(clusterSections, particles))
     
     sns.heatmap(np.array(Data).T, linewidth=.5, xticklabels=y, yticklabels=x) 
-    plt.savefig("./output/cluster/clusters_{}.png".format(filename[filename.rfind("/")+1:]))
+    title = filename.split("_")
+    title = title[2] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles)
+    plt.title(title)
+    plt.savefig("./output/cluster/{}.png".format(title.replace(" ", "_" )))
     
