@@ -11,7 +11,7 @@ from Chrom_Proj.visualizer import plotCluster
 
 def main():
     n_clusters = 5
-    numParticles = 10
+    numParticles = 100
     files = sorted(glob.glob("./output/model_weight_bias/*epoch_10*pt"))
     for f in files:
         print("Processing: {}".format(f.split("/")[-1]))
