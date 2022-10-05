@@ -147,5 +147,8 @@ def plotCluster(plotData, filename, particles):
     title = filename.split("_")
     title = title[2] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles)
     plt.title(title)
+    # print(plt.style.available)
+    # plt.style.use()
+    sns.color_palette("Spectral")
     plt.savefig("./output/cluster/{}.png".format(title.replace(" ", "_" )))
     
