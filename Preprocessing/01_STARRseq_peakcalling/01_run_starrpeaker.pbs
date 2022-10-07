@@ -1,0 +1,49 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=16gb
+#PBS -l walltime=50:00:00
+#PBS -A open
+#PBS -o logs/starrpeaker.log.out
+#PBS -e logs/starrpeaker.log.err
+#PBS -t 1-4
+
+module load gcc/9.3.1
+module load anaconda3
+source activate starrpeaker
+
+# FIRST CHANGE PATH TO EXECUTE
+WRK=/path/to/Enhanced_Transformer_For_Enhancers/Preprocessing
+cd $WRK
+
+# Adjust leniency with PVAL
+PVAL=0.1
+INPUT=$WRK/01_STARRseq_peakcalling/input
+DBAM=$WRK/data/BAM
+DOUT=$WRK/data/STARR_Cellline
+
+[ -d logs ] || mkdir logs
+[ -d $DOUT ] || mkdir $DOUT
+
+# Parse configs for input file info (control-signal sample matching)
+METADATA=input/starrpeaker-config.txt
+INFO=`sed "${PBS_ARRAYID}q;d" $METADATA`
+STARR=`echo $INFO | awk '{print $1}'`
+CONTROL=`echo $INFO | awk '{print $2}'`
+CLINE=`echo $STARR | awk '{FS="_"}{print $1}'`
+#echo $INFO
+
+# Files downloaded from following directions in the README
+CHROMSIZES=$INPUT/GRCh38.chrom.sizes.simple.sorted
+BLACKLIST=$INPUT/ENCFF419RSJ.bed
+COVGC=$INPUT/STARRPeaker_cov_GRCh38_ucsc-gc-5bp.bw
+COVRNAE=$INPUT/STARRPeaker_cov_GRCh38_linearfold-folding-energy-100bp.bw
+COVMAP=$INPUT/STARRPeaker_cov_GRCh38_gem-mappability-100mer.bw
+
+# Record runtime for executing Starrpeaker
+start=`date +%s`
+--prefix $DOUT/$CLINE\_pval$PVAL --chromsize $CHROMSIZES --blacklist $BLACKLIST \
+	--cov $COVGC $COVMAP $COVRNAE \
+	--input $DBAM/$INPUT.bam --output $DBAM/$STARR.bam --threshold $PVAL
+end=`date +%s`
+runtime=$((end-start))
+echo "Starrpeaker ${STARR}-${INPUT} ran in ${runtime}"

@@ -27,14 +27,19 @@ When all scripts have been run sequentially, it will produce the following data 
 
 ```
 |--Preprocessing/01_STARRseq_peakcalling
+  |--01_run_starrpeaker.pbs
   |--input
     |--bam-samples.txt
-  |--job
-    |--01_run_starrpeaker.pbs
-    |--setup.sh
+    |--starrpeaker-config.txt
+    |--GRCh38.chrom.sizes.simple.sorted
+    |--ENCFF419RSJ.bed
+    |--STARRPeaker_cov_GRCh38_ucsc-gc-5bp.bw
+    |--STARRPeaker_cov_GRCh38_linearfold-folding-energy-100bp.bw
+    |--STARRPeaker_cov_GRCh38_gem-mappability-100mer.bw
+  |--logs
+    |--...(PBS submission logs)
   |--README.md
 ```
-
 </details>
 
 <br>
