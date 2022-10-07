@@ -3,8 +3,8 @@ GRCH38=input/GRCh38.chrom.sizes
 BLACKLIST=input/ENCFF356LFX.bed.gz
 
 # Script to tile the genome
-TILE=job/tile_Genome.pl
-SORT=job/sort_BED.pl
+TILE=../bin/tile_Genome.pl
+SORT=../bin/sort_BED.pl
 
 # Set size of tiles
 SIZE=1000

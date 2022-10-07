@@ -2,18 +2,18 @@ CELLLINE=("K562" "HepG2" "MCF7" "A549")
 CHR1=("chr10" "chr11" "chr12" "chr13" "chr14" "chr15")
 CHR2=("chr17" "chr7" "chr8" "chr9" "chrX" "chr16")
 
-TILESUCCESS=job/tile_Success_BED.pl
-TILEFAILURE=job/flank_Failure_BED.pl
-LABEL=job/label_BED_score.pl
-SORT=job/sort_BED.pl
-GENLABEL=job/generate_label_from_BED.pl
+TILESUCCESS=../bin/tile_Success_BED.pl
+TILEFAILURE=../bin/flank_Failure_BED.pl
+LABEL=../bin/label_BED_score.pl
+SORT=../bin/sort_BED.pl
+GENLABEL=../bin/generate_label_from_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
 
 for CELL in ${CELLLINE[@]}; do
-        # Cell type specific enhancers
-	TESTPEAKS=../02_call_Enhancers/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
+	# Cell type specific enhancers
+	TESTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
 
 	for (( i=0; i<${#CHR1[@]}; i++ )); do
 		echo -e $CELL"\t"${CHR1[$i]}"\t"${CHR2[$i]}
@@ -47,8 +47,8 @@ rm genome_train.bed peaks.bed peak_train.bed train_peaks-s.bed peak_train-merge.
 
 # Generate label files
 for file in *bed; do
-        newFile="${file/.bed/.label}"
-        perl $GENLABEL $file $newFile
+	newFile="${file/.bed/.label}"
+	perl $GENLABEL $file $newFile
 done
 
 # Organize files
