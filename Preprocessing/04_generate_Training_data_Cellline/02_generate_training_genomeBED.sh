@@ -1,10 +1,10 @@
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 
-TILESUCCESS=job/tile_Success_BED.pl
-TILEFAILURE=job/flank_Failure_BED.pl
-LABEL=job/label_BED_score.pl
-SORT=job/sort_BED.pl
-GENLABEL=job/generate_label_from_BED.pl
+TILESUCCESS=../bin/tile_Success_BED.pl
+TILEFAILURE=../bin/flank_Failure_BED.pl
+LABEL=../bin/label_BED_score.pl
+SORT=../bin/sort_BED.pl
+GENLABEL=../bin/generate_label_from_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
@@ -12,7 +12,7 @@ GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
 COUNTER=0
 for CELL in ${CELLLINE[@]}; do
         # Cell type specific enhancers
-	TESTPEAKS=../02_call_Enhancers/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
+	TESTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
 
 	echo -e $CELL
 	# Get overlap of enhancers with genomic tiles

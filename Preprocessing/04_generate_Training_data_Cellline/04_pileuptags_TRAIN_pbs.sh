@@ -1,7 +1,7 @@
 SCRIPTMANAGER=../../Preprocessing/ScriptManager-v0.13-dev.jar
 
-FACTORBAM=../00_download_ENCODE/BAM
-HISTONEBAM=../00_download_ENCODE/BAM
+FACTORBAM=../data/BAM
+HISTONEBAM=../data/BAM
 
 TRAIN=TRAIN
 cd $TRAIN
@@ -25,59 +25,59 @@ H3K27AC_1=$HISTONEBAM/K562_H3K27ac_ENCFF301TVL.bam
 H3K27AC_2=$HISTONEBAM/K562_H3K27ac_ENCFF879BWC.bam
 
 for file in K562*.bed; do
-        var=$(echo $file | awk -F"." '{print $1}')
-        set -- $var
-        echo $1
+	var=$(echo $file | awk -F"." '{print $1}')
+	set -- $var
+	echo $1
 
-        sampleID=$1\_CTCF-1\.pbs
-        rm -f $sampleID
-	      echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
+	sampleID=$1\_CTCF-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
 
-        sampleID=$1\_CTCF-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-	      echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
+	sampleID=$1\_CTCF-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
-        sampleID=$1\_p300-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-	      echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
+	sampleID=$1\_p300-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
 
-        sampleID=$1\_p300-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-	      echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
+	sampleID=$1\_p300-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
-        sampleID=$1\_PolII-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
+	sampleID=$1\_PolII-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
 
-        sampleID=$1\_PolII-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
+	sampleID=$1\_PolII-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
-        sampleID=$1\_H3K4me3-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
+	sampleID=$1\_H3K4me3-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
 
-        sampleID=$1\_H3K4me3-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
+	sampleID=$1\_H3K4me3-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
-        sampleID=$1\_H3K27ac-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
+	sampleID=$1\_H3K27ac-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
 
-        sampleID=$1\_H3K27ac-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
+	sampleID=$1\_H3K27ac-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
 
@@ -93,59 +93,59 @@ H3K27AC_1=$HISTONEBAM/A549_H3K27ac_ENCFF117TAC.bam
 H3K27AC_2=$HISTONEBAM/A549_H3K27ac_ENCFF273YZW.bam
 
 for file in A549*.bed; do
-        var=$(echo $file | awk -F"." '{print $1}')
-        set -- $var
-        echo $1
+	var=$(echo $file | awk -F"." '{print $1}')
+	set -- $var
+	echo $1
 
-        sampleID=$1\_CTCF-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
+	sampleID=$1\_CTCF-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
 
-        sampleID=$1\_CTCF-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
+	sampleID=$1\_CTCF-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
-        sampleID=$1\_p300-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
+	sampleID=$1\_p300-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
 
-        sampleID=$1\_p300-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
+	sampleID=$1\_p300-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
-        sampleID=$1\_PolII-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
+	sampleID=$1\_PolII-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
 
-        sampleID=$1\_PolII-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
+	sampleID=$1\_PolII-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
-        sampleID=$1\_H3K4me3-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
+	sampleID=$1\_H3K4me3-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
 
-        sampleID=$1\_H3K4me3-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
+	sampleID=$1\_H3K4me3-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
-        sampleID=$1\_H3K27ac-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
+	sampleID=$1\_H3K27ac-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
 
-        sampleID=$1\_H3K27ac-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
+	sampleID=$1\_H3K27ac-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
 
@@ -161,59 +161,59 @@ H3K27AC_1=$HISTONEBAM/HepG2_H3K27ac_ENCFF686HFQ.bam
 H3K27AC_2=$HISTONEBAM/HepG2_H3K27ac_ENCFF805KGN.bam
 
 for file in HepG2*.bed; do
-        var=$(echo $file | awk -F"." '{print $1}')
-        set -- $var
-        echo $1
+	var=$(echo $file | awk -F"." '{print $1}')
+	set -- $var
+	echo $1
 
-        sampleID=$1\_CTCF-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
+	sampleID=$1\_CTCF-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
 
-        sampleID=$1\_CTCF-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
+	sampleID=$1\_CTCF-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
-        sampleID=$1\_p300-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
+	sampleID=$1\_p300-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
 
-        sampleID=$1\_p300-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
+	sampleID=$1\_p300-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
-        sampleID=$1\_PolII-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
+	sampleID=$1\_PolII-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
 
-        sampleID=$1\_PolII-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
+	sampleID=$1\_PolII-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
-        sampleID=$1\_H3K4me3-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
+	sampleID=$1\_H3K4me3-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
 
-        sampleID=$1\_H3K4me3-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
+	sampleID=$1\_H3K4me3-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
-        sampleID=$1\_H3K27ac-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
+	sampleID=$1\_H3K27ac-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
 
-        sampleID=$1\_H3K27ac-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
+	sampleID=$1\_H3K27ac-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
 
@@ -229,59 +229,59 @@ H3K27AC_1=$HISTONEBAM/MCF7_H3K27ac_ENCFF096GIM.bam
 H3K27AC_2=$HISTONEBAM/MCF7_H3K27ac_ENCFF692SZU.bam
 
 for file in MCF7*.bed; do
-        var=$(echo $file | awk -F"." '{print $1}')
-        set -- $var
-        echo $1
+	var=$(echo $file | awk -F"." '{print $1}')
+	set -- $var
+	echo $1
 
-        sampleID=$1\_CTCF-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
+	sampleID=$1\_CTCF-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
 
-        sampleID=$1\_CTCF-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
+	sampleID=$1\_CTCF-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
-        sampleID=$1\_p300-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
+	sampleID=$1\_p300-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
 
-        sampleID=$1\_p300-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
+	sampleID=$1\_p300-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
-        sampleID=$1\_PolII-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
+	sampleID=$1\_PolII-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
 
-        sampleID=$1\_PolII-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
+	sampleID=$1\_PolII-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
-        sampleID=$1\_H3K4me3-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
+	sampleID=$1\_H3K4me3-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
 
-        sampleID=$1\_H3K4me3-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
+	sampleID=$1\_H3K4me3-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
-        sampleID=$1\_H3K27ac-1\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
+	sampleID=$1\_H3K27ac-1\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
 
-        sampleID=$1\_H3K27ac-2\.pbs
-        rm -f $sampleID
-        echo "$JOBSTATS" >> $sampleID
-        echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
+	sampleID=$1\_H3K27ac-2\.pbs
+	rm -f $sampleID
+	echo "$JOBSTATS" >> $sampleID
+	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
 
