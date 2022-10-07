@@ -1,8 +1,8 @@
 # ENCODE ATAC seq peak file path
-ATAC=ATAC_Cellline
+ATAC=WRK=../data/ATAC_Cellline
 
 # STARR-seq peak file path
-STARR=STARR_Cellline
+STARR=../data/STARR_Cellline
 
 for file in "$ATAC"/*bed.gz; do
 	ID="$(basename $file)"
@@ -14,15 +14,15 @@ for file in "$ATAC"/*bed.gz; do
 	CELL=(`echo $ID | tr '_' ' '`)
 	# Intersect ATAC-seq peaks with stringent STARR-seq peaks
 	bedtools intersect -u -a MERGE.bed -b $STARR/$CELL\_pval0.05*.bed.gz > $CELL\_hg38_StringentEnhancer.bed
-        # Intersect ATAC-seq peaks with lenient STARR-seq peaks
-        bedtools intersect -u -a MERGE.bed -b $STARR/$CELL\_pval0.1*.bed.gz > $CELL\_hg38_LenientEnhancer.bed
+	# Intersect ATAC-seq peaks with lenient STARR-seq peaks
+	bedtools intersect -u -a MERGE.bed -b $STARR/$CELL\_pval0.1*.bed.gz > $CELL\_hg38_LenientEnhancer.bed
 
 done
 # Clean up
 rm SORT.bed MERGE.bed
 
 # Resize all enhancers to X bp window
-RESIZE=job/expand_BED.pl
+RESIZE=../bin/expand_BED.pl
 SIZE=1000
 
 for file in *Enhancer.bed; do

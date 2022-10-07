@@ -50,23 +50,8 @@ When all scripts have been run sequentially, it will produce the following data 
 
 ```
 |--Preprocessing/02_call_Enhancers
-  |--Enhancer_Coord
-    |--A549_hg38_LenientEnhancer_1000bp.bed.gz
-    |--A549_hg38_LenientEnhancer.bed.gz
-    |--A549_hg38_StringentEnhancer_1000bp.bed.gz
-    |--A549_hg38_StringentEnhancer.bed.gz
-    |--HepG2_hg38_LenientEnhancer_1000bp.bed.gz
-    |--HepG2_hg38_LenientEnhancer.bed.gz
-    |--HepG2_hg38_StringentEnhancer_1000bp.bed.gz
-    |--HepG2_hg38_StringentEnhancer.bed.gz
-    |--K562_hg38_LenientEnhancer_1000bp.bed.gz
-    |--K562_hg38_LenientEnhancer.bed.gz
-    |--K562_hg38_StringentEnhancer_1000bp.bed.gz
-    |--K562_hg38_StringentEnhancer.bed.gz
-    |--MCF7_hg38_LenientEnhancer_1000bp.bed.gz
-    |--MCF7_hg38_LenientEnhancer.bed.gz
-    |--MCF7_hg38_StringentEnhancer_1000bp.bed.gz
-    |--MCF7_hg38_StringentEnhancer.bed.gz
+  |--01_call_Enhancer.sh
+  |--README.md
 ```
 
 </details>
@@ -159,10 +144,35 @@ When all scripts have been run sequentially, it will produce the following data 
     |--HepG2_ATAC_hg38_ENCFF439EIO.bed.gz
     |--K562_ATAC_hg38_ENCFF333TAT.bed.gz
     |--MCF7_ATAC_hg38_ENCFF821OEF.bed.gz
+  |--Enhancer_Coord
+    |--A549_hg38_LenientEnhancer_1000bp.bed.gz
+    |--A549_hg38_LenientEnhancer.bed.gz
+    |--A549_hg38_StringentEnhancer_1000bp.bed.gz
+    |--A549_hg38_StringentEnhancer.bed.gz
+    |--HepG2_hg38_LenientEnhancer_1000bp.bed.gz
+    |--HepG2_hg38_LenientEnhancer.bed.gz
+    |--HepG2_hg38_StringentEnhancer_1000bp.bed.gz
+    |--HepG2_hg38_StringentEnhancer.bed.gz
+    |--K562_hg38_LenientEnhancer_1000bp.bed.gz
+    |--K562_hg38_LenientEnhancer.bed.gz
+    |--K562_hg38_StringentEnhancer_1000bp.bed.gz
+    |--K562_hg38_StringentEnhancer.bed.gz
+    |--MCF7_hg38_LenientEnhancer_1000bp.bed.gz
+    |--MCF7_hg38_LenientEnhancer.bed.gz
+    |--MCF7_hg38_StringentEnhancer_1000bp.bed.gz
+    |--MCF7_hg38_StringentEnhancer.bed.gz
   |--STARR_Cellline
+    |--A549_pval0.1.peak.final.bed.gz
+    |--A549_pval0.05.peak.final.bed.gz
     |--A549_STARR_hg38_ENCFF646OQS.bed.gz
+    |--HepG2_pval0.1.peak.final.bed.gz
+    |--HepG2_pval0.05.peak.final.bed.gz
     |--HepG2_STARR_hg38_ENCFF047LDJ.bed.gz
+    |--K562_pval0.1.peak.final.bed.gz
+    |--K562_pval0.05.peak.final.bed.gz
     |--K562_STARR_hg38_ENCFF045TVA.bed.gz
+    |--MCF7_pval0.1.peak.final.bed.gz
+    |--MCF7_pval0.05.peak.final.bed.gz
     |--MCF7_STARR_hg38_ENCFF826BPU.bed.gz
   |--BAM
     |--Control_STARR_ENCFF807BAQ.bam
