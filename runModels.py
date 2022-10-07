@@ -1,4 +1,4 @@
-from Chrom_Proj.runner import runner
+from Chrom_Proj.runner import runner, loadModel
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
 import Chrom_Proj.visualizer as v
@@ -34,7 +34,7 @@ def main():
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    models = [1,2,3,4,5]
+    models = [1,2,3,4,5,6]
 
     # Goes through every permutation of the variables for building and training models
     for id in ids:
@@ -52,7 +52,9 @@ def main():
                         if tL != vL:
                             if tL == sliceLeft:
                                 if vL == sliceRight:
+                                    model = loadModel()
                                     runner(chromTypes,  
+                                            model, 
                                             id=id, 
                                             trainLabel=trainLabel, 
                                             testLabel=testLabel, 

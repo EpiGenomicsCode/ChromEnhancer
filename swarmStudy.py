@@ -8,6 +8,7 @@ import gc
 import matplotlib.pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from Chrom_Proj.visualizer import plotCluster
+import os
 
 def main():
     """
@@ -22,25 +23,30 @@ def main():
     numParticles = 100
 
     # Grab all the weights and biases saved
-    files = sorted(glob.glob("./output/model_weight_bias/*epoch_10*pt"))
-    for f in files:
-        print("Processing: {}".format(f.split("/")[-1]))
-        # performs the study 
-        s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
-                                ,gravity=0,epochs=10)
-        # save the particles WRT their model
-        saveOutput(s, model,  f[:-3]+"_Swarm.csv")
+    files = sorted(glob.glob("./output/model_weight_bias/*pt"))
+    grav = [0,1,2,3]
+    for g in grav:
+        for f in files:
+            print("Processing: {}".format(f.split("/")[-1]))
+            # performs the study 
+            s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
+                                    ,gravity=g,epochs=10)
+            # save the particles WRT their model
+            saveOutput(s, model,  f[:-3]+"_Swarm.csv")
 
-        # Cluster the swarm into different sections
-        plotData = clusterSwarm(s, numClusters)
-        print("saving clusters to {}".format(f[:-3]))
+            # Cluster the swarm into different sections
+            plotData = clusterSwarm(s, numClusters)
+            print("saving clusters to {}".format(f[:-3]))
 
-        # Save the plots and generate a heatmap of the clusters
-        plotCluster(plotData, "output/cluster/{}".format(f[f.rindex("/")+1:-3]), numParticles)
-        
-        # Clean up
-        del model
-        gc.collect()
+            # Save the plots and generate a heatmap of the clusters
+            if not os.path.exists("./output/cluster/grav_{}".format(g)):
+                os.mkdir("./output/cluster/grav_{}".format(g))
+                
+            plotCluster(plotData, "output/cluster/grav_{}_/{}".format(g, f[f.rindex("/")+1:-3]), numParticles)
+            
+            # Clean up
+            del model
+            gc.collect()
 
 def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt"
                 ,modelType=1
@@ -56,9 +62,14 @@ def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10
         numParticles: the number of particles in the swarm study
         gravity: the gravitational pull for communication in the GSA swarm
         epochs: number of epochs in the swarm study
+    
+    Return:
+        swarm: optimized swarm
+        model: loaded model
     """
+
     # load the model
-    model = loadModel(modelFileName=modelLocation, modelType=modelType)
+    model = loadModel(modelLocation, modelType)
     
     # we do not need the gradients just evaluation
     model.eval()
@@ -76,7 +87,14 @@ def saveOutput(swarm,
                 saveLocation="./output/swarm/",
                 fileName="swarmOutput.csv"):
     """
-    Given an optimized swarm and corosponding model save the position of the swarm 
+    Given an optimized swarm and corosponding model 
+    save the position of the swarm as a CSV file 
+    where the first 500 rows are the positions and the last one is the predicted value
+    
+    Input:
+        swarm: swarm that was run on a specific model
+        model: model the swarm was run on
+        saveLocation: Location to save the 
     """
     s = swarm
     data = []
@@ -98,13 +116,24 @@ def clusterSwarm(swarm, numClusters):
     input:
         swarm: swarm object that has ran on a model
         numCluster: the number of clusters you want to use for the swarm
+
+    returns:
+        plotData: 2-D array of the data and the cluster it belongs to
     """
-    hc = AgglomerativeClustering(numClusters=numClusters, linkage="ward")
+    # we are using hiarachacle clustering 
+    hc = AgglomerativeClustering(numClusters, linkage="ward")
+    
+    # get the positions of the particles in the swarm
     positions = np.array([birb.position.tolist() for birb in swarm.swarm])
     positions = np.squeeze(positions, axis=1)
+    # fit the particles to a cluster
     hc = hc.fit(positions)
+
+    # get the predicted cluster labels
     predictedLabels = hc.labels_
     plotData = {}
+
+    # map each particle to its cluster
     for comb in zip(positions, predictedLabels):
         if not comb[1] in plotData.keys():
             plotData[comb[1]] = [comb[0]]

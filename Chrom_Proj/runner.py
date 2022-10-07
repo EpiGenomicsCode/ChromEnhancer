@@ -12,6 +12,22 @@ def getData(chromtypes,
             validLabel,
             fileLocation="./Data/220708/DATA"
         ):
+    """
+    Returns the training, testing and validation data based on the input
+
+    Input:
+        chromtypes: List of String that represent the order of the chromatine types (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
+        id: String contaning the whole Chromatine Cell identification (ex: "A549")
+        trainLabel: String containing the training Label (ex: "chr10-chr17")
+        testLabel: String containing the test Label (ex: "chr10")
+        validLabel: String contatining the validation labels (ex: "chr11")
+        fileLocation: Relative file path for where the files are being saved (ex: ./Data/220708/DATA)
+
+    Return:
+        trainer: list of the training data
+        tester: list of the testing data
+        validator: list of the validation data
+    """
     
     chr_train = Chromatin_Dataset(
         id=id,
@@ -36,6 +52,44 @@ def getData(chromtypes,
     validator = [chr_valid]
 
     return trainer, tester, validator   
+
+
+def loadModel(modelFileName, modelType):
+    """
+    Loads the models architecture from a specific file location
+
+    Inputs:
+        modelFileName: filename of the model
+        modelType: the architechture of the model
+    
+    Returns:
+        model: Pytorch Model with architecture
+    """
+    if modelType == 1:
+        model = Chromatin_Network1("validator")
+    if modelType == 2:
+        model = Chromatin_Network2("validator")  
+    if modelType == 3:
+        model = Chromatin_Network3("validator")  
+    if modelType == 4:
+        model = Chromatin_Network4("validator")  
+    if modelType == 5:
+        model = Chromatin_Network5("validator")  
+    if modelType == 6:
+        model = Chromatin_Network6("validator")  
+
+    model.load_state_dict(torch.load(modelFileName))
+    
+    return model
+    
+def validator(modelFilename, chromData, device, modelType):
+    """
+    Loads a model into memory and runs it on 
+    """
+    model = loadModel(modelFilename, modelType)
+    model = model.to(device)
+    model.eval()
+    return validate(model, [chromData], device), chromData.labels
 
 def runner(chromtypes,  
             id="K562", 
@@ -77,6 +131,8 @@ def runner(chromtypes,
         model = Chromatin_Network4(name)   
     if modelType == 5:
         model = Chromatin_Network5(name)   
+    if modelType == 6:
+        model = Chromatin_Network6(name)   
 
     print(model) 
 
@@ -98,24 +154,3 @@ def runner(chromtypes,
     stop = timeit.default_timer()
     print('Running Model time: {}'.format(stop - start))
     
-def loadModel(modelFileName, modelType):
-    if modelType == 1:
-        model = Chromatin_Network1("validator")
-    if modelType == 2:
-        model = Chromatin_Network2("validator")  
-    if modelType == 3:
-        model = Chromatin_Network3("validator")  
-    if modelType == 4:
-        model = Chromatin_Network4("validator")  
-    if modelType == 5:
-        model = Chromatin_Network5("validator")  
-
-    model.load_state_dict(torch.load(modelFileName))
-    return model
-    
-def validator(modelFilename, chromData, device, modelType):
-    model = loadModel(modelFilename, modelType)
-    model = model.to(device)
-    model.eval()
-    return validate(model, [chromData], device), chromData.labels
-

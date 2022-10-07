@@ -75,7 +75,7 @@ def plotAll(location, name):
         labelName = labelName[0] + " " + labelName[2] + " Model " + labelName[-1][0]
         plt.plot(preConvert, recConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(preConvert), recConvert),2) ))
         index+=1
-        if index == 5:
+        if index == 6:
             index = 0
             plt.legend(bbox_to_anchor=labelLocation)
             plt.xlabel("False Positive Rate")
@@ -114,8 +114,8 @@ def plotAll(location, name):
         
         plt.plot(fprConvert, tprConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(fprConvert), tprConvert),2) ))
         index+=1
-        if index==5:
-            plt.plot([0,1], [0,1])
+        if index==6:
+            plt.plot([0,1], [0,1],"b--" )
             plt.xlabel("Recall")
             plt.ylabel("Precision")
             plt.legend(bbox_to_anchor=labelLocation)
@@ -145,10 +145,11 @@ def plotCluster(plotData, filename, particles):
     
     sns.heatmap(np.array(Data).T, linewidth=.5, xticklabels=x, yticklabels=y) 
     title = filename.split("_")
-    title = title[2] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles)
+    grav =title[1]
+    title = title[3] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles) 
+    
     plt.title(title)
-    # print(plt.style.available)
-    # plt.style.use()
+    
     sns.color_palette("Spectral")
-    plt.savefig("./output/cluster/{}.png".format(title.replace(" ", "_" )))
+    plt.savefig("./output/cluster/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
     
