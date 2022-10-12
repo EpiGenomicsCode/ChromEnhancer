@@ -29,7 +29,7 @@ class Chromatin_Dataset(Dataset):
         initalizer function:
             Input:
                 id: String: the Chromatine Name
-                chromType: List of Strings: the order for chromatine
+                chromType: List of Strings: the order for chromatin
                 label: String: the training data to use
                 file_location: String: Location of the dataset
         """

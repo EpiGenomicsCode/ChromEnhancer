@@ -6,7 +6,7 @@ from torch.autograd import Variable
 
 
 """
-Different Neural Networks
+Neural Networks used in Study
 """
 # CNN -> DNN
 class Chromatin_Network1(nn.Module):

@@ -16,16 +16,29 @@ def getData(chromtypes,
     Returns the training, testing and validation data based on the input
 
     Input:
-        chromtypes: List of String that represent the order of the chromatine types (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
-        id: String contaning the whole Chromatine Cell identification (ex: "A549")
-        trainLabel: String containing the training Label (ex: "chr10-chr17")
-        testLabel: String containing the test Label (ex: "chr10")
-        validLabel: String contatining the validation labels (ex: "chr11")
-        fileLocation: Relative file path for where the files are being saved (ex: ./Data/220708/DATA)
+        chromtypes: List of String that represent the order of the chromatine types 
+            (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
+        
+        id: String contaning the whole Chromatine Cell identification 
+            (ex: "A549")
+        
+        trainLabel: String containing the training Label 
+            (ex: "chr10-chr17")
+        
+        testLabel: String containing the test Label 
+            (ex: "chr10")
+        
+        validLabel: String contatining the validation labels 
+            (ex: "chr11")
+        
+        fileLocation: Relative file path for where the files are being saved 
+            (ex: ./Data/220708/DATA)
 
     Return:
         trainer: list of the training data
+        
         tester: list of the testing data
+        
         validator: list of the validation data
     """
     
@@ -84,7 +97,15 @@ def loadModel(modelFileName, modelType):
     
 def validator(modelFilename, chromData, device, modelType):
     """
-    Loads a model into memory and runs it on 
+    Loads a model into memory and runs it on  chromatin data
+
+    Input
+    ======
+        modelFilename: string : relative filepath of saved model
+        chromData: Data to be run
+        device: string: where the data should be run 
+            default: cpu
+        modelType: int : type of model ()
     """
     model = loadModel(modelFilename, modelType)
     model = model.to(device)
@@ -101,6 +122,29 @@ def runner(chromtypes,
             fileLocation="./Data/220802_DATA", 
             modelType=1
         ):
+    """
+        Loads data into memory with model on same device, then runs data on the model 
+
+        input
+        =====
+            chromtypes: list : chromtype order  
+            id: string : name of chromitin
+                default: "K562" 
+            trainLabel: string: training data from preprocessed data 
+                default: "chr10-chr17", 
+            testLabel: string: testing data from preprocessed data
+                default: "chr10", 
+            validLabel: string: validation data from preprocessed data
+                default: "chr17", 
+            epochs: int: number of epochs to train each model,
+                default: 2 
+            batchSize: int: batch size for training
+                default: 64
+            fileLocation: string: location of preprocessed data
+                default: "./Data/220802_DATA", 
+            modelType: int: type of model
+                default: 1
+    """
 
 
     start = timeit.default_timer()

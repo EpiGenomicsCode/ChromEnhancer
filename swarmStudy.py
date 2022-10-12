@@ -24,7 +24,7 @@ def main():
 
     # Grab all the weights and biases saved
     files = sorted(glob.glob("./output/model_weight_bias/*pt"))
-    grav = [0,1,2,3]
+    grav = [.005, .5, 1,2]
     for g in grav:
         for f in files:
             print("Processing: {}".format(f.split("/")[-1]))

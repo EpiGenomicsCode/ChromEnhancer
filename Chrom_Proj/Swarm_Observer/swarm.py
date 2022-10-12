@@ -65,6 +65,7 @@ class swarm:
     def moveForce(self):
         for particle in self.swarm:
             particle.force /= particle.mass
+            particle.force = np.multiply(np.random.rand() ,particle.force)
             particle.position +=  particle.force
             particle.position = [max(0,i) for i in particle.position[0].tolist()]
             particle.position = [min(1,i) for i in particle.position]
