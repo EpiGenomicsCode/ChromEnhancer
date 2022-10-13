@@ -14,6 +14,16 @@ from sklearn import metrics as m
 import pdb
 
 def readfiles(id, chromType, label, file_location):
+    """
+        Reads preprocessed files and returns the data and labels
+
+        input:
+        =====
+            id: string
+            chromType: list of strings
+            label: string: Enhancer labels
+            file_location: string
+    """
     print(file_location)
     files = glob(file_location)
     labels = []
@@ -43,6 +53,9 @@ def readfiles(id, chromType, label, file_location):
     return np.array(horizontalConcat.values[:]), np.array(label.values[:])
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
+    """
+        Trains the model with respect to the data
+    """
     for train_loader in trainer:
         train_loader = DataLoader(
             train_loader, batch_size=batch_size, shuffle=True)
@@ -67,6 +80,9 @@ def train(trainer, batch_size, device, optimizer, model, loss_fn):
             optimizer.step()
 
 def test(tester, batch_size, device, model):
+    """
+        Tests the model with respect to the data
+    """
     for test_loader in tester:
         test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
 
@@ -78,6 +94,9 @@ def test(tester, batch_size, device, model):
             test_label = torch.flatten(test_label)
 
 def validate(model, validator, device):
+    """
+        Validates the model with respect to the data
+    """
     allOut = []
     model = model.to("cpu")
 
@@ -171,6 +190,9 @@ def runModel(
         loss_fn,
         batch_size,
         epochs):
+    """
+        Runs the model whole with respect to the data
+    """
     savePath = "output/model_weight_bias/model_{}.pt".format(model.name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

@@ -9,6 +9,9 @@ import seaborn as sns
 
 
 def processFile(file):
+    """
+        takes in a preprocessed file and returns the data
+    """
     f = open(file, "r")
     type = f.readline()
     data = f.readline().strip().split(",")
@@ -17,6 +20,9 @@ def processFile(file):
     return data
 
 def combine_coord(location, name):
+    """
+        reads in the pre, rec, fpr and tpr data from the file given
+    """
     print("looking at {}".format("location"))
     files = glob.glob(location+"*{}*".format(name))
     print("found files: {}".format(files))
