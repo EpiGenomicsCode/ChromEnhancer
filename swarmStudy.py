@@ -24,10 +24,15 @@ def main():
 
     # Grab all the weights and biases saved
     files = sorted(glob.glob("./output/model_weight_bias/*pt"))
-    grav = [.005, .5, 1,2]
+    grav = [.5, .05, .005]
     for g in grav:
         for f in files:
             print("Processing: {}".format(f.split("/")[-1]))
+
+            # Save the plots and generate a heatmap of the clusters
+            if not os.path.exists("./output/cluster/grav_{}".format(g)):
+                os.mkdir("./output/cluster/grav_{}".format(g))
+                
             # performs the study 
             s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
                                     ,gravity=g,epochs=10)
@@ -38,9 +43,6 @@ def main():
             plotData = clusterSwarm(s, numClusters)
             print("saving clusters to {}".format(f[:-3]))
 
-            # Save the plots and generate a heatmap of the clusters
-            if not os.path.exists("./output/cluster/grav_{}".format(g)):
-                os.mkdir("./output/cluster/grav_{}".format(g))
                 
             plotCluster(plotData, "output/cluster/grav_{}_/{}".format(g, f[f.rindex("/")+1:-3]), numParticles)
             
