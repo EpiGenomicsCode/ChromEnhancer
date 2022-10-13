@@ -1,50 +1,33 @@
+Chromatin Enhancer prediction
 
-# TODO:
+Words
 
-1. ~~Figure out Data~~
-    * ~~Meeting 6/27/22: Create a dataloader for the chromatin data with the label, similar to pandas dataframe maybe~~
-    * ~~Remove duplicates from data~~
-    * ~~Fix make embedd alignment~~
-    * ~~Look into records and training time ~~
-    * ~~Create a validation dataset~~
-2. Build Network (homogenous)
-    * ~~Simple Neural Network~~
-    * Figure out LSTM model
-3. ~~Run Network~~
-4. Collect Results
-    * ~~AUC and PRC~~
-    * Input Study
-5. Do a PSO study on the input variables (understandability of NN?)
-    * Should this be its own repo for a PSO model study?
+# How to run study
 
-Once we get the results we need to focus on moving over to a heterogenous model
+## Preprocessing
+* I am not sure
+
+## Initializing the environment
+* Download the repo and navigate to the main file
+* Edit the startDocker.sh command as needed for GPU support
+* run the command sh startDocker.sh
+* navigate to the /work directory in docker
 
 
+## Running the model
+* In the runmodels.py file, you can edit the training, testing, and validation data alongside the different models you want to run and the number of epochs.
+* run the runmodels.py file in the docker environment
 
-# Changelog
-## 6/28/22
----
-### Done
-    1. Created a Dataset that contains the label and the chromtracks
-    2. Created a default model for binary classification
-    3. Created the training and testing loop
+## visualizing the data
+* In order to create the visualizations, you can run the visualizeData.py file
 
-## 6/29/22 (Olivia)
-    1. Initialize preprocessing scripts directory structure
-    2. Add preprocessing scripts for downloading ENCODE data
-    3. Add preprocessing scripts for calling Peak Enhancers (partial)
-        - waiting on covariate files from gersteinlab
-        - testing runs without covariates until then
-    4. Initialize README
-        - describe all above
-        - sketch out formatting step in README
+## Doing a Swarm Study on the input
+* To do a swarm Study you can run the swarmStudy.py file
 
-# Resources
+# FAQ
 
-* Something like: https://github.com/yifengtao/genome-transformer
-* Or maybe: https://towardsdatascience.com/bringing-bert-to-the-field-how-to-predict-gene-expression-from-corn-dna-9287af91fcf8
-
-# Useful Commands
-1. Download the container: docker build -t <tag_name> .
-2. Run the container: docker run -it --rm --gpus all --name pytorch -v $PWD:/work <tag_name> 
-3. start jupyter notebook: jupyter notebook --ip 0.0.0.0 --no-browser --allow-root
+# Adding models
+* To add your own model first create a new model class in the Chrom_Proj/model.py file
+* Navigate to the Chom_Proj/runner.py file in the runner method and assign a new number to your class(i.e., lines 168-178) 
+* In the runModels.py file add your number mapping to the model's list
+* Congrats you have added a new model!
