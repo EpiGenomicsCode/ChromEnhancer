@@ -5,7 +5,7 @@ Descriptive words for the project
 # How to run a study
 
 ## Preprocessing
-* I am not sure
+* GOTO Preprocessing Folder
 
 ## Initializing the environment
 * Download the repo and navigate to the main file

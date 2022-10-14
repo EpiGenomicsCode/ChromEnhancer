@@ -136,7 +136,7 @@ def plotCluster(plotData, filename, particles):
     y = ["C1","C2","C3","C4","C5"]
     x = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     plt.clf()
-
+ 
     Data = []
     for cluster in plotData.keys():
         clusterData = np.sum(plotData[cluster], 0)
@@ -149,13 +149,12 @@ def plotCluster(plotData, filename, particles):
                           ]
         Data.append(np.divide(clusterSections, particles))
     
-    sns.heatmap(np.array(Data).T, linewidth=.5, xticklabels=x, yticklabels=y) 
+    sns.heatmap(np.array(Data).T/np.linalg.norm(np.array(Data).T), linewidth=.5, xticklabels=x, yticklabels=y, cmap="Spectral") 
     title = filename.split("_")
     grav =title[1]
     title = title[3] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles) 
     
     plt.title(title)
-    
-    sns.color_palette("Spectral")
+   
     plt.savefig("./output/cluster/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
     

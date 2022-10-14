@@ -21,11 +21,13 @@ def main():
     """
     numClusters = 5
     numParticles = 100
+    epochs = 10
 
     # Grab all the weights and biases saved
     files = sorted(glob.glob("./output/model_weight_bias/*pt"))
     grav = [.5, .05, .005]
     for g in grav:
+        print("Grav: {}".format(g))
         for f in files:
             print("Processing: {}".format(f.split("/")[-1]))
 
@@ -35,9 +37,9 @@ def main():
                 
             # performs the study 
             s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
-                                    ,gravity=g,epochs=10)
+                                    ,gravity=g,epochs=epochs)
             # save the particles WRT their model
-            saveOutput(s, model,  f[:-3]+"_Swarm.csv")
+            saveOutput(s, model,  "./output/swarm/", f[:-3]+"_Swarm.csv")
 
             # Cluster the swarm into different sections
             plotData = clusterSwarm(s, numClusters)
@@ -103,12 +105,15 @@ def saveOutput(swarm,
     # get the final position of the swarm
     for particle in s.swarm:
         history = particle.history[-1].tolist()
-        history[0].append(model(particle.history[-1]).item())
-        data.append(history[0])
+        score = model(particle.history[-1]).item()
+        if score > .5:
+            history[0].append(score)
+            data.append(history[0])
 
     # Save the data as a CSV rounded to 4th decimal
     data = pd.DataFrame(data)
     data = data.round(4)
+    print("saving to {}".format(saveLocation+fileName[fileName.rfind("/")+1:]))
     data.to_csv(saveLocation+fileName[fileName.rfind("/")+1:], index=False, header=False)
     
 def clusterSwarm(swarm, numClusters):
