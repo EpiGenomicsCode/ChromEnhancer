@@ -2,8 +2,8 @@ from Chrom_Proj.runner import runner, loadModel
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
 import Chrom_Proj.visualizer as v
-
-
+import numpy as np
+import pdb
 # TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
 # correct validation & and PRC do multiple models on multiple data
 
@@ -26,8 +26,8 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
-    epochs = 10
-    batchSize = 128
+    epochs = 20
+    batchSize = 256
 
     # parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
@@ -52,9 +52,8 @@ def main():
                         if tL != vL:
                             if tL == sliceLeft:
                                 if vL == sliceRight:
-                                    model = loadModel()
-                                    runner(chromTypes,  
-                                            model, 
+                                    # model = loadModel()
+                                    realValid, predictedValid = runner(chromTypes,  
                                             id=id, 
                                             trainLabel=trainLabel, 
                                             testLabel=testLabel, 
@@ -63,6 +62,9 @@ def main():
                                             fileLocation="./Data/220802_DATA", 
                                             modelType=modelType
                                             )
+                                    pdb.set_trace()
+                                    rmse = np.sqrt(np.mean((np.subtract(predictedValid.tolist(),realValid.flatten().tolist()))**2))                 
+                                    print("\t\tValidation RMSE: {}".format(rmse)) 
                                     
 
 

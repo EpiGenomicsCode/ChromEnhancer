@@ -10,7 +10,7 @@ def getData(chromtypes,
             trainLabel, 
             testLabel, 
             validLabel,
-            fileLocation="./Data/220708/DATA"
+            fileLocation="./Data/220802_DATA"
         ):
     """
     Returns the training, testing and validation data based on the input
@@ -144,6 +144,11 @@ def runner(chromtypes,
                 default: "./Data/220802_DATA", 
             modelType: int: type of model
                 default: 1
+
+
+        returns:
+        =======
+            outputData: list of predictions given from validation set 
     """
 
 
@@ -186,7 +191,7 @@ def runner(chromtypes,
 
 
     
-    runModel(   trainer,
+    realValid, predictedValid, model = runModel(   trainer,
                 tester,
                 validator,
                 model=model,
@@ -194,7 +199,9 @@ def runner(chromtypes,
                 loss_fn=nn.BCEWithLogitsLoss(),
                 batch_size=batchSize, 
                 epochs=epochs
-            )
+                )
     stop = timeit.default_timer()
     print('Running Model time: {}'.format(stop - start))
+
+    return realValid, predictedValid
     

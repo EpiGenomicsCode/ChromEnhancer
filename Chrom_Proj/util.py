@@ -6,7 +6,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from collections import OrderedDict
-
+import Chrom_Proj as CP
 import gc
 from sklearn import preprocessing
 from sklearn import metrics as m
@@ -57,8 +57,10 @@ def train(trainer, batch_size, device, optimizer, model, loss_fn):
         Trains the model with respect to the data
     """
     for train_loader in trainer:
-        train_loader = DataLoader(
-            train_loader, batch_size=batch_size, shuffle=True)
+        if train_loader != CP.chrom_dataset.Chromatin_Dataset:
+            train_loader = DataLoader(
+                train_loader, batch_size=batch_size, shuffle=True)
+
         for data, label in tqdm(train_loader, desc="training"):
             # Load data appropriatly
             data, label = data.to(device), label.to(device)
@@ -96,8 +98,17 @@ def test(tester, batch_size, device, model):
 def validate(model, validator, device):
     """
         Validates the model with respect to the data
+
+        INPUT:
+        =====
+            model: pytorch model: for validation
+            validator: data to validate
+            device: the device to run on
+        RETURNS:
+            targetData: list of realdata
+            target: list of predicted data
     """
-    allOut = []
+    predictedData = []
     model = model.to("cpu")
 
     for valid_loader in validator:
@@ -143,7 +154,7 @@ def validate(model, validator, device):
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
     plt.savefig("output/roc/{}_roc.png".format(model.name))
-    allOut.append(target)
+    predictedData.append(target)
     
     f = open("output/coord/pre_{}.csv".format(model.name), "w+")
     f.write("pre\n")
@@ -179,7 +190,7 @@ def validate(model, validator, device):
     f.write(data+"\n")
     f.close()
 
-    return allOut
+    return valid_loader.labels, target
 
 def runModel(
         trainer,
@@ -212,12 +223,14 @@ def runModel(
         gc.collect()
     
     print("Validating")
-    validate(model, validator, device)
+    realValid, predictedValid = validate(model, validator, device)
 
 
-    print("\t\t\t{}".format((torch.cuda.memory_summary())))
+    # print("\t\t\t{}".format((torch.cuda.memory_summary())))
     model = model.to("cpu")
     del model
     gc.collect()
     torch.cuda.empty_cache()
-    print("\t\t\t{}".format((torch.cuda.memory_summary())))
+    # print("\t\t\t{}".format((torch.cuda.memory_summary())))
+
+    return realValid, predictedValid
