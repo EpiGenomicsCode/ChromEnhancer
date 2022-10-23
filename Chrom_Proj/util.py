@@ -5,12 +5,13 @@ from glob import glob
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
-from collections import OrderedDict
+from Chrom_Proj.visualizer import *
 import Chrom_Proj as CP
 import gc
 from sklearn import preprocessing
 from sklearn import metrics as m
 import sklearn.metrics as sm
+from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 
 import pdb
 
@@ -53,11 +54,75 @@ def readfiles(id, chromType, label, file_location):
 
     return np.array(horizontalConcat.values[:]), np.array(label.values[:])
 
+def getData(chromtypes, 
+            id, 
+            trainLabel, 
+            testLabel, 
+            validLabel,
+            fileLocation="./Data/220802_DATA"
+        ):
+    """
+    Returns the training, testing and validation data based on the input
+
+    Input:
+        chromtypes: List of String that represent the order of the chromatine types 
+            (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
+        
+        id: String contaning the whole Chromatine Cell identification 
+            (ex: "A549")
+        
+        trainLabel: String containing the training Label 
+            (ex: "chr10-chr17")
+        
+        testLabel: String containing the test Label 
+            (ex: "chr10")
+        
+        validLabel: String contatining the validation labels 
+            (ex: "chr11")
+        
+        fileLocation: Relative file path for where the files are being saved 
+            (ex: ./Data/220708/DATA)
+
+    Return:
+        trainer: list of the training data
+        
+        tester: list of the testing data
+        
+        validator: list of the validation data
+    """
+    
+    chr_train = Chromatin_Dataset(
+        id=id,
+        chromType=chromtypes,
+        label=trainLabel,
+        file_location=fileLocation+"/TRAIN/*")
+
+    chr_test = Chromatin_Dataset(
+        id=id,
+        chromType=chromtypes,
+        label=testLabel,
+        file_location=fileLocation+"/HOLDOUT/*")
+
+    chr_valid = Chromatin_Dataset(
+        id=id,
+        chromType=chromtypes,
+        label=validLabel,
+        file_location=fileLocation+"/HOLDOUT/*")
+
+    trainer = [chr_train]
+    tester = [chr_test]
+    validator = [chr_valid]
+
+    return trainer, tester, validator   
+
+
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
     """
         Trains the model with respect to the data
     """
+    totalLoss = []
     for train_loader in trainer:
+        trainLoss = 0
         if train_loader != CP.chrom_dataset.Chromatin_Dataset:
             train_loader = DataLoader(
                 train_loader, batch_size=batch_size, shuffle=True)
@@ -77,19 +142,26 @@ def train(trainer, batch_size, device, optimizer, model, loss_fn):
                 target.to(
                     torch.float32), label.to(
                     torch.float32))
+            # save the loss
+            trainLoss += loss.item() * data.size(0)
+
             # Calculate the gradient
             loss.backward()
             # Update Weight
             optimizer.step()
+        totalLoss.append(trainLoss)
+    totalLoss = np.sum(totalLoss)/len(trainer)
+    print("\tTrain Loss: {}".format(totalLoss) )
+    return totalLoss
 
 def test(tester, batch_size, device, model, loss_fn):
     """
         Tests the model with respect to the data
     """
     
-    lossTotal = []
+    totalLoss = []
     for test_loader in tester:
-        valid_loss = 0
+        testloss = 0
         if test_loader != CP.chrom_dataset.Chromatin_Dataset:
             test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
 
@@ -103,10 +175,10 @@ def test(tester, batch_size, device, model, loss_fn):
                 target.to(
                     torch.float32), label.to(
                     torch.float32))
-            valid_loss += loss.item() * test_data.size(0)
-        lossTotal.append(valid_loss)
+            testLoss += loss.item() * test_data.size(0)
+        totalLoss.append(testLoss)
         
-    totalLoss = np.sum(lossTotal)/len(tester)
+    totalLoss = np.sum(totalLoss)/len(tester)
 
     print("\tTest Loss: {}".format(totalLoss) )
     return totalLoss
@@ -138,40 +210,31 @@ def validate(model, validator, device):
     target = torch.flatten(target)
     fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
     pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
-    ##
-    # PRINT fpr, tpr, pre, rec to file
-    ##
 
-    roc_auc = m.auc(fpr, tpr)
-    data = list(OrderedDict.fromkeys(zip(pre,rec)))
-    
-    prc_auc = m.auc(sorted(pre), rec)
+    predictedData.append(target)    
 
-    plt.clf()
-    plt.plot(pre, rec, color="darkgreen", 
-            label='PRC curve (area = %0.2f' % prc_auc)
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('Precision')
-    plt.ylabel('Recall')
-    plt.title('PRC Curve')
-    plt.legend(loc="lower right")
-    plt.savefig("output/prc/{}_prc.png".format(model.name))
-    plt.clf()
+    plotROC(model, fpr, tpr)
+    plotPRC(model, pre, rec)
+    writeData(model, pre, rec, fpr, tpr)
 
-    plt.figure()
-    plt.plot(fpr, tpr, color='darkorange',
-            label='ROC curve (area = %0.2f)' % roc_auc)
-    plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend(loc="lower right")
-    plt.savefig("output/roc/{}_roc.png".format(model.name))
-    predictedData.append(target)
-    
+    return valid_loader.labels, target
+
+def writeData(model, pre, rec, fpr, tpr):
+    """
+        Writes the PCR and ROC curve data to file
+
+        Input:
+        ======
+            model: Pytorch model
+
+            pre: array: precision data
+            
+            rec: array: recall data
+
+            fpr: array: false positive rate
+
+            tpr: array: true positive rate
+    """
     f = open("output/coord/pre_{}.csv".format(model.name), "w+")
     f.write("pre\n")
     data = ""
@@ -206,8 +269,6 @@ def validate(model, validator, device):
     f.write(data+"\n")
     f.close()
 
-    return valid_loader.labels, target
-
 def runModel(
         trainer,
         tester,
@@ -225,22 +286,21 @@ def runModel(
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
-    rmse = []
+    Loss = []
     # Train the model
     for epoch in range(epochs):     
         print("-----{}------".format(epoch)) 
-
         # Set model to train mode and train on training data
         model.train()
-        train(trainer, batch_size, device, optimizer, model, loss_fn)
+        trainLoss = train(trainer, batch_size, device, optimizer, model, loss_fn)
         model.eval()
-        rmseEpoch = test(tester, batch_size, device, model, loss_fn)
-        rmse.append(rmseEpoch)
+        testLoss = test(tester, batch_size, device, model, loss_fn)
+        Loss.append((trainLoss, testLoss))
         torch.save(model.state_dict(), savePath)
         gc.collect()
     
     f = open("./output/rmseTest/loss_Per_epoch_{}.txt".format(model.name), "w+")
-    f.write(str(rmse))
+    f.write(str(Loss))
     f.close()
 
 

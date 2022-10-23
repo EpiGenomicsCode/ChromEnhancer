@@ -1,70 +1,8 @@
-from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 from Chrom_Proj.model import *
-from Chrom_Proj.util import  runModel, validate
+from Chrom_Proj.util import  runModel, validate, getData
 import torch
 from torch import nn
 import timeit
-
-def getData(chromtypes, 
-            id, 
-            trainLabel, 
-            testLabel, 
-            validLabel,
-            fileLocation="./Data/220802_DATA"
-        ):
-    """
-    Returns the training, testing and validation data based on the input
-
-    Input:
-        chromtypes: List of String that represent the order of the chromatine types 
-            (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
-        
-        id: String contaning the whole Chromatine Cell identification 
-            (ex: "A549")
-        
-        trainLabel: String containing the training Label 
-            (ex: "chr10-chr17")
-        
-        testLabel: String containing the test Label 
-            (ex: "chr10")
-        
-        validLabel: String contatining the validation labels 
-            (ex: "chr11")
-        
-        fileLocation: Relative file path for where the files are being saved 
-            (ex: ./Data/220708/DATA)
-
-    Return:
-        trainer: list of the training data
-        
-        tester: list of the testing data
-        
-        validator: list of the validation data
-    """
-    
-    chr_train = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*")
-
-    chr_test = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
-
-    chr_valid = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=validLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
-
-    trainer = [chr_train]
-    tester = [chr_test]
-    validator = [chr_valid]
-
-    return trainer, tester, validator   
 
 
 def loadModel(modelFileName, modelType):

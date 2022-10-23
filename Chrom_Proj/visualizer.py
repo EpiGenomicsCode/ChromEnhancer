@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import pdb
 import seaborn as sns
+from sklearn import metrics as m
 
 
 def processFile(file):
@@ -157,4 +158,59 @@ def plotCluster(plotData, filename, particles):
     plt.title(title)
    
     plt.savefig("./output/cluster/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
+    
+
+def plotPRC(model, pre, rec):
+    """
+        plots the PRC curve:
+        
+        input:
+        ======
+            model: pytorch model
+
+            pre: array: precisison data
+
+            rec: array: recall data
+    """
+
+    prc_auc = m.auc(sorted(pre), rec)
+
+    plt.clf()
+    plt.plot(pre, rec, color="darkgreen", 
+            label='PRC curve (area = %0.2f' % prc_auc)
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('Precision')
+    plt.ylabel('Recall')
+    plt.title('PRC Curve')
+    plt.legend(loc="lower right")
+    plt.savefig("output/prc/{}_prc.png".format(model.name))
+    plt.clf()
+
+
+def plotROC(model, fpr, tpr):
+    """
+        plots the ROC curve:
+        
+        input:
+        ======
+            model: pytorch model
+
+            fpr: array: false positive rate
+
+            tpr: array: true positive rate
+    """
+    roc_auc = m.auc(fpr, tpr)
+    plt.clf()
+    plt.figure()
+    plt.plot(fpr, tpr, color='darkorange',
+            label='ROC curve (area = %0.2f)' % roc_auc)
+    plt.plot([0, 1], [0, 1], color='navy', linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend(loc="lower right")
+    plt.savefig("output/roc/{}_roc.png".format(model.name))
     
