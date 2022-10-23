@@ -1,14 +1,10 @@
 \section*{Background}
 
 
-Initial gains in the field of Machine Learning and genomic annotations can be found as far back as 1992 when \cite*{horton1992assessment} used a perceptron neural network and applied it for promoter site predictions of E. coli. <should we talk more about this>. From there Neural Networks and ML techniques have stayed close to the field of Genomics \cite{eraslan2019deep}.  This is in part because ML models can extract complex features from the training data. While these neural networks have shown promise for extracting information from genomic data, the understanding of the data is still incomplete. 
+Initial gains in the field of Machine Learning and genomic annotations can be found as far back as 1992 when \cite*{horton1992assessment} used a perceptron neural network and applied it for promoter site predictions of E. coli. \hl{<should we talk more about this>}. From there Neural Networks and ML techniques have stayed close to the field of Genomics \cite{eraslan2019deep}.  This is in part because ML models can extract complex features from the training data. While these neural networks have shown promise for extracting information from genomic data, the understanding of the data is still incomplete. 
 
 Currently, the main contributions towards dissecting the working of neural networks are achieved by mapping the importance of input features towards the model output, this is done through the study of the network's gradients or other strategies similar to decision trees. These networks have been modeled to similar problems in different domains, (Genomic data is very recursive). Due to the nature of the Data, some researchers have looked into applying Recurrent Neural Networks for prediction (Citations). However, due to their long process times and limited capabilities, they have had varying success.
 
-Currently (I only see) Markov Models are the only networks that have been successfully applied on the full genomic sequence. (citations) <is this relavent?>
+In this work, we do an architecture study of different neural networks and its ability to read in Assays to predict Enhancers; from here we study the accuracy of different assays (i.e., HPEG2, A549,  K562, \& MCF7) individually based on different networks. We take the networks that performed the best overall and ran it on all Assays to model its overall accuracy.
 
-
-In this work we study <something> and measure different models efficiency and accuracy. We will first observe a 1D deep convolutional network trained on <data>. The model output will be defined in Section \ref{Methodology:1DCNN_model}. From there we will look at a simple Polynomial regression and SVM. Our results will be found in <the results section>.
-
-
-<something>
+\hl{What else do we need here}
