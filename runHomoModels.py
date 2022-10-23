@@ -62,9 +62,6 @@ def main():
                                             fileLocation="./Data/220802_DATA", 
                                             modelType=modelType
                                             )
-                                    pdb.set_trace()
-                                    rmse = np.sqrt(np.mean((np.subtract(predictedValid.tolist(),realValid.flatten().tolist()))**2))                 
-                                    print("\t\tValidation RMSE: {}".format(rmse)) 
                                     
 
 

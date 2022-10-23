@@ -25,7 +25,7 @@ def main():
 
     # Grab all the weights and biases saved
     files = sorted(glob.glob("./output/model_weight_bias/*pt"))
-    grav = [.5, .05, .005]
+    grav = [.005]
     for g in grav:
         print("Grav: {}".format(g))
         for f in files:

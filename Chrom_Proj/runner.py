@@ -196,7 +196,7 @@ def runner(chromtypes,
                 validator,
                 model=model,
                 optimizer=torch.optim.Adam(model.parameters(), lr=1e-4),
-                loss_fn=nn.BCEWithLogitsLoss(),
+                loss_fn=nn.BCELoss(),
                 batch_size=batchSize, 
                 epochs=epochs
                 )

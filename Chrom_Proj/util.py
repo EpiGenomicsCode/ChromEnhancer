@@ -10,6 +10,7 @@ import Chrom_Proj as CP
 import gc
 from sklearn import preprocessing
 from sklearn import metrics as m
+import sklearn.metrics as sm
 
 import pdb
 
@@ -81,20 +82,35 @@ def train(trainer, batch_size, device, optimizer, model, loss_fn):
             # Update Weight
             optimizer.step()
 
-def test(tester, batch_size, device, model):
+def test(tester, batch_size, device, model, loss_fn):
     """
         Tests the model with respect to the data
     """
+    
+    lossTotal = []
     for test_loader in tester:
-        test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
+        valid_loss = 0
+        if test_loader != CP.chrom_dataset.Chromatin_Dataset:
+            test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
 
         for test_data, test_label in tqdm(test_loader, desc="testing"):
             test_data, test_label = test_data.to(device), test_label.to(device)
-
             target = model(test_data)
             target = torch.flatten(target)
-            test_label = torch.flatten(test_label)
+            label = torch.flatten(test_label)
+            # Calculate the Lo
+            loss = loss_fn(
+                target.to(
+                    torch.float32), label.to(
+                    torch.float32))
+            valid_loss += loss.item() * test_data.size(0)
+        lossTotal.append(valid_loss)
+        
+    totalLoss = np.sum(lossTotal)/len(tester)
 
+    print("\tTest Loss: {}".format(totalLoss) )
+    return totalLoss
+                                    
 def validate(model, validator, device):
     """
         Validates the model with respect to the data
@@ -209,7 +225,7 @@ def runModel(
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
-
+    rmse = []
     # Train the model
     for epoch in range(epochs):     
         print("-----{}------".format(epoch)) 
@@ -218,19 +234,26 @@ def runModel(
         model.train()
         train(trainer, batch_size, device, optimizer, model, loss_fn)
         model.eval()
-        test(tester, batch_size, device, model)
+        rmseEpoch = test(tester, batch_size, device, model, loss_fn)
+        rmse.append(rmseEpoch)
         torch.save(model.state_dict(), savePath)
         gc.collect()
     
+    f = open("./output/rmseTest/loss_Per_epoch_{}.txt".format(model.name), "w+")
+    f.write(str(rmse))
+    f.close()
+
+
+
     print("Validating")
     realValid, predictedValid = validate(model, validator, device)
 
 
     # print("\t\t\t{}".format((torch.cuda.memory_summary())))
     model = model.to("cpu")
-    del model
-    gc.collect()
-    torch.cuda.empty_cache()
+    # del model
+    # gc.collect()
+    # torch.cuda.empty_cache()
     # print("\t\t\t{}".format((torch.cuda.memory_summary())))
 
-    return realValid, predictedValid
+    return realValid, predictedValid,  model

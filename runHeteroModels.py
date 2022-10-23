@@ -30,7 +30,7 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
-    epochs = 10//4
+    epochs = 20//4
     batchSize = 128
 
     # parameters for model
