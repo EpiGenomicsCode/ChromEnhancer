@@ -1,4 +1,5 @@
-from cProfile import label
+from Chrom_Proj.chrom_dataset import readFiles
+from Chrom_Proj.util import *
 import glob
 from sklearn import metrics as m
 import matplotlib.pyplot as plt
@@ -7,131 +8,11 @@ import numpy as np
 import pdb
 import seaborn as sns
 from sklearn import metrics as m
+import torch
+from torchviz import make_dot
+import tensorflow as tf
 
 
-def processFile(file):
-    """
-        takes in a preprocessed file and returns the data
-    """
-    f = open(file, "r")
-    type = f.readline()
-    data = f.readline().strip().split(",")
-    f.close()
-
-    return data
-
-def combine_coord(location, name):
-    """
-        reads in the pre, rec, fpr and tpr data from the file given
-    """
-    print("looking at {}".format("location"))
-    files = glob.glob(location+"*{}*".format(name))
-    print("found files: {}".format(files))
-    assert len(files) !=0
-    data = {"pre":[],"rec":[],"fpr":[],"tpr":[],}
-    for file in files:
-        if "pre" in file:
-            data["pre"].append((file,processFile(file)))
-        if "fpr" in file:
-            data["fpr"].append((file,processFile(file)))
-        if "rec" in file:
-            data["rec"].append((file,processFile(file)))
-        if "tpr" in file:
-            data["tpr"].append((file,processFile(file)))
-
-    return data
-
-def plotAll(location, name):
-    labelLocation = (.65, 1.2)
-    plt.rcParams["figure.figsize"] = [15.00, 10.00]
-    plt.rcParams["figure.autolayout"] = True
-    data = combine_coord(location,name)
-    plt.clf()
-
-    data["pre"].sort()
-    data["rec"].sort()
-    data["fpr"].sort()
-    data["tpr"].sort()
-    plt.xlabel('Precision')
-    plt.ylabel('Recall')
-    plt.title('PRC Curve')
-    plt.legend()
-    plt.xlim(0,1)
-    plt.ylim(0,1)
-    index = 0
- 
-    for pre,rec in zip(data["pre"], data["rec"]):
-    
-        print("processing: {}".format(pre[0]))
-        print("processing: {}".format(rec[0]))
-        
-        preConvert = []
-        recConvert = []
-        for i in pre[1]:
-            try:
-                preConvert.append(float(i))
-            except:
-                continue
-        for i in rec[1]:
-            try:
-                recConvert.append(float(i))
-            except:
-                continue
-        labelName = pre[0][pre[0].index("id_")+3:]
-        labelName = labelName.split("_")
-        labelName = labelName[0] + " " + labelName[2] + " Model " + labelName[-1][0]
-        plt.plot(preConvert, recConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(preConvert), recConvert),2) ))
-        index+=1
-        if index == 6:
-            index = 0
-            plt.legend(bbox_to_anchor=labelLocation)
-            plt.xlabel("False Positive Rate")
-            plt.ylabel("True Positive Rate")
-            plt.savefig("output/dataVis/prc_{}_{}.png".format(name, pre[0].split("_")[4]))
-            plt.clf()
-        print("==================")
-    
-    #==============================
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend()
-    plt.xlim(0,1)
-    plt.ylim(0,1)
-    index = 0
-    for pre,rec in zip(data["fpr"], data["tpr"]):
-        print("processing: {}".format(pre[0]))
-        print("processing: {}".format(rec[0]))
-        
-        fprConvert = []
-        tprConvert = []
-        for i in pre[1]:
-            try:
-                fprConvert.append(float(i))
-            except:
-                continue
-        for i in rec[1]:
-            try:
-                tprConvert.append(float(i))
-            except:
-                continue
-        labelName = pre[0][pre[0].index("id_")+3:]
-        labelName = labelName.split("_")
-        labelName = labelName[0] + " " + labelName[2] + " Model " + labelName[-1][0]
-        
-        plt.plot(fprConvert, tprConvert, label="Model {} AUC:{}".format(labelName, round(m.auc(sorted(fprConvert), tprConvert),2) ))
-        index+=1
-        if index==6:
-            plt.plot([0,1], [0,1],"b--" )
-            plt.xlabel("Recall")
-            plt.ylabel("Precision")
-            plt.legend(bbox_to_anchor=labelLocation)
-            plt.savefig("output/dataVis/roc_{}_{}.png".format(name,pre[0].split("_")[4]))
-            plt.clf()
-            index = 0
-
-        print("==================")
-    
 def plotCluster(plotData, filename, particles):
     totalData = []
     y = ["C1","C2","C3","C4","C5"]
@@ -157,8 +38,7 @@ def plotCluster(plotData, filename, particles):
     
     plt.title(title)
    
-    plt.savefig("./output/cluster/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
-    
+    plt.savefig("./output/Swarm/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
 
 def plotPRC(model, pre, rec):
     """
@@ -187,6 +67,7 @@ def plotPRC(model, pre, rec):
     plt.savefig("output/prc/{}_prc.png".format(model.name))
     plt.clf()
 
+    return prc_auc
 
 def plotROC(model, fpr, tpr):
     """
@@ -213,4 +94,48 @@ def plotROC(model, fpr, tpr):
     plt.title('ROC Curve')
     plt.legend(loc="lower right")
     plt.savefig("output/roc/{}_roc.png".format(model.name))
+
+    return roc_auc
     
+
+
+def plotModel(modelType):
+    print("generating graph for model type: {}".format(modelType))
+    model = loadModel(modelType, str(modelType))
+    ranData = torch.rand(500,500)
+    yhat = model(ranData)
+
+    make_dot(yhat,params=dict(list(model.named_parameters()))).render("output/dataVis/modelGraphs/"+str(modelType)+"_visualizer", format="png")
+
+
+def modelPreformance(modelType, cellLine, fileLocation="./output/Info/"):
+    modelType = [1,2,3,4,5,6]
+    cellLine = ["A549", "HepG2", "K562", "MCF7"]
+    totalDataROC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
+    totalDataPRC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
+    for cl in cellLine:
+        for mt in modelType:
+            for fileName in glob.glob("output/Info/Analysis_id_{}*MT_{}*".format(cl, mt)):
+                data = readData(fileName)
+            
+                totalDataROC["model {}".format(mt)].append(data["ROCAUC"])
+                totalDataPRC["model {}".format(mt)].append(data["ROCAUC"])
+    
+    
+        fig, ax = plt.subplots()
+        plt.title("Average AUROC for {}".format(cl))
+        ax.boxplot(totalDataROC.values())
+        ax.set_xticklabels(totalDataROC.keys())
+        plt.savefig("./output/dataVis/BW_ROC/{}.png".format(cl))
+
+        plt.clf()
+
+        fig, ax = plt.subplots()
+        plt.title("Average AUPRC for {}".format(cl))
+        ax.boxplot(totalDataPRC.values())
+        ax.set_xticklabels(totalDataPRC.keys())
+        plt.savefig("./output/dataVis/BW_PRC/{}.png".format(cl))
+
+        plt.clf()
+
+        

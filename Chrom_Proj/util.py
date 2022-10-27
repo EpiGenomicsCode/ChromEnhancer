@@ -12,108 +12,8 @@ from sklearn import preprocessing
 from sklearn import metrics as m
 import sklearn.metrics as sm
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
-
+from Chrom_Proj.model import *
 import pdb
-
-def readfiles(id, chromType, label, file_location):
-    """
-        Reads preprocessed files and returns the data and labels
-
-        input:
-        =====
-            id: string
-            chromType: list of strings
-            label: string: Enhancer labels
-            file_location: string
-    """
-    print(file_location)
-    files = glob(file_location)
-    labels = []
-    data = {}
-
-    for fileType in chromType:
-        filename = [
-            i for i in files if id in i and fileType in i and "chromtrack" in i and label in i]
-        assert len(filename) != 0
-        print("Processing: {}".format(filename[0]))
-        fileName = filename[0]
-
-        data[fileType] = pd.read_csv(fileName, delimiter=" ",  header=None)
-
-    horizontalConcat = pd.DataFrame()
-    for fileType in chromType:
-        horizontalConcat = pd.concat(
-            [horizontalConcat, data[fileType]], axis=1)
-
-    labelFileName = [
-                        i for i in files if ".label" in i and id in i and label in i
-                    ]
-    assert len(labelFileName) > 0
-    print("Processing: {}".format(labelFileName[0]))
-    label = pd.read_csv(labelFileName[0], delimiter=" ", header=None)
-
-    return np.array(horizontalConcat.values[:]), np.array(label.values[:])
-
-def getData(chromtypes, 
-            id, 
-            trainLabel, 
-            testLabel, 
-            validLabel,
-            fileLocation="./Data/220802_DATA"
-        ):
-    """
-    Returns the training, testing and validation data based on the input
-
-    Input:
-        chromtypes: List of String that represent the order of the chromatine types 
-            (ex: ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"])
-        
-        id: String contaning the whole Chromatine Cell identification 
-            (ex: "A549")
-        
-        trainLabel: String containing the training Label 
-            (ex: "chr10-chr17")
-        
-        testLabel: String containing the test Label 
-            (ex: "chr10")
-        
-        validLabel: String contatining the validation labels 
-            (ex: "chr11")
-        
-        fileLocation: Relative file path for where the files are being saved 
-            (ex: ./Data/220708/DATA)
-
-    Return:
-        trainer: list of the training data
-        
-        tester: list of the testing data
-        
-        validator: list of the validation data
-    """
-    
-    chr_train = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*")
-
-    chr_test = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
-
-    chr_valid = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=validLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
-
-    trainer = [chr_train]
-    tester = [chr_test]
-    validator = [chr_valid]
-
-    return trainer, tester, validator   
 
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
@@ -161,7 +61,7 @@ def test(tester, batch_size, device, model, loss_fn):
     
     totalLoss = []
     for test_loader in tester:
-        testloss = 0
+        testLoss = 0
         if test_loader != CP.chrom_dataset.Chromatin_Dataset:
             test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
 
@@ -213,13 +113,13 @@ def validate(model, validator, device):
 
     predictedData.append(target)    
 
-    plotROC(model, fpr, tpr)
-    plotPRC(model, pre, rec)
-    writeData(model, pre, rec, fpr, tpr)
+    ROCAUC = plotROC(model, fpr, tpr)
+    PRCAUC = plotPRC(model, pre, rec)
+    writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
 
     return valid_loader.labels, target
 
-def writeData(model, pre, rec, fpr, tpr):
+def writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC):
     """
         Writes the PCR and ROC curve data to file
 
@@ -235,39 +135,95 @@ def writeData(model, pre, rec, fpr, tpr):
 
             tpr: array: true positive rate
     """
-    f = open("output/coord/pre_{}.csv".format(model.name), "w+")
-    f.write("pre\n")
-    data = ""
-    for i in pre:
-        data += str(i) + ","
-    f.write(data+"\n")
+    f = open("output/Info/Analysis_{}.csv".format(model.name), "w+")
+    f.write("\npre:" + str([i for i in pre]).replace(" ", "").replace("\n", ""))
+    f.write("\nrec:" + str([i for i in rec]).replace(" ", "").replace("\n", ""))
+    f.write("\nfpr:" + str([i for i in fpr]).replace(" ", "").replace("\n", ""))
+    f.write("\ntpr:"+str([i for i in tpr]).replace(" ", "").replace("\n", ""))
+    f.write("\nROCAUC:"+str(ROCAUC))
+    f.write("\nPRCAUC:"+str(PRCAUC))
+
     f.close()
 
-    f = open("output/coord/rec_{}.csv".format(model.name), "w+")
-    f.write("rec\n")
-    data = ""
-    for i in rec:
-        data += str(i) + ","
-    f.write(data+"\n")
-    f.close()
+def readData(fileName):
+    """
+        reads in the pre, rec, fpr and tpr data from the file given
+    """
+    print("processing: {}".format(fileName))
+    file = open(fileName, 'r')
+
+    data = {"pre":[],"rec":[],"fpr":[],"tpr":[],"PRCAUC":0, "ROCAUC":0, "trainLoss":[], "testLoss":[]}
     
+    for line in file:
+        line = line.strip()
+        if len(line) > 1:
+            if "pre" in line:
+                data["pre"] = eval(line[line.index(":")+1:].strip())
+            if "fpr" in line:
+                data["fpr"] = eval(line[line.index(":")+1:].strip())
+            if "rec" in line:
+                data["rec"] = eval(line[line.index(":")+1:].strip())
+            if "tpr" in line:
+                data["tpr"] = eval(line[line.index(":")+1:].strip())
+            if "PRCAUC" in line:
+                data["PRCAUC"] = float(line[line.index(":")+1:].strip())
+            if "ROCAUC" in line:
+                data["ROCAUC"] = float(line[line.index(":")+1:].strip())
+  
+    # print("processing: {}".format(file))
+    # for line in file:
+    #     if "trainLoss" in line:
+    #         data["trainLoss"] = eval(line[line.index(":")+1:].strip())
+        
+    #     if "testLoss" in line:
+    #         data["testLoss"] = eval(line[line.index(":")+1:].strip())
+        
+    return data
+
+def loadModel(modelType, name):
+    model = None
+    if modelType == 1:
+        model = Chromatin_Network1(name)
+    if modelType == 2:
+        model = Chromatin_Network2(name)   
+    if modelType == 3:
+        model = Chromatin_Network3(name)   
+    if modelType == 4:
+        model = Chromatin_Network4(name)   
+    if modelType == 5:
+        model = Chromatin_Network5(name)   
+    if modelType == 6:
+        model = Chromatin_Network6(name)  
+
+    return model
+
+def loadModelfromFile(modelFileName, modelType):
+    """
+    Loads the models architecture from a specific file location
+
+    Inputs:
+        modelFileName: filename of the model
+        modelType: the architechture of the model
     
-    f = open("output/coord/fpr_{}.csv".format(model.name), "w+")
-    f.write("fpr\n")
-    data = ""
-    for i in fpr:
-        data += str(i) + ","
-    f.write(data+"\n")
-    f.close()
+    Returns:
+        model: Pytorch Model with architecture
+    """
+    if modelType == 1:
+        model = Chromatin_Network1("validator")
+    if modelType == 2:
+        model = Chromatin_Network2("validator")  
+    if modelType == 3:
+        model = Chromatin_Network3("validator")  
+    if modelType == 4:
+        model = Chromatin_Network4("validator")  
+    if modelType == 5:
+        model = Chromatin_Network5("validator")  
+    if modelType == 6:
+        model = Chromatin_Network6("validator")  
 
-
-    f = open("output/coord/tpr_{}.csv".format(model.name), "w+")
-    f.write("tpr\n")
-    data = ""
-    for i in tpr:
-        data += str(i) + ","
-    f.write(data+"\n")
-    f.close()
+    model.load_state_dict(torch.load(modelFileName))
+    
+    return model
 
 def runModel(
         trainer,
@@ -286,34 +242,29 @@ def runModel(
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
-    Loss = []
+    trainLoss = []
+    testLoss = []
     # Train the model
     for epoch in range(epochs):     
         print("-----{}------".format(epoch)) 
         # Set model to train mode and train on training data
         model.train()
-        trainLoss = train(trainer, batch_size, device, optimizer, model, loss_fn)
+        trainLossEpoch = train(trainer, batch_size, device, optimizer, model, loss_fn)
         model.eval()
-        testLoss = test(tester, batch_size, device, model, loss_fn)
-        Loss.append((trainLoss, testLoss))
+        testLossEpoch = test(tester, batch_size, device, model, loss_fn)
+        trainLoss.append(trainLossEpoch)
+        testLoss.append(testLossEpoch)
         torch.save(model.state_dict(), savePath)
         gc.collect()
     
-    f = open("./output/rmseTest/loss_Per_epoch_{}.txt".format(model.name), "w+")
-    f.write(str(Loss))
+    f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
+    f.write("trainLoss: {}\n".format(str([i for i in trainLoss]).replace("\n","").replace(" ", "")))
+    f.write("testLoss: {}".format(str([i for i in testLoss]).replace("\n","").replace(" ", "")))
     f.close()
-
-
 
     print("Validating")
     realValid, predictedValid = validate(model, validator, device)
 
-
-    # print("\t\t\t{}".format((torch.cuda.memory_summary())))
     model = model.to("cpu")
-    # del model
-    # gc.collect()
-    # torch.cuda.empty_cache()
-    # print("\t\t\t{}".format((torch.cuda.memory_summary())))
 
     return realValid, predictedValid,  model

@@ -1,8 +1,10 @@
 import Chrom_Proj.visualizer as v
 
+# TODO Implement
 def main():
-    ids = ["A549", "HepG2", "K562", "MCF7" ]
-    for id in ids:
-        v.plotAll("output/coord/", id)
+    models = [1,2,3]
+    for i in models:
+        v.plotModel(i)
+    v.modelPreformance("1","A549")
 
 main()

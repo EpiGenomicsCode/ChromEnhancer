@@ -1,4 +1,4 @@
-from Chrom_Proj.runner import runner, loadModel
+from Chrom_Proj.runner import *
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 import torch
 import Chrom_Proj.visualizer as v
@@ -26,8 +26,8 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
-    epochs = 20
-    batchSize = 256
+    epochs = 2
+    batchSize = 512
 
     # parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
@@ -36,14 +36,14 @@ def main():
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     models = [1,2,3,4,5,6]
 
-    runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
+    runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
 
-    
+
     chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
-    runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
+    # runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
 
 
-def runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models):
+def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models):
     # Goes through every permutation of the variables for building and training models
     for id in ids:
         for trainLabel in trainLabels:
@@ -60,6 +60,7 @@ def runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels,
                         if tL != vL:
                             if tL == sliceLeft:
                                 if vL == sliceRight:
+                                    print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
                                     # model = loadModel()
                                     realValid, predictedValid = runner(chromTypes,  
                                             id=id, 
@@ -70,6 +71,7 @@ def runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels,
                                             fileLocation="./Data/220802_DATA", 
                                             modelType=modelType
                                             )
+                                    
                                     
 
 

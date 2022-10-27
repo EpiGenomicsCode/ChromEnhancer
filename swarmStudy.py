@@ -32,21 +32,21 @@ def main():
             print("Processing: {}".format(f.split("/")[-1]))
 
             # Save the plots and generate a heatmap of the clusters
-            if not os.path.exists("./output/cluster/grav_{}".format(g)):
-                os.mkdir("./output/cluster/grav_{}".format(g))
+            if not os.path.exists("./output/Swarm/grav_{}".format(g)):
+                os.mkdir("./output/Swarm/grav_{}".format(g))
                 
             # performs the study 
             s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
                                     ,gravity=g,epochs=epochs)
             # save the particles WRT their model
-            saveOutput(s, model,  "./output/swarm/", f[:-3]+"_Swarm.csv")
+            saveOutput(s, model,  "./output/Swarm/grav_{}/".format(g), f[:-3]+"_Swarm.csv")
 
             # Cluster the swarm into different sections
             plotData = clusterSwarm(s, numClusters)
             print("saving clusters to {}".format(f[:-3]))
 
                 
-            plotCluster(plotData, "output/cluster/grav_{}_/{}".format(g, f[f.rindex("/")+1:-3]), numParticles)
+            plotCluster(plotData, "output/Swarm/grav_{}_/{}".format(g, f[f.rindex("/")+1:-3]), numParticles)
             
             # Clean up
             del model
@@ -88,7 +88,7 @@ def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10
 
 def saveOutput(swarm, 
                 model, 
-                saveLocation="./output/swarm/",
+                saveLocation="./output/Info/",
                 fileName="swarmOutput.csv"):
     """
     Given an optimized swarm and corosponding model 

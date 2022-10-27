@@ -7,6 +7,7 @@ from torch import nn
 import Chrom_Proj.visualizer as v
 import numpy as np
 import pdb
+import gc
 
 # TODO train model and save validation output, send validation output to William in corresponding bed file col before the . for 
 # correct validation & and PRC do multiple models on multiple data
@@ -30,7 +31,7 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
-    epochs = 20//4
+    epochs = 1
     batchSize = 128
 
     # parameters for model
@@ -46,6 +47,9 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     lossfn= nn.BCEWithLogitsLoss()
     batchSize = 256
+    runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,validLabels, model, optimizer, lossfn)
+
+def runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,validLabels, model, optimizer, lossfn):
     data = []
     for id in ids:
         # for each ID
@@ -69,6 +73,7 @@ def main():
                                 trainer.append(trainData[0])
                                 tester.append(testData[0])
                                 validator.append(validData[0])
+        print("training on {}".format(id))
         realValid, predictedValid, model =  runModel(  trainer,
                                                 tester,
                                                 validator,
@@ -77,9 +82,15 @@ def main():
                                                 lossfn,
                                                 batchSize,
                                                 epochs)
+                            
         rmse = np.sqrt(np.mean((np.subtract(predictedValid.tolist(),realValid.flatten().tolist()))**2))                 
         print("\t\tValidation for {} RMSE: {}".format(id, rmse)) 
-        data.append((rmse, id))                             
+        data.append((rmse, id))          
+        # del model
+        # gc.collect() 
+        # torch.cuda.empty_cache()
+    print(data)
+                          
 
     
 main()

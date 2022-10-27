@@ -1,37 +1,12 @@
 from Chrom_Proj.model import *
-from Chrom_Proj.util import  runModel, validate, getData
+from Chrom_Proj.util import  runModel, validate, loadModel
+from Chrom_Proj.chrom_dataset import getData
 import torch
 from torch import nn
 import timeit
+import gc
 
 
-def loadModel(modelFileName, modelType):
-    """
-    Loads the models architecture from a specific file location
-
-    Inputs:
-        modelFileName: filename of the model
-        modelType: the architechture of the model
-    
-    Returns:
-        model: Pytorch Model with architecture
-    """
-    if modelType == 1:
-        model = Chromatin_Network1("validator")
-    if modelType == 2:
-        model = Chromatin_Network2("validator")  
-    if modelType == 3:
-        model = Chromatin_Network3("validator")  
-    if modelType == 4:
-        model = Chromatin_Network4("validator")  
-    if modelType == 5:
-        model = Chromatin_Network5("validator")  
-    if modelType == 6:
-        model = Chromatin_Network6("validator")  
-
-    model.load_state_dict(torch.load(modelFileName))
-    
-    return model
     
 def validator(modelFilename, chromData, device, modelType):
     """
@@ -108,18 +83,7 @@ def runner(chromtypes,
     print("Generating model:\t{}\n\n".format(name))
 
     start = timeit.default_timer()
-    if modelType == 1:
-        model = Chromatin_Network1(name)
-    if modelType == 2:
-        model = Chromatin_Network2(name)   
-    if modelType == 3:
-        model = Chromatin_Network3(name)   
-    if modelType == 4:
-        model = Chromatin_Network4(name)   
-    if modelType == 5:
-        model = Chromatin_Network5(name)   
-    if modelType == 6:
-        model = Chromatin_Network6(name)   
+    model = loadModel(modelType, name)
 
     print(model) 
 
@@ -140,6 +104,8 @@ def runner(chromtypes,
                 )
     stop = timeit.default_timer()
     print('Running Model time: {}'.format(stop - start))
-
+    del model
+    gc.collect() 
+    torch.cuda.empty_cache()
     return realValid, predictedValid
     
