@@ -145,7 +145,7 @@ def writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC):
 
     f.close()
 
-def readData(fileName):
+def readAnalysisData(fileName):
     """
         reads in the pre, rec, fpr and tpr data from the file given
     """
@@ -169,14 +169,18 @@ def readData(fileName):
                 data["PRCAUC"] = float(line[line.index(":")+1:].strip())
             if "ROCAUC" in line:
                 data["ROCAUC"] = float(line[line.index(":")+1:].strip())
-  
-    # print("processing: {}".format(file))
-    # for line in file:
-    #     if "trainLoss" in line:
-    #         data["trainLoss"] = eval(line[line.index(":")+1:].strip())
+    return data
+
+def readLossData(fileName):
+    print("processing: {}".format(fileName))
+    file = open(fileName, 'r')
+    data = {"trainLoss": [], "testLoss":[]}
+    for line in file:
+        if "trainLoss" in line:
+            data["trainLoss"] = eval(line[line.index(":")+1:].strip())
         
-    #     if "testLoss" in line:
-    #         data["testLoss"] = eval(line[line.index(":")+1:].strip())
+        if "testLoss" in line:
+            data["testLoss"] = eval(line[line.index(":")+1:].strip())
         
     return data
 

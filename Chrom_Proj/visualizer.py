@@ -99,43 +99,84 @@ def plotROC(model, fpr, tpr):
     
 
 
-def plotModel(modelType):
-    print("generating graph for model type: {}".format(modelType))
-    model = loadModel(modelType, str(modelType))
-    ranData = torch.rand(500,500)
-    yhat = model(ranData)
+def plotModel():
+    modelTypes = [1,2,3]
+    for modelType in modelTypes:
+        print("generating graph for model type: {}".format(modelType))
+        model = loadModel(modelType, str(modelType))
+        ranData = torch.rand(500,500)
+        yhat = model(ranData)
 
-    make_dot(yhat,params=dict(list(model.named_parameters()))).render("output/dataVis/modelGraphs/"+str(modelType)+"_visualizer", format="png")
+        make_dot(yhat,params=dict(list(model.named_parameters()))).render("output/dataVis/modelGraphs/"+str(modelType)+"_visualizer", format="png")
 
 
-def modelPreformance(modelType, cellLine, fileLocation="./output/Info/"):
+def modelPreformance():
     modelType = [1,2,3,4,5,6]
     cellLine = ["A549", "HepG2", "K562", "MCF7"]
     totalDataROC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
     totalDataPRC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
     for cl in cellLine:
+        clDataROC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
+        clDataPRC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
         for mt in modelType:
             for fileName in glob.glob("output/Info/Analysis_id_{}*MT_{}*".format(cl, mt)):
-                data = readData(fileName)
-            
-                totalDataROC["model {}".format(mt)].append(data["ROCAUC"])
-                totalDataPRC["model {}".format(mt)].append(data["ROCAUC"])
-    
-    
+                data = readAnalysisData(fileName)
+                clDataROC["model {}".format(mt)].append(data["ROCAUC"])
+                clDataPRC["model {}".format(mt)].append(data["PRCAUC"])
+        
+        for mt in modelType:
+            totalDataROC["model {}".format(mt)].append(clDataROC["model {}".format(mt)])
+            totalDataPRC["model {}".format(mt)].append(clDataPRC["model {}".format(mt)])
+        
         fig, ax = plt.subplots()
         plt.title("Average AUROC for {}".format(cl))
-        ax.boxplot(totalDataROC.values())
-        ax.set_xticklabels(totalDataROC.keys())
+        ax.boxplot(clDataROC.values())
+        ax.set_xticklabels(clDataROC.keys())
         plt.savefig("./output/dataVis/BW_ROC/{}.png".format(cl))
 
         plt.clf()
 
         fig, ax = plt.subplots()
         plt.title("Average AUPRC for {}".format(cl))
-        ax.boxplot(totalDataPRC.values())
-        ax.set_xticklabels(totalDataPRC.keys())
+        ax.boxplot(clDataPRC.values())
+        ax.set_xticklabels(clDataPRC.keys())
         plt.savefig("./output/dataVis/BW_PRC/{}.png".format(cl))
 
         plt.clf()
 
-        
+            
+
+    # average of total
+    fig, ax = plt.subplots()
+    plt.title("Average AUROC for all CL")
+    # we need to average these values
+    data = []
+    for key in totalDataROC.keys():
+        data.append(np.mean(totalDataROC[key], axis=0))
+    ax.boxplot(data)
+    ax.set_xticklabels(totalDataROC.keys())
+    plt.savefig("./output/dataVis/BW_ROC/Ave.png")
+    plt.clf()
+
+    fig, ax = plt.subplots()
+    plt.title("Average AUPRC for all CL")
+    # we need to average these values
+    data = []
+    for key in totalDataPRC.keys():
+        data.append(np.mean(totalDataPRC[key], axis=0))
+    ax.boxplot(data)
+    ax.set_xticklabels(totalDataPRC.keys())
+    plt.savefig("./output/dataVis/BW_PRC/Ave.png")
+    plt.clf()
+    
+def modelLoss():
+    files = glob.glob("output/Info/Loss*")
+    for fileName in files:
+        plt.title(fileName)
+        data = readLossData(fileName)
+        for key, value  in data.items():
+            plt.plot(value, label=str(key))
+        plt.legend()
+        plt.savefig("./output/dataVis/Loss/{}.png".format(fileName[fileName.rfind("/"):-4]))
+        plt.clf()
+            
