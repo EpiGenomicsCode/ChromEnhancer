@@ -34,7 +34,7 @@ def main():
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    models = [1,2,3,4,5,6]
+    models = [1,2,3]
 
     runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
 
