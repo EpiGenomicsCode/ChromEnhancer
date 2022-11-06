@@ -1,6 +1,7 @@
 from Chrom_Proj.Swarm_Observer import swarm
 from Chrom_Proj.runner import loadModel
 import pdb
+from Chrom_Proj.util import loadModelfromFile
 import numpy as np
 import pandas as pd
 import glob
@@ -21,7 +22,7 @@ def main():
     """
     numClusters = 5
     numParticles = 100
-    epochs = 10
+    epochs = 20
 
     # Grab all the weights and biases saved
     files = sorted(glob.glob("./output/model_weight_bias/*pt"))
@@ -73,7 +74,7 @@ def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10
     """
 
     # load the model
-    model = loadModel(modelLocation, modelType)
+    model = loadModelfromFile(modelLocation, modelType)
     
     # we do not need the gradients just evaluation
     model.eval()

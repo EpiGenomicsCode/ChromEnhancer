@@ -225,7 +225,7 @@ def loadModelfromFile(modelFileName, modelType):
     if modelType == 6:
         model = Chromatin_Network6("validator")  
 
-    model.load_state_dict(torch.load(modelFileName))
+    model.load_state_dict(torch.load(modelFileName,map_location=torch.device('cpu')))
     
     return model
 
