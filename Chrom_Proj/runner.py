@@ -25,7 +25,7 @@ def validator(modelFilename, chromData, device, modelType):
     model.eval()
     return validate(model, [chromData], device), chromData.labels
 
-def runner(chromtypes,  
+def runner(trainer, tester, validator,  
             id="K562", 
             trainLabel="chr10-chr17", 
             testLabel="chr10", 
@@ -33,14 +33,16 @@ def runner(chromtypes,
             epochs=2, 
             batchSize=64,
             fileLocation="./Data/220802_DATA", 
-            modelType=1
+            modelType=1, name_end=""
         ):
     """
         Loads data into memory with model on same device, then runs data on the model 
 
         input
         =====
-            chromtypes: list : chromtype order  
+            trainter: 
+            tester:
+            validator:
             id: string : name of chromitin
                 default: "K562" 
             trainLabel: string: training data from preprocessed data 
@@ -57,7 +59,8 @@ def runner(chromtypes,
                 default: "./Data/220802_DATA", 
             modelType: int: type of model
                 default: 1
-
+            name_end: string: information at the end of the model name
+                default = ""
 
         returns:
         =======
@@ -67,14 +70,9 @@ def runner(chromtypes,
 
     start = timeit.default_timer()
 
-    trainer, tester, validator = getData(chromtypes,  
-                            id=id, 
-                            trainLabel=trainLabel, 
-                            testLabel=testLabel, 
-                            validLabel=validLabel,
-                            fileLocation=fileLocation)
 
-    name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, fileLocation, modelType)
+
+    name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, fileLocation, modelType, name_end)
     name = name.replace("/", "-")
     name = name.replace(".","")
 
@@ -85,7 +83,7 @@ def runner(chromtypes,
     start = timeit.default_timer()
     model = loadModel(modelType, name)
 
-    print(model) 
+    # print(model) 
 
     stop = timeit.default_timer()
     print("Generating Model time: {}".format(stop-start))
@@ -93,7 +91,7 @@ def runner(chromtypes,
 
 
     
-    realValid, predictedValid, model = runModel(   trainer,
+    realValid, predictedValid, model = runModel(trainer,
                 tester,
                 validator,
                 model=model,

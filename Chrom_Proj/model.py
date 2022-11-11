@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import pdb
 from torch.autograd import Variable 
 
-
 """
 Neural Networks used in Study
 """
@@ -139,7 +138,6 @@ class Chromatin_Network3(nn.Module):
 
 
         return out
-
 
 # CNN -> LSTM -> DNN
 class Chromatin_Network4(nn.Module):
@@ -301,4 +299,3 @@ class Chromatin_Network6(nn.Module):
 
 
         return out
-

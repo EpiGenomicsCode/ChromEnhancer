@@ -14,6 +14,7 @@ import sklearn.metrics as sm
 from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 from Chrom_Proj.model import *
 import pdb
+import os
 
 
 def train(trainer, batch_size, device, optimizer, model, loss_fn):
@@ -241,6 +242,7 @@ def runModel(
     """
         Runs the model whole with respect to the data
     """
+    os.makedirs("./output/model_weight_bias/",exist_ok=True)
     savePath = "output/model_weight_bias/model_{}.pt".format(model.name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -261,6 +263,7 @@ def runModel(
         torch.save(model.state_dict(), savePath)
         gc.collect()
     
+    os.makedirs("./output/Info/", exist_ok=True)
     f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
     f.write("trainLoss: {}\n".format(str([i for i in trainLoss]).replace("\n","").replace(" ", "")))
     f.write("testLoss: {}".format(str([i for i in testLoss]).replace("\n","").replace(" ", "")))

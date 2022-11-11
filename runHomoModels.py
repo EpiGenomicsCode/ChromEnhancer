@@ -26,7 +26,7 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
-    epochs = 20
+    epochs = 0
     batchSize = 512
 
     # parameters for model
@@ -34,45 +34,48 @@ def main():
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    models = [4,5,6,1,2,3]
+    models = [1,2,3,4,5,6]
 
-    runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
+    runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models, name="1")
 
 
     chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
-    # runHeteroModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models)
+    # runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models,name="2")
 
 
-def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models):
+def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models, name):
     # Goes through every permutation of the variables for building and training models
     for id in ids:
         for trainLabel in trainLabels:
             for testLabel in testLabels:
                 for validLabel in validLabels:
-                    for modelType in models:
-                        # Compare test label and vaidation labels
-                        tL = int(testLabel[testLabel.index("r")+1:]) 
-                        vL = int(validLabel[trainLabel.index("r")+1:])
-                        sliceLeft = int(trainLabel[trainLabel.index("r")+1:trainLabel.index("-")])
-                        sliceRight = int(trainLabel[trainLabel.rindex("r")+1:])
-                        
-                        # We do not want to train and test on the same data
-                        if tL != vL:
-                            if tL == sliceLeft:
-                                if vL == sliceRight:
-                                    print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
-                                    # model = loadModel()
-                                    realValid, predictedValid = runner(chromTypes,  
+                    # Compare test label and vaidation labels
+                    tL = int(testLabel[testLabel.index("r")+1:]) 
+                    vL = int(validLabel[trainLabel.index("r")+1:])
+                    sliceLeft = int(trainLabel[trainLabel.index("r")+1:trainLabel.index("-")])
+                    sliceRight = int(trainLabel[trainLabel.rindex("r")+1:])
+                    
+                    # We do not want to train and test on the same data
+                    if tL != vL:
+                        if tL == sliceLeft:
+                            if vL == sliceRight:
+                                trainer, tester, validator = getData(chromTypes,  
                                             id=id, 
                                             trainLabel=trainLabel, 
                                             testLabel=testLabel, 
                                             validLabel=validLabel,
-                                            epochs=epochs, batchSize=batchSize,
-                                            fileLocation="./Data/220802_DATA", 
-                                            modelType=modelType
-                                            )
-                                    
-                                    
+                                            fileLocation="./Data/220802_DATA")
 
-
+                                for modelType in models:
+                                    print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
+                                    realValid, predictedValid = runner(trainer, tester, validator,  
+                                        id=id, 
+                                        trainLabel=trainLabel, 
+                                        testLabel=testLabel, 
+                                        validLabel=validLabel,
+                                        epochs=epochs, batchSize=batchSize,
+                                        fileLocation="./Data/220802_DATA", 
+                                        modelType=modelType, name_end=name
+                                        )
+            
 main()

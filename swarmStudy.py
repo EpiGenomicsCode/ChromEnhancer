@@ -33,8 +33,7 @@ def main():
             print("Processing: {}".format(f.split("/")[-1]))
 
             # Save the plots and generate a heatmap of the clusters
-            if not os.path.exists("./output/Swarm/grav_{}".format(g)):
-                os.mkdir("./output/Swarm/grav_{}".format(g))
+            os.makedirs("./output/Swarm/grav_{}".format(g), exist_ok=True)
                 
             # performs the study 
             s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles

@@ -56,6 +56,7 @@ def runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,valid
         trainer = []
         tester = []
         validator = []
+        log = []
         # Load in all of its data
         for trainLabel in trainLabels:
             for testLabel  in testLabels:
@@ -69,11 +70,16 @@ def runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,valid
                     if tL != vL:
                         if tL == sliceLeft:
                             if vL == sliceRight:
-                                trainData, testData, validData = getData(chromTypes,id, trainLabel,testLabel,validLabel)
+                                trainData, testData, validData = getData(chromTypes,id, trainLabel,testLabel,validLabel, fileLocation="./Data/220803_CelllineDATA/")
+                                pdb.set_trace()
                                 trainer.append(trainData[0])
                                 tester.append(testData[0])
                                 validator.append(validData[0])
+                                log.append("train:{}\ttest:{}\tvalid:{}".format(trainLabel, testLabel,validLabel))
+
         print("training on {}".format(id))
+        for i in log:
+            print(i)
         realValid, predictedValid, model =  runModel(  trainer,
                                                 tester,
                                                 validator,

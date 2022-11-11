@@ -11,9 +11,10 @@ from sklearn import metrics as m
 import torch
 from torchviz import make_dot
 import tensorflow as tf
-
+import os
 
 def plotCluster(plotData, filename, particles):
+
     totalData = []
     y = ["C1","C2","C3","C4","C5"]
     x = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
@@ -34,13 +35,16 @@ def plotCluster(plotData, filename, particles):
     sns.heatmap(np.array(Data).T/np.linalg.norm(np.array(Data).T), linewidth=.5, xticklabels=x, yticklabels=y, cmap="Spectral") 
     title = filename.split("_")
     grav =title[1]
-    title = title[3] + " " + title[4] + " model " + title[-1] + " particles " +  str(particles) 
+    title = title[3] + " " + title[4] + " model " + title[-2] + " particles " +  str(particles) 
     
     plt.title(title)
-   
+    os.makedirs("./output/Swarm/grav_{}".format(grav), exist_ok=True)
+
     plt.savefig("./output/Swarm/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
 
 def plotPRC(model, pre, rec):
+    os.makedirs("./output/prc/", exist_ok=True)
+
     """
         plots the PRC curve:
         
@@ -70,6 +74,8 @@ def plotPRC(model, pre, rec):
     return prc_auc
 
 def plotROC(model, fpr, tpr):
+    os.makedirs("./output/roc/", exist_ok=True)
+
     """
         plots the ROC curve:
         
@@ -101,6 +107,7 @@ def plotROC(model, fpr, tpr):
 
 def plotModel():
     modelTypes = [1,2,3]
+    os.makedirs("./output/dataVis/modelGraphs/", exist_ok=True)
     for modelType in modelTypes:
         print("generating graph for model type: {}".format(modelType))
         model = loadModel(modelType, str(modelType))
@@ -112,6 +119,8 @@ def plotModel():
 
 def modelPreformance():
     modelType = [1,2,3,4,5,6]
+    os.makedirs("./output/dataVis/BW_ROC/", exist_ok=True)
+    os.makedirs("./output/dataVis/BW_PRC/", exist_ok=True)
     cellLine = ["A549", "HepG2", "K562", "MCF7"]
     totalDataROC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
     totalDataPRC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
@@ -170,6 +179,8 @@ def modelPreformance():
     plt.clf()
     
 def modelLoss():
+    os.makedirs("./output/dataVis/Loss/", exist_ok=True)
+
     files = glob.glob("output/Info/Loss*")
     for fileName in files:
         plt.title(fileName)
