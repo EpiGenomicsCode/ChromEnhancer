@@ -25,7 +25,7 @@ def validator(modelFilename, chromData, device, modelType):
     model.eval()
     return validate(model, [chromData], device), chromData.labels
 
-def runner(trainer, tester, validator,  
+def runner(name, trainer, tester, validator,  
             id="K562", 
             trainLabel="chr10-chr17", 
             testLabel="chr10", 
@@ -40,6 +40,7 @@ def runner(trainer, tester, validator,
 
         input
         =====
+            name: string: uniqueID name for model
             trainter: 
             tester:
             validator:
@@ -67,17 +68,6 @@ def runner(trainer, tester, validator,
             outputData: list of predictions given from validation set 
     """
 
-
-    start = timeit.default_timer()
-
-
-
-    name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, fileLocation, modelType, name_end)
-    name = name.replace("/", "-")
-    name = name.replace(".","")
-
-    stop = timeit.default_timer()
-    print("Reading Data time: {}".format(stop-start))
     print("Generating model:\t{}\n\n".format(name))
 
     start = timeit.default_timer()

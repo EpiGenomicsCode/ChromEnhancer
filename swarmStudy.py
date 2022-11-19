@@ -21,36 +21,37 @@ def main():
         numParticles: the number of particles to use in the test
     """
     numClusters = 5
-    numParticles = 100
+    numParticles = 10
     epochs = 20
+    types = [1,2]
 
-    # Grab all the weights and biases saved
-    files = sorted(glob.glob("./output/model_weight_bias/*pt"))
-    grav = [.005]
-    for g in grav:
-        print("Grav: {}".format(g))
-        for f in files:
-            print("Processing: {}".format(f.split("/")[-1]))
+    for t in types:
+        # Grab all the weights and biases saved
+        files = sorted(glob.glob("./output/model_weight_bias/*name_{}*pt".format(t)))
+        grav = [.005]
+        for g in grav:
+            print("Grav: {}".format(g))
+            for f in files:
+                print("Processing: {}".format(f.split("/")[-1]))
 
-            # Save the plots and generate a heatmap of the clusters
-            os.makedirs("./output/Swarm/grav_{}".format(g), exist_ok=True)
+                # Save the plots and generate a heatmap of the clusters
+                os.makedirs("./output/Swarm/grav_{}".format(g), exist_ok=True)
+                    
+                # performs the study 
+                s, model = swarmModel(modelLocation=f, modelType=int(f[f.index("MT")+3:f.index("_name")]),numParticles=numParticles
+                                        ,gravity=g,epochs=epochs)
+                # save the particles WRT their model
+                saveOutput(s, model,  "./output/Swarm/grav_{}/csv/".format(g), f[:-3]+"_Swarm_type_{}.csv".format(t))
+
+                # Cluster the swarm into different sections
+                plotData = clusterSwarm(s, numClusters)
+                print("saving clusters to {}".format(f[:-3]))
+
+                plotCluster(plotData, "output/Swarm/grav_{}_/{}_type-{}".format(g, f[f.rindex("/")+1:-3], t), numParticles)
                 
-            # performs the study 
-            s, model = swarmModel(modelLocation=f, modelType=int(f[-4]),numParticles=numParticles
-                                    ,gravity=g,epochs=epochs)
-            # save the particles WRT their model
-            saveOutput(s, model,  "./output/Swarm/grav_{}/".format(g), f[:-3]+"_Swarm.csv")
-
-            # Cluster the swarm into different sections
-            plotData = clusterSwarm(s, numClusters)
-            print("saving clusters to {}".format(f[:-3]))
-
-                
-            plotCluster(plotData, "output/Swarm/grav_{}_/{}".format(g, f[f.rindex("/")+1:-3]), numParticles)
-            
-            # Clean up
-            del model
-            gc.collect()
+                # Clean up
+                del model
+                gc.collect()
 
 def swarmModel(modelLocation="./output/model_weight_bias/model_id_A549_TTV_chr10-chr17_chr10_chr17_epoch_10_BS_32_FL_-Data-220802_DATA_MT_1.pt"
                 ,modelType=1
@@ -100,6 +101,7 @@ def saveOutput(swarm,
         model: model the swarm was run on
         saveLocation: Location to save the 
     """
+    os.makedirs(saveLocation, exist_ok=True)
     s = swarm
     data = []
     # get the final position of the swarm
@@ -149,6 +151,4 @@ def clusterSwarm(swarm, numClusters):
 
     return plotData
 
-
 main()
-

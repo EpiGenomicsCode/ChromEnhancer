@@ -21,6 +21,7 @@ def plotCluster(plotData, filename, particles):
     plt.clf()
  
     Data = []
+    name = filename
     for cluster in plotData.keys():
         clusterData = np.sum(plotData[cluster], 0)
         clusterSections = [
@@ -34,13 +35,14 @@ def plotCluster(plotData, filename, particles):
     
     sns.heatmap(np.array(Data).T/np.linalg.norm(np.array(Data).T), linewidth=.5, xticklabels=x, yticklabels=y, cmap="Spectral") 
     title = filename.split("_")
-    grav =title[1]
+    grav = title[1]
     title = title[3] + " " + title[4] + " model " + title[-2] + " particles " +  str(particles) 
     
     plt.title(title)
-    os.makedirs("./output/Swarm/grav_{}".format(grav), exist_ok=True)
+    os.makedirs("./output/Swarm/grav_{}/img/".format(grav), exist_ok=True)
 
-    plt.savefig("./output/Swarm/grav_{}/{}.png".format(grav, title.replace(" ", "_" )))
+    print("saving to: {}".format("./output/Swarm/grav_{}/img/{}.png".format(grav, name[name.rindex("/"):])))
+    plt.savefig("./output/Swarm/grav_{}/img/{}.png".format(grav, name[name.rindex("/"):]))
 
 def plotPRC(model, pre, rec):
     os.makedirs("./output/prc/", exist_ok=True)
@@ -103,8 +105,6 @@ def plotROC(model, fpr, tpr):
 
     return roc_auc
     
-
-
 def plotModel():
     modelTypes = [1,2,3]
     os.makedirs("./output/dataVis/modelGraphs/", exist_ok=True)
@@ -116,8 +116,8 @@ def plotModel():
 
         make_dot(yhat,params=dict(list(model.named_parameters()))).render("output/dataVis/modelGraphs/"+str(modelType)+"_visualizer", format="png")
 
-
-def modelPreformance():
+def modelPreformance(type):
+    plt.clf()
     modelType = [1,2,3,4,5,6]
     os.makedirs("./output/dataVis/BW_ROC/", exist_ok=True)
     os.makedirs("./output/dataVis/BW_PRC/", exist_ok=True)
@@ -128,7 +128,7 @@ def modelPreformance():
         clDataROC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
         clDataPRC = {"model 1":[],"model 2":[],"model 3":[],"model 4":[],"model 5":[],"model 6":[]}
         for mt in modelType:
-            for fileName in glob.glob("output/Info/Analysis_id_{}*MT_{}*".format(cl, mt)):
+            for fileName in glob.glob("output/Info/Analysis_id_{}*MT_{}*_name_{}*".format(cl, mt,type)):
                 data = readAnalysisData(fileName)
                 clDataROC["model {}".format(mt)].append(data["ROCAUC"])
                 clDataPRC["model {}".format(mt)].append(data["PRCAUC"])
@@ -141,7 +141,7 @@ def modelPreformance():
         plt.title("Average AUROC for {}".format(cl))
         ax.boxplot(clDataROC.values())
         ax.set_xticklabels(clDataROC.keys())
-        plt.savefig("./output/dataVis/BW_ROC/{}.png".format(cl))
+        plt.savefig("./output/dataVis/BW_ROC/{}-{}.png".format(cl,type))
 
         plt.clf()
 
@@ -149,7 +149,7 @@ def modelPreformance():
         plt.title("Average AUPRC for {}".format(cl))
         ax.boxplot(clDataPRC.values())
         ax.set_xticklabels(clDataPRC.keys())
-        plt.savefig("./output/dataVis/BW_PRC/{}.png".format(cl))
+        plt.savefig("./output/dataVis/BW_PRC/{}-{}.png".format(cl,type))
 
         plt.clf()
 
@@ -164,7 +164,7 @@ def modelPreformance():
         data.append(np.mean(totalDataROC[key], axis=0))
     ax.boxplot(data)
     ax.set_xticklabels(totalDataROC.keys())
-    plt.savefig("./output/dataVis/BW_ROC/Ave.png")
+    plt.savefig("./output/dataVis/BW_ROC/Ave-{}.png".format(type))
     plt.clf()
 
     fig, ax = plt.subplots()
@@ -175,7 +175,7 @@ def modelPreformance():
         data.append(np.mean(totalDataPRC[key], axis=0))
     ax.boxplot(data)
     ax.set_xticklabels(totalDataPRC.keys())
-    plt.savefig("./output/dataVis/BW_PRC/Ave.png")
+    plt.savefig("./output/dataVis/BW_PRC/Ave-{}.png".format(type))
     plt.clf()
     
 def modelLoss():

@@ -27,8 +27,6 @@ def main():
         models: list of the model types we want to builld
     """
 
-    # DO NOT TOUCH THIS
-    chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     
     # Variables
     epochs = 1
@@ -36,10 +34,6 @@ def main():
 
     # parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
-    trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
-    testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-
 
     #=====================================
     # load the best model
@@ -47,39 +41,27 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     lossfn= nn.BCEWithLogitsLoss()
     batchSize = 256
-    runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,validLabels, model, optimizer, lossfn)
 
-def runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,validLabels, model, optimizer, lossfn):
+    chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
+    runHeteroModels(chromTypes,epochs,batchSize,ids, model, optimizer, lossfn)
+
+def runHeteroModels(chromTypes,epochs,batchSize,ids, model, optimizer, lossfn):
     data = []
     for id in ids:
+        print("id: {}".format(id))
         # for each ID
         trainer = []
         tester = []
         validator = []
-        log = []
         # Load in all of its data
-        for trainLabel in trainLabels:
-            for testLabel  in testLabels:
-                for validLabel in validLabels:
-                    tL = int(testLabel[testLabel.index("r")+1:]) 
-                    vL = int(validLabel[trainLabel.index("r")+1:])
-                    sliceLeft = int(trainLabel[trainLabel.index("r")+1:trainLabel.index("-")])
-                    sliceRight = int(trainLabel[trainLabel.rindex("r")+1:])
-                    
-                    # We do not want to train and test on the same data
-                    if tL != vL:
-                        if tL == sliceLeft:
-                            if vL == sliceRight:
-                                trainData, testData, validData = getData(chromTypes,id, trainLabel,testLabel,validLabel, fileLocation="./Data/220803_CelllineDATA/")
-                                pdb.set_trace()
-                                trainer.append(trainData[0])
-                                tester.append(testData[0])
-                                validator.append(validData[0])
-                                log.append("train:{}\ttest:{}\tvalid:{}".format(trainLabel, testLabel,validLabel))
+        trainData, testData, validData = getData(chromTypes,id, '','','', fileLocation="./Data/220803_CelllineDATA/")
 
+        trainer.append(trainData[0])
+        tester.append(testData[0])
+        validator.append(validData[0])
+        
         print("training on {}".format(id))
-        for i in log:
-            print(i)
+        
         realValid, predictedValid, model =  runModel(  trainer,
                                                 tester,
                                                 validator,
@@ -90,6 +72,7 @@ def runHeteroModels(chromTypes,epochs,batchSize,ids,trainLabels,testLabels,valid
                                                 epochs)
                             
         rmse = np.sqrt(np.mean((np.subtract(predictedValid.tolist(),realValid.flatten().tolist()))**2))                 
+        
         print("\t\tValidation for {} RMSE: {}".format(id, rmse)) 
         data.append((rmse, id))          
         # del model

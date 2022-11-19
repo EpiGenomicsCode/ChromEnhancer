@@ -4,8 +4,10 @@ import numpy as np
 import torch
 from tqdm import tqdm
 import itertools
+import os
 import pandas as pd
 import pdb
+import gc
 
 class Chromatin_Dataset(Dataset):
     """
@@ -21,7 +23,7 @@ class Chromatin_Dataset(Dataset):
                 "p300-1",
                 "PolII-1"],
             label="chr10-chr17",
-            file_location="./Data/220802_DATA/TRAIN/*"):
+            file_location="./Data/220802_DATA/TRAIN/*", dataUse="train"):
         """
         initalizer function:
             Input:
@@ -31,11 +33,10 @@ class Chromatin_Dataset(Dataset):
                 file_location: String: Location of the dataset
         """
         super(Dataset, self).__init__()
-        self.data, self.labels = readFiles(id, chromType, label, file_location)
+        self.data, self.labels = readFiles(id, chromType, label, file_location, dataUse)
         self.data = self.data
         self.labels = self.labels
         self.filename = id + "_" + label
-
         assert len(self.data) == len(self.labels)
         
 
@@ -47,7 +48,7 @@ class Chromatin_Dataset(Dataset):
             self.data[index], dtype=torch.float32), torch.tensor(
             self.labels[index], dtype=torch.float32)
 
-def readFiles(id, chromType, label, file_location):
+def readFiles(id, chromType, label, file_location, dataUse):
     """
         Reads preprocessed files and returns the data and labels
 
@@ -77,8 +78,17 @@ def readFiles(id, chromType, label, file_location):
         horizontalConcat = pd.concat(
             [horizontalConcat, data[fileType]], axis=1)
 
-    labelFileName = [
-                        i for i in files if ".label" in i and id in i and label in i
+    if dataUse == "train":
+        labelFileName = [
+                        i for i in files if ".label" in i and id in i and label in i and not "Leniant" in i and not "Stringent" in i 
+                    ]
+    elif dataUse == "test":
+        labelFileName = [
+                        i for i in files if ".label" in i and id in i and label in i and not "Lenient" in i 
+                    ]
+    else:
+        labelFileName = [
+                        i for i in files if ".label" in i and id in i and label in i and not "Stringent" in i 
                     ]
     assert len(labelFileName) > 0
     print("Processing: {}".format(labelFileName[0]))
@@ -114,6 +124,9 @@ def getData(chromtypes,
         
         fileLocation: Relative file path for where the files are being saved 
             (ex: ./Data/220708/DATA)
+        
+        hetero: bool: switch to determine if we are running homogenous model or not
+            Default: False
 
     Return:
         trainer: list of the training data
@@ -122,24 +135,28 @@ def getData(chromtypes,
         
         validator: list of the validation data
     """
+    os.makedirs('./output', exist_ok=True)
     
     chr_train = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*")
+        file_location=fileLocation+"/TRAIN/*", dataUse="train")
+    gc.collect()
 
     chr_test = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
-
+        file_location=fileLocation+"/HOLDOUT/*", dataUse="test")
+    gc.collect()
     chr_valid = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=validLabel,
-        file_location=fileLocation+"/HOLDOUT/*")
+            id=id,
+            chromType=chromtypes,
+            label=validLabel,
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid")
+
+    gc.collect()
 
     trainer = [chr_train]
     tester = [chr_test]

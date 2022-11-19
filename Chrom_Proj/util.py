@@ -260,9 +260,9 @@ def runModel(
         testLossEpoch = test(tester, batch_size, device, model, loss_fn)
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
-        torch.save(model.state_dict(), savePath)
         gc.collect()
-    
+        
+    torch.save(model.state_dict(), savePath)    
     os.makedirs("./output/Info/", exist_ok=True)
     f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
     f.write("trainLoss: {}\n".format(str([i for i in trainLoss]).replace("\n","").replace(" ", "")))

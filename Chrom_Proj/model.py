@@ -200,7 +200,6 @@ class Chromatin_Network4(nn.Module):
 
 
         return out
-# Probably dont need
 
 # DNN -> LSTM
 class Chromatin_Network5(nn.Module):
@@ -254,7 +253,7 @@ class Chromatin_Network6(nn.Module):
     """
     Convolutional To LSTM
     """
-    def __init__(self, name, hidden_size=1, num_layers=3):
+    def __init__(self, name, hidden_size=1, num_layers=10):
         super(Chromatin_Network6, self).__init__()
         self.name = name
         self.num_layers = num_layers
