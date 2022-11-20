@@ -1,7 +1,6 @@
-from Chrom_Proj.util import runModel
-from Chrom_Proj.runner import  getData
+from Chrom_Proj.util import *
 from Chrom_Proj.model import *
-from Chrom_Proj.chrom_dataset import Chromatin_Dataset
+from Chrom_Proj.chrom_dataset import *
 import torch
 from torch import nn
 import Chrom_Proj.visualizer as v
@@ -33,52 +32,43 @@ def main():
     batchSize = 128
 
     # parameters for model
-    ids = ["A549", "HepG2", "K562", "MCF7" ]
-
     #=====================================
-    # load the best model
-    model = Chromatin_Network1("bestHeteroChrom1")
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    lossfn= nn.BCEWithLogitsLoss()
-    batchSize = 256
+    runHeteroModels(batchSize, epochs)
 
+def runHeteroModels(batchSize, epochs):
+    # Goes through every permutation of the variables for building and training models
+    trainer = []
+    tester = []
+    validator = []
+
+    ids = ["A549", "HepG2", "K562", "MCF7" ]
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
-    runHeteroModels(chromTypes,epochs,batchSize,ids, model, optimizer, lossfn)
+    best = 2
+    model = loadModel(best, "best")
 
-def runHeteroModels(chromTypes,epochs,batchSize,ids, model, optimizer, lossfn):
-    data = []
     for id in ids:
-        print("id: {}".format(id))
-        # for each ID
-        trainer = []
-        tester = []
-        validator = []
-        # Load in all of its data
-        trainData, testData, validData = getData(chromTypes,id, '','','', fileLocation="./Data/220803_CelllineDATA/")
+        chr_train, chr_test, chr_valid  = getData(chromTypes, 
+            id, 
+            '', 
+            '', 
+            '',
+            fileLocation="./Data/220803_CelllineDATA",
+            batchSize=32
+        )
+        trainer.append(chr_train)
+        tester.append(chr_test)
+        validator.append(chr_valid)
+    
 
-        trainer.append(trainData[0])
-        tester.append(testData[0])
-        validator.append(validData[0])
         
-        print("training on {}".format(id))
-        
-        realValid, predictedValid, model =  runModel(  trainer,
-                                                tester,
-                                                validator,
-                                                model,
-                                                optimizer,
-                                                lossfn,
-                                                batchSize,
-                                                epochs)
-                            
-        rmse = np.sqrt(np.mean((np.subtract(predictedValid.tolist(),realValid.flatten().tolist()))**2))                 
-        
-        print("\t\tValidation for {} RMSE: {}".format(id, rmse)) 
-        data.append((rmse, id))          
-        # del model
-        # gc.collect() 
-        # torch.cuda.empty_cache()
-    print(data)
+    runModel(trainer,
+        tester,
+        validator,
+        model=model,
+        optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
+        loss_fn=nn.BCELoss(),
+        batch_size=batchSize,
+        epochs=epochs)
                           
 
     
