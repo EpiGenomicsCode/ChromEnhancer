@@ -45,14 +45,20 @@ def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, v
             for testLabel in testLabels:
                 for validLabel in validLabels:
                     if (testLabel in trainLabel) and (validLabel in trainLabel) and not (testLabel == validLabel):
+                        trainer = []
+                        tester = []
+                        validator = []
                         print("training on {}, testing on {}, valid on {}".format(trainLabel, testLabel, validLabel))
-                        trainer, tester, validator = getData(chromTypes,  
+                        chr_train, chr_test, chr_valid = getData(chromTypes,  
                             id=id, 
                             trainLabel=trainLabel, 
                             testLabel=testLabel, 
                             validLabel=validLabel,
                             fileLocation="./Data/220802_DATA", 
                             batchSize=batchSize)
+                        trainer.append(chr_train)
+                        tester.append(chr_test)
+                        validator.append(chr_valid)
 
                         for modelType in models:
                             name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
@@ -62,9 +68,9 @@ def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, v
                             if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
                                 print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
                                 print(model)
-                                runModel([trainer],
-                                    [tester],
-                                    [validator],
+                                runModel(trainer,
+                                    tester,
+                                    validator,
                                     model=model,
                                     optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
                                     loss_fn=nn.BCELoss(),
