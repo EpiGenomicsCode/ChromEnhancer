@@ -8,6 +8,8 @@ import os
 import pandas as pd
 import pdb
 import gc
+from torch.utils.data import DataLoader
+
 
 class Chromatin_Dataset(Dataset):
     """
@@ -101,7 +103,8 @@ def getData(chromtypes,
             trainLabel, 
             testLabel, 
             validLabel,
-            fileLocation="./Data/220802_DATA"
+            fileLocation="./Data/220802_DATA",
+            batchSize=32
         ):
     """
     Returns the training, testing and validation data based on the input
@@ -129,37 +132,34 @@ def getData(chromtypes,
             Default: False
 
     Return:
-        trainer: list of the training data
+        trainer: training data
         
-        tester: list of the testing data
+        tester: testing data
         
-        validator: list of the validation data
+        validator: validation data
     """
     os.makedirs('./output', exist_ok=True)
     
-    chr_train = Chromatin_Dataset(
+    chr_train = DataLoader(Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*", dataUse="train")
+        file_location=fileLocation+"/TRAIN/*", dataUse="train"), shuffle=True, batch_size=batchSize)
+
     gc.collect()
 
-    chr_test = Chromatin_Dataset(
+    chr_test = DataLoader(Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*", dataUse="test")
+        file_location=fileLocation+"/HOLDOUT/*", dataUse="test"), shuffle=True, batch_size=batchSize)
     gc.collect()
-    chr_valid = Chromatin_Dataset(
+    chr_valid = DataLoader(Chromatin_Dataset(
             id=id,
             chromType=chromtypes,
             label=validLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid")
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid"), shuffle=True, batch_size=batchSize)
 
     gc.collect()
-
-    trainer = [chr_train]
-    tester = [chr_test]
-    validator = [chr_valid]
-
-    return trainer, tester, validator   
+    
+    return chr_train, chr_test, chr_valid   

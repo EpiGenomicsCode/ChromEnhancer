@@ -4,7 +4,6 @@ import pandas as pd
 from glob import glob
 from tqdm import tqdm
 import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
 from Chrom_Proj.visualizer import *
 import Chrom_Proj as CP
 import gc
@@ -17,109 +16,66 @@ import pdb
 import os
 
 
-def train(trainer, batch_size, device, optimizer, model, loss_fn):
+def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train"):
     """
         Trains the model with respect to the data
     """
     totalLoss = []
-    for train_loader in trainer:
-        trainLoss = 0
-        if train_loader != CP.chrom_dataset.Chromatin_Dataset:
-            train_loader = DataLoader(
-                train_loader, batch_size=batch_size, shuffle=True)
+    labels = []
+    targets = []
+    for loader in data:
+        loaderLoss = 0
 
-        for data, label in tqdm(train_loader, desc="training"):
+        for data, label in loader:
             # Load data appropriatly
             data, label = data.to(device), label.to(device)
-            # Clear gradients
-            optimizer.zero_grad()
+
             # Forward Pass
             target = model(data)
+            if work=="train":
+                model.train()
+                # Clear gradients
+                optimizer.zero_grad()
+                # Calculate the gradient
+                            # Calculate the Lo
+                loss = loss_fn(
+                target.to(
+                    torch.float32), label.to(
+                    torch.float32))
+                loss.backward()
+                # Update Weight
+                optimizer.step()
+                # save the loss
+                loaderLoss += loss.item() * data.size(0)
+            else:
+                model.eval()
+
             # Clean the data
             target = torch.flatten(target)
             label = torch.flatten(label)
-            # Calculate the Lo
-            loss = loss_fn(
-                target.to(
-                    torch.float32), label.to(
-                    torch.float32))
-            # save the loss
-            trainLoss += loss.item() * data.size(0)
-
-            # Calculate the gradient
-            loss.backward()
-            # Update Weight
-            optimizer.step()
-        totalLoss.append(trainLoss)
-    totalLoss = np.sum(totalLoss)/len(trainer)
-    print("\tTrain Loss: {}".format(totalLoss) )
-    return totalLoss
-
-def test(tester, batch_size, device, model, loss_fn):
-    """
-        Tests the model with respect to the data
-    """
-    
-    totalLoss = []
-    for test_loader in tester:
-        testLoss = 0
-        if test_loader != CP.chrom_dataset.Chromatin_Dataset:
-            test_loader = DataLoader(test_loader, batch_size=batch_size, shuffle=True)
-
-        for test_data, test_label in tqdm(test_loader, desc="testing"):
-            test_data, test_label = test_data.to(device), test_label.to(device)
-            target = model(test_data)
-            target = torch.flatten(target)
-            label = torch.flatten(test_label)
-            # Calculate the Lo
-            loss = loss_fn(
-                target.to(
-                    torch.float32), label.to(
-                    torch.float32))
-            testLoss += loss.item() * test_data.size(0)
-        totalLoss.append(testLoss)
         
-    totalLoss = np.sum(totalLoss)/len(tester)
+            labels.append(label.cpu())
+            targets.append(target.cpu())
+            
 
-    print("\tTest Loss: {}".format(totalLoss) )
+        totalLoss.append(loaderLoss)
+        
+        if work == "validate":
+            pdb.set_trace()
+            labels = torch.flatten(labels[0]).detach().numpy()
+            targets = torch.flatten(targets[0]).detach().numpy()
+
+            fpr, tpr, _ =  m.roc_curve(labels, targets)
+            pre, rec, _ = m.precision_recall_curve(labels, targets)
+
+            ROCAUC = plotROC(model, fpr, tpr)
+            PRCAUC = plotPRC(model, pre, rec)
+            writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
+
+    totalLoss = np.sum(totalLoss)/len(loader)
+    print("\t{} Loss: {}".format(work, totalLoss) )
     return totalLoss
-                                    
-def validate(model, validator, device):
-    """
-        Validates the model with respect to the data
-
-        INPUT:
-        =====
-            model: pytorch model: for validation
-            validator: data to validate
-            device: the device to run on
-        RETURNS:
-            targetData: list of realdata
-            target: list of predicted data
-    """
-    predictedData = []
-    model = model.to("cpu")
-
-    for valid_loader in validator:
-        # Set model to validation
-        model.eval()
-        target = []
-        for data in tqdm(valid_loader.data, desc="validating"):
-            target.append(model(torch.tensor(np.array([data]), dtype=torch.float32).to("cpu")))
-
-    target = torch.tensor(target)
-    target = torch.flatten(target)
-    fpr, tpr, _ = m.roc_curve(valid_loader.labels, target)
-    pre, rec, _ = m.precision_recall_curve(valid_loader.labels, target)
-
-    predictedData.append(target)    
-
-    ROCAUC = plotROC(model, fpr, tpr)
-    PRCAUC = plotPRC(model, pre, rec)
-    writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
-
-    return valid_loader.labels, target
-
+ 
 def writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC):
     """
         Writes the PCR and ROC curve data to file
@@ -242,6 +198,8 @@ def runModel(
     """
         Runs the model whole with respect to the data
     """
+
+
     os.makedirs("./output/model_weight_bias/",exist_ok=True)
     savePath = "output/model_weight_bias/model_{}.pt".format(model.name)
 
@@ -252,12 +210,12 @@ def runModel(
     testLoss = []
     # Train the model
     for epoch in range(epochs):     
-        print("-----{}------".format(epoch)) 
+        print("-----Epoch: {}------".format(epoch)) 
         # Set model to train mode and train on training data
         model.train()
-        trainLossEpoch = train(trainer, batch_size, device, optimizer, model, loss_fn)
+        trainLossEpoch = input_model(trainer, batch_size, device, optimizer, model, loss_fn, work="train")
         model.eval()
-        testLossEpoch = test(tester, batch_size, device, model, loss_fn)
+        testLossEpoch = input_model(tester, batch_size, device, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
         gc.collect()
@@ -270,8 +228,9 @@ def runModel(
     f.close()
 
     print("Validating")
-    realValid, predictedValid = validate(model, validator, device)
+    validLoss = input_model(validator, batch_size, device, optimizer, model, loss_fn, work="validate")
 
     model = model.to("cpu")
-
-    return realValid, predictedValid,  model
+    del model
+    gc.collect() 
+    torch.cuda.empty_cache()

@@ -1,5 +1,5 @@
-from Chrom_Proj.runner import *
-from Chrom_Proj.chrom_dataset import Chromatin_Dataset
+from Chrom_Proj.chrom_dataset import *
+from Chrom_Proj.util import *
 import torch
 import Chrom_Proj.visualizer as v
 import numpy as np
@@ -20,13 +20,11 @@ def main():
         validLabels: the sections of the chromatine we want to validate on
         models: list of the model types we want to builld
     """
-
-    
     # Variables
-    epochs = 20
+    epochs = 1
     batchSize = 1024
 
-    # parameters for model
+    # Parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
@@ -46,38 +44,31 @@ def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, v
         for trainLabel in trainLabels:
             for testLabel in testLabels:
                 for validLabel in validLabels:
-                    # Compare test label and vaidation labels
-                    tL = int(testLabel[testLabel.index("r")+1:]) 
-                    vL = int(validLabel[trainLabel.index("r")+1:])
-                    sliceLeft = int(trainLabel[trainLabel.index("r")+1:trainLabel.index("-")])
-                    sliceRight = int(trainLabel[trainLabel.rindex("r")+1:])
-                    
-                    # We do not want to train and test on the same data
-                    if tL != vL:
-                        if tL == sliceLeft:
-                            if vL == sliceRight:
-                                trainer, tester, validator = getData(chromTypes,  
-                                    id=id, 
+                    if (testLabel in trainLabel) and (validLabel in trainLabel) and not (testLabel == validLabel):
+                        print("training on {}, testing on {}, valid on {}".format(trainLabel, testLabel, validLabel))
+                        trainer, tester, validator = getData(chromTypes,  
+                            id=id, 
+                            trainLabel=trainLabel, 
+                            testLabel=testLabel, 
+                            validLabel=validLabel,
+                            fileLocation="./Data/220802_DATA", 
+                            batchSize=batchSize)
 
-                                    trainLabel=trainLabel, 
-                                    testLabel=testLabel, 
-                                    validLabel=validLabel,
-                                    fileLocation="./Data/220802_DATA")
-
-                                for modelType in models:
-                                    name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
-                                    name = name.replace("/", "-")
-                                    name = name.replace(".","")
-                                    if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
-                                        print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
-                                        realValid, predictedValid = runner(name, trainer, tester, validator,  
-                                            id=id, 
-                                            trainLabel=trainLabel, 
-                                            testLabel=testLabel, 
-                                            validLabel=validLabel,
-                                            epochs=epochs, batchSize=batchSize,
-                                            fileLocation="./Data/220802_DATA", 
-                                            modelType=modelType, name_end=nameType
-                                            )
-            
+                        for modelType in models:
+                            name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
+                            name = name.replace("/", "-")
+                            name = name.replace(".","")
+                            model = loadModel(modelType,name)
+                            if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
+                                print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
+                                print(model)
+                                runModel([trainer],
+                                    [tester],
+                                    [validator],
+                                    model=model,
+                                    optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
+                                    loss_fn=nn.BCELoss(),
+                                    batch_size=batchSize,
+                                    epochs=epochs)
+        
 main()
