@@ -14,6 +14,8 @@ from Chrom_Proj.chrom_dataset import Chromatin_Dataset
 from Chrom_Proj.model import *
 import pdb
 import os
+from torch.utils.data import DataLoader
+
 
 
 def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train"):
@@ -24,9 +26,13 @@ def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train
     labels = []
     targets = []
     for loader in data:
+        loader.loadChunk()
+        
+        loader = DataLoader(loader, shuffle=True, batch_size=4096)
         loaderLoss = 0
 
-        for data, label in loader:
+        for data, label in tqdm(loader):
+            
             # Load data appropriatly
             data, label = data.to(device), label.to(device)
 
@@ -61,7 +67,6 @@ def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train
         totalLoss.append(loaderLoss)
         
         if work == "validate":
-            pdb.set_trace()
             labels = torch.flatten(labels[0]).detach().numpy()
             targets = torch.flatten(targets[0]).detach().numpy()
 
@@ -145,16 +150,15 @@ def loadModel(modelType, name):
     model = None
     if modelType == 1:
         model = Chromatin_Network1(name)
-    if modelType == 2:
+    elif modelType == 2:
         model = Chromatin_Network2(name)   
-    if modelType == 3:
+    elif modelType == 3:
         model = Chromatin_Network3(name)   
-    if modelType == 4:
+    elif modelType == 4:
         model = Chromatin_Network4(name)   
-    if modelType == 5:
-        model = Chromatin_Network5(name)   
-    if modelType == 6:
-        model = Chromatin_Network6(name)  
+    else:
+        print("model does not exist")
+        quit()
 
     return model
 
@@ -171,16 +175,15 @@ def loadModelfromFile(modelFileName, modelType):
     """
     if modelType == 1:
         model = Chromatin_Network1("validator")
-    if modelType == 2:
+    elif modelType == 2:
         model = Chromatin_Network2("validator")  
-    if modelType == 3:
+    elif modelType == 3:
         model = Chromatin_Network3("validator")  
-    if modelType == 4:
+    elif modelType == 4:
         model = Chromatin_Network4("validator")  
-    if modelType == 5:
-        model = Chromatin_Network5("validator")  
-    if modelType == 6:
-        model = Chromatin_Network6("validator")  
+    else:
+        print("no model found")
+        quit()
 
     model.load_state_dict(torch.load(modelFileName,map_location=torch.device('cpu')))
     
@@ -219,6 +222,7 @@ def runModel(
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
         gc.collect()
+        torch.cuda.empty_cache()
         
     torch.save(model.state_dict(), savePath)    
     os.makedirs("./output/Info/", exist_ok=True)
