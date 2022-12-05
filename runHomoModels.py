@@ -21,15 +21,15 @@ def main():
         models: list of the model types we want to builld
     """
     # Variables
-    epochs = 1
-    batchSize = 1024
+    epochs = 10
+    batchSize = 2048
 
     # Parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
     trainLabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16" ]
     testLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
     validLabels = ["chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr7", "chr8", "chr9"]
-    models = [1,2,3,4,5,6]
+    models = [1,2,3,4]
 
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, validLabels, models, nameType="1")
@@ -54,8 +54,7 @@ def runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels, testLabels, v
                             trainLabel=trainLabel, 
                             testLabel=testLabel, 
                             validLabel=validLabel,
-                            fileLocation="./Data/220802_DATA", 
-                            batchSize=batchSize)
+                            fileLocation="./Data/220802_DATA")
                         trainer.append(chr_train)
                         tester.append(chr_test)
                         validator.append(chr_valid)

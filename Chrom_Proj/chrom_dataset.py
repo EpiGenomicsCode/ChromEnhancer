@@ -25,7 +25,7 @@ class Chromatin_Dataset(Dataset):
                 "p300-1",
                 "PolII-1"],
             label="chr10-chr17",
-            file_location="./Data/220802_DATA/TRAIN/*", dataUse="train"):
+            file_location="./Data/220802_DATA/TRAIN/*", dataUse="train", drop=None):
         """
         initalizer function:
             Input:
@@ -39,17 +39,21 @@ class Chromatin_Dataset(Dataset):
         self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
         self.dataIterator = {}
         self.data = {}
+        self.drop = drop
         self.loadChunk()
         self.nextChunk()
 
     def loadChunk(self):
         for key in self.dataFilenames.keys():
-            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//10)
-        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//10)
+            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//1000)
+        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//1000)
 
     def nextChunk(self):
         for key in self.dataIterator.keys():
             self.data[key] = next(self.dataIterator[key])
+            if key == self.drop:
+                self.data[key][:] = 0
+        
 
     def __len__(self):
         return self.length
@@ -118,7 +122,7 @@ def getData(chromtypes,
             testLabel, 
             validLabel,
             fileLocation="./Data/220802_DATA",
-            batchSize=32
+            drop=None
         ):
     """
     Returns the training, testing and validation data based on the input
@@ -155,18 +159,18 @@ def getData(chromtypes,
         id=id,
         chromType=chromtypes,
         label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*", dataUse="train")
+        file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop)
 
     chr_test = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*", dataUse="test")
+        file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop)
 
     chr_valid = Chromatin_Dataset(
             id=id,
             chromType=chromtypes,
             label=validLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid")
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop)
    
     return chr_train, chr_test, chr_valid   

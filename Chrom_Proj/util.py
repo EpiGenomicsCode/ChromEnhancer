@@ -26,8 +26,14 @@ def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train
     labels = []
     targets = []
     for loader in data:
-        loader.loadChunk()
         
+        gc.collect()
+        torch.cuda.empty_cache()
+        
+        if work == "valid":
+            loader.drop = None
+
+        loader.loadChunk()        
         loader = DataLoader(loader, shuffle=True, batch_size=4096)
         loaderLoss = 0
 
@@ -221,8 +227,6 @@ def runModel(
         testLossEpoch = input_model(tester, batch_size, device, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
-        gc.collect()
-        torch.cuda.empty_cache()
         
     torch.save(model.state_dict(), savePath)    
     os.makedirs("./output/Info/", exist_ok=True)

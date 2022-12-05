@@ -53,14 +53,12 @@ def runHeteroModels(batchSize, epochs):
             '', 
             '',
             fileLocation="./Data/220803_CelllineDATA",
-            batchSize=32
+            drop="PolII-1"
         )
         trainer.append(chr_train)
         tester.append(chr_test)
         validator.append(chr_valid)
     
-
-        
     runModel(trainer,
         tester,
         validator,
