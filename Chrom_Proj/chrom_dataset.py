@@ -7,8 +7,8 @@ import itertools
 import os
 import pandas as pd
 import pdb
+import subprocess
 import gc
-from torch.utils.data import DataLoader
 
 
 class Chromatin_Dataset(Dataset):
@@ -35,20 +35,43 @@ class Chromatin_Dataset(Dataset):
                 file_location: String: Location of the dataset
         """
         super(Dataset, self).__init__()
-        self.data, self.labels = readFiles(id, chromType, label, file_location, dataUse)
-        self.data = self.data
-        self.labels = self.labels
-        self.filename = id + "_" + label
-        assert len(self.data) == len(self.labels)
-        
+        self.dataFilenames, self.labelFilenames = readFiles(id, chromType, label, file_location, dataUse)
+        self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
+        self.dataIterator = {}
+        self.data = {}
+        self.loadChunk()
+        self.nextChunk()
+
+    def loadChunk(self):
+        for key in self.dataFilenames.keys():
+            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//10)
+        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//10)
+
+    def nextChunk(self):
+        for key in self.dataIterator.keys():
+            self.data[key] = next(self.dataIterator[key])
 
     def __len__(self):
-        return len(self.labels)
+        return self.length
 
     def __getitem__(self, index):
-        return torch.tensor(
-            self.data[index], dtype=torch.float32), torch.tensor(
-            self.labels[index], dtype=torch.float32)
+        cellLine = []
+        if len(self.data['CTCF-1']) == 0:
+            self.nextChunk()
+                
+        for key in [i for i in self.data.keys() if 'label' not in i]:
+            cellLine.append(self.data[key].iloc[0])
+            self.data[key] = self.data[key].iloc[1:,:]
+
+        label = self.data['label'].iloc[0]
+        self.data['label'] = self.data['label'].iloc[1:,:]
+
+        data = np.array(cellLine).flatten()
+        label = np.array(label).flatten()
+        
+        return torch.tensor(data, dtype=torch.float32),torch.tensor(label, dtype=torch.float32)
+
+        
 
 def readFiles(id, chromType, label, file_location, dataUse):
     """
@@ -65,38 +88,29 @@ def readFiles(id, chromType, label, file_location, dataUse):
     files = glob(file_location)
     labels = []
     data = {}
-
     for fileType in chromType:
         filename = [
             i for i in files if id in i and fileType in i and "chromtrack" in i and label in i]
-        assert len(filename) != 0
         print("Processing: {}".format(filename[0]))
         fileName = filename[0]
+        data[fileType] = fileName
 
-        data[fileType] = pd.read_csv(fileName, delimiter=" ",  header=None)
-
-    horizontalConcat = pd.DataFrame()
-    for fileType in chromType:
-        horizontalConcat = pd.concat(
-            [horizontalConcat, data[fileType]], axis=1)
 
     if dataUse == "train":
         labelFileName = [
                         i for i in files if ".label" in i and id in i and label in i and not "Leniant" in i and not "Stringent" in i 
                     ]
-    elif dataUse == "test":
+    if dataUse == "test":
         labelFileName = [
                         i for i in files if ".label" in i and id in i and label in i and not "Lenient" in i 
                     ]
-    else:
+    if dataUse == "valid":
         labelFileName = [
                         i for i in files if ".label" in i and id in i and label in i and not "Stringent" in i 
                     ]
-    assert len(labelFileName) > 0
-    print("Processing: {}".format(labelFileName[0]))
-    label = pd.read_csv(labelFileName[0], delimiter=" ", header=None)
+    
 
-    return np.array(horizontalConcat.values[:]), np.array(label.values[:])
+    return data, labelFileName[0]
 
 def getData(chromtypes, 
             id, 
@@ -127,9 +141,6 @@ def getData(chromtypes,
         
         fileLocation: Relative file path for where the files are being saved 
             (ex: ./Data/220708/DATA)
-        
-        hetero: bool: switch to determine if we are running homogenous model or not
-            Default: False
 
     Return:
         trainer: training data
@@ -140,26 +151,22 @@ def getData(chromtypes,
     """
     os.makedirs('./output', exist_ok=True)
     
-    chr_train = DataLoader(Chromatin_Dataset(
+    chr_train = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*", dataUse="train"), shuffle=True, batch_size=batchSize)
+        file_location=fileLocation+"/TRAIN/*", dataUse="train")
 
-    gc.collect()
-
-    chr_test = DataLoader(Chromatin_Dataset(
+    chr_test = Chromatin_Dataset(
         id=id,
         chromType=chromtypes,
         label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*", dataUse="test"), shuffle=True, batch_size=batchSize)
-    gc.collect()
-    chr_valid = DataLoader(Chromatin_Dataset(
+        file_location=fileLocation+"/HOLDOUT/*", dataUse="test")
+
+    chr_valid = Chromatin_Dataset(
             id=id,
             chromType=chromtypes,
             label=validLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid"), shuffle=True, batch_size=batchSize)
-
-    gc.collect()
-    
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid")
+   
     return chr_train, chr_test, chr_valid   
