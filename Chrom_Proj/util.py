@@ -38,30 +38,30 @@ def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train
         loaderLoss = 0
 
         for data, label in tqdm(loader):
-            
             # Load data appropriatly
             data, label = data.to(device), label.to(device)
 
+
+            # Clear gradients
+            optimizer.zero_grad()
+
             # Forward Pass
             target = model(data)
-            if work=="train":
-                model.train()
-                # Clear gradients
-                optimizer.zero_grad()
-                # Calculate the gradient
-                            # Calculate the Lo
-                loss = loss_fn(
-                target.to(
-                    torch.float32), label.to(
-                    torch.float32))
+
+            # Calculate the Loss
+            loss = loss_fn(
+                        target.to(torch.float32), 
+                        label.to(torch.float32)
+                        )
+            if work == "train":
+                # update loss
                 loss.backward()
                 # Update Weight
                 optimizer.step()
-                # save the loss
-                loaderLoss += loss.item() * data.size(0)
-            else:
-                model.eval()
-
+            
+            # save the loss
+            loaderLoss += loss.item() * data.size(0)
+        
             # Clean the data
             target = torch.flatten(target)
             label = torch.flatten(label)
