@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 
 
-def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train"):
+def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     """
         Trains the model with respect to the data
     """
@@ -34,13 +34,10 @@ def input_model(data, batch_size, device, optimizer, model, loss_fn, work="train
             loader.drop = None
 
         loader.loadChunk()        
-        loader = DataLoader(loader, shuffle=True, batch_size=4096)
+        loader = DataLoader(loader, shuffle=True, batch_size=1028)
         loaderLoss = 0
 
         for data, label in tqdm(loader):
-            # Load data appropriatly
-            data, label = data.to(device), label.to(device)
-
 
             # Clear gradients
             optimizer.zero_grad()
@@ -222,9 +219,9 @@ def runModel(
         print("-----Epoch: {}------".format(epoch)) 
         # Set model to train mode and train on training data
         model.train()
-        trainLossEpoch = input_model(trainer, batch_size, device, optimizer, model, loss_fn, work="train")
+        trainLossEpoch = input_model(trainer, batch_size, optimizer, model, loss_fn, work="train")
         model.eval()
-        testLossEpoch = input_model(tester, batch_size, device, optimizer, model, loss_fn, work="test")
+        testLossEpoch = input_model(tester, batch_size, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
         
@@ -236,7 +233,7 @@ def runModel(
     f.close()
 
     print("Validating")
-    validLoss = input_model(validator, batch_size, device, optimizer, model, loss_fn, work="validate")
+    validLoss = input_model(validator, batch_size, optimizer, model, loss_fn, work="validate")
 
     model = model.to("cpu")
     del model

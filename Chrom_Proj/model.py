@@ -136,11 +136,11 @@ class Chromatin_Network4(nn.Module):
         self.layer_2 = nn.Conv1d(3, 5, 50) 
         self.layer_3 = nn.Conv1d(5, 10, 100)
 
-        self.lstm = nn.LSTM(input_size=3430, hidden_size=500,
+        self.lstm = nn.LSTM(input_size=3430, hidden_size=100,
                           num_layers=num_layers, batch_first=True) #lstm
 
         
-        self.lin1 = nn.Linear(500,500)
+        self.lin1 = nn.Linear(100,500)
         self.lin2 = nn.Linear(500,500)
         self.lin3 = nn.Linear(500,500)
         self.lin4 = nn.Linear(500,500)
