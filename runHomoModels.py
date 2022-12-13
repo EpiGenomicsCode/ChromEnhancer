@@ -22,7 +22,7 @@ def main():
     """
     # Variables
     epochs = 10
-    batchSize = 2048
+    batchSize = 128
 
     # Parameters for model
     ids = ["A549", "HepG2", "K562", "MCF7" ]
