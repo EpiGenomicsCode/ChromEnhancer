@@ -22,12 +22,15 @@ class Chromatin_Network1(nn.Module):
         self.layer_4 = nn.Linear(500, 500)
         self.layer_out = nn.Linear(500, 1) 
 
+        self.dropout = nn.Dropout(0.25)
+
 
     def forward(self, x):
         x = F.relu(self.layer_1(x))
         x = F.relu(self.layer_2(x))
         x = F.relu(self.layer_3(x))
         x = F.relu(self.layer_4(x))
+        x = self.dropout(x)
         x = torch.sigmoid(self.layer_out(x))
         
         return x
@@ -51,6 +54,8 @@ class Chromatin_Network2(nn.Module):
 
         self.DNNlayer_4 = nn.Linear(500, 500)
         self.DNNlayer_5 = nn.Linear(500, 1)
+
+        self.dropout = nn.Dropout(0.25)
     
         
 
@@ -67,6 +72,7 @@ class Chromatin_Network2(nn.Module):
         x = F.relu(self.DNNlayer_2(x))
         x = F.relu(self.DNNlayer_3(x))
         x = F.relu(self.DNNlayer_4(x))
+        x = self.dropout(x)
         x = torch.sigmoid(self.DNNlayer_5(x))
         
         return x
@@ -94,6 +100,8 @@ class Chromatin_Network3(nn.Module):
         self.DNNlayer_4 = nn.Linear(500, 500)
         self.DNNlayer_5 = nn.Linear(500, 1)
 
+        self.dropout = nn.Dropout(0.25)
+
         self.h_0 = None
         self.c_0 = None
         self.hidden = None
@@ -115,6 +123,7 @@ class Chromatin_Network3(nn.Module):
         out = F.relu(self.DNNlayer_2(out))
         out = F.relu(self.DNNlayer_3(out))
         out = F.relu(self.DNNlayer_4(out))
+        x = self.dropout(x)
         out = torch.sigmoid(self.DNNlayer_5(out))
 
 
@@ -150,6 +159,9 @@ class Chromatin_Network4(nn.Module):
         self.c_0 = None
         self.hidden = None
 
+        self.dropout = nn.Dropout(0.25)
+
+        
     def forward(self, x):
         x = x.reshape(-1, 1, x.shape[1])
         x = F.relu(self.layer_1(x))
@@ -169,6 +181,7 @@ class Chromatin_Network4(nn.Module):
         out = F.relu(self.lin2(out))
         out = F.relu(self.lin3(out))
         out = F.relu(self.lin4(out))
+        x = self.dropout(x)
         out = torch.sigmoid(self.lin5(out))
 
         return out
