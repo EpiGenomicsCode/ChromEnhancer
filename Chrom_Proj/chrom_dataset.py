@@ -37,20 +37,22 @@ class Chromatin_Dataset(Dataset):
         super(Dataset, self).__init__()
         self.dataFilenames, self.labelFilenames = readFiles(id, chromType, label, file_location, dataUse)
         self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
+        print("\t length: {}".format(self.length))
         self.dataIterator = {}
         self.data = {}
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.drop = drop
         self.loadChunk()
         self.nextChunk()
 
     def loadChunk(self):
         for key in self.dataFilenames.keys():
-            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//1000)
-        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//1000)
+            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//1028)
+        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//1028)
 
     def nextChunk(self):
         for key in self.dataIterator.keys():
-            self.data[key] = next(self.dataIterator[key])
+            self.data[key] = torch.tensor(next(self.dataIterator[key]).values,dtype=torch.float32).to(self.device)
             if key == self.drop:
                 self.data[key][:] = 0
         
@@ -60,20 +62,18 @@ class Chromatin_Dataset(Dataset):
 
     def __getitem__(self, index):
         cellLine = []
-        if len(self.data['CTCF-1']) == 0:
+        if len(self.data[list(self.data.keys())[0]]) == 0:
             self.nextChunk()
                 
         for key in [i for i in self.data.keys() if 'label' not in i]:
-            cellLine.append(self.data[key].iloc[0])
-            self.data[key] = self.data[key].iloc[1:,:]
+            cellLine.append(self.data[key][0])
+            self.data[key] = self.data[key][1:,:]
 
-        label = self.data['label'].iloc[0]
-        self.data['label'] = self.data['label'].iloc[1:,:]
+        label = self.data['label'][0]
+        self.data['label'] = self.data['label'][1:,:]
 
-        data = np.array(cellLine).flatten()
-        label = np.array(label).flatten()
         
-        return torch.tensor(data, dtype=torch.float32),torch.tensor(label, dtype=torch.float32)
+        return torch.cat(cellLine), label
 
         
 
@@ -99,7 +99,6 @@ def readFiles(id, chromType, label, file_location, dataUse):
         fileName = filename[0]
         data[fileType] = fileName
 
-
     if dataUse == "train":
         labelFileName = [
                         i for i in files if ".label" in i and id in i and label in i and not "Leniant" in i and not "Stringent" in i 
@@ -113,6 +112,8 @@ def readFiles(id, chromType, label, file_location, dataUse):
                         i for i in files if ".label" in i and id in i and label in i and not "Stringent" in i 
                     ]
     
+
+    print("using label :{}".format(labelFileName[0]))
 
     return data, labelFileName[0]
 
