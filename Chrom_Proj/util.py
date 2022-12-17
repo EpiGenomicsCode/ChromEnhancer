@@ -26,6 +26,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     labels = []
     targets = []
     for loader in data:
+        
         gc.collect()
         torch.cuda.empty_cache()
         
@@ -62,23 +63,22 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
             target = torch.flatten(target)
             label = torch.flatten(label)
         
-            labels.append(label)
-            targets.append(target)
+            labels.append(label.cpu())
+            targets.append(target.cpu())
             
 
         totalLoss.append(loaderLoss)
-
         
-    if work == "validate":
-        labels = torch.cat(labels).cpu().detach().numpy()
-        targets = torch.cat(targets).cpu().detach().numpy()
+        if work == "validate":
+            labels = torch.flatten(labels[0]).detach().numpy()
+            targets = torch.flatten(targets[0]).detach().numpy()
 
-        fpr, tpr, _ =  m.roc_curve(labels, targets)
-        pre, rec, _ = m.precision_recall_curve(labels, targets)
+            fpr, tpr, _ =  m.roc_curve(labels, targets)
+            pre, rec, _ = m.precision_recall_curve(labels, targets)
 
-        ROCAUC = plotROC(model, fpr, tpr)
-        PRCAUC = plotPRC(model, pre, rec)
-        writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
+            ROCAUC = plotROC(model, fpr, tpr)
+            PRCAUC = plotPRC(model, pre, rec)
+            writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
 
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
