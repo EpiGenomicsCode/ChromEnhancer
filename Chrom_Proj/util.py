@@ -69,16 +69,16 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
 
         totalLoss.append(loaderLoss)
         
-        if work == "validate":
-            labels = torch.flatten(labels[0]).detach().numpy()
-            targets = torch.flatten(targets[0]).detach().numpy()
+    if work == "validate":
+        labels = torch.flatten(labels[0]).detach().numpy()
+        targets = torch.flatten(targets[0]).detach().numpy()
 
-            fpr, tpr, _ =  m.roc_curve(labels, targets)
-            pre, rec, _ = m.precision_recall_curve(labels, targets)
+        fpr, tpr, _ =  m.roc_curve(labels, targets)
+        pre, rec, _ = m.precision_recall_curve(labels, targets)
 
-            ROCAUC = plotROC(model, fpr, tpr)
-            PRCAUC = plotPRC(model, pre, rec)
-            writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
+        ROCAUC = plotROC(model, fpr, tpr)
+        PRCAUC = plotPRC(model, pre, rec)
+        writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
 
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
