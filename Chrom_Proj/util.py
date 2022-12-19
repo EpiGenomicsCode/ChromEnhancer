@@ -77,7 +77,8 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         ROCAUC = plotROC(model, fpr, tpr)
         PRCAUC = plotPRC(model, pre, rec)
         writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
-        
+    
+    clearTorch()
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
     
@@ -91,9 +92,7 @@ def clearTorch():
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
                 print(type(obj), obj.size())
                 if obj.is_cuda:
-                    pdb.set_trace()
-                    obj = obj.cuda()
-                    del obj
+                    obj = obj.cpu()
         except:
             pass
     
