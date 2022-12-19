@@ -47,8 +47,8 @@ class Chromatin_Dataset(Dataset):
 
     def loadChunk(self):
         for key in self.dataFilenames.keys():
-            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//512)
-        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//512)
+            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//4096)
+        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//4096)
 
     def nextChunk(self):
         for key in self.dataIterator.keys():
