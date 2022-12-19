@@ -27,11 +27,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     alltargets = []
     labels = []
     targets = []
-    for loader in data:
-        
-        gc.collect()
-        torch.cuda.empty_cache()
-        
+    for loader in data:        
         if work == "valid":
             loader.drop = None
 
@@ -81,11 +77,29 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         ROCAUC = plotROC(model, fpr, tpr)
         PRCAUC = plotPRC(model, pre, rec)
         writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
-
+        
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
+    
     return totalLoss
- 
+
+import torch
+import gc
+def clearTorch():
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(type(obj), obj.size())
+                if obj.is_cuda:
+                    pdb.set_trace()
+                    obj = obj.cuda()
+                    del obj
+        except:
+            pass
+    
+    torch.cuda.empty_cache()
+    gc.collect()
+
 def writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC):
     """
         Writes the PCR and ROC curve data to file
