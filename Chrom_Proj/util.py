@@ -32,7 +32,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
             loader.drop = None
 
         loader.loadChunk()        
-        loader = DataLoader(loader, shuffle=True, batch_size=128)
+        loader = DataLoader(loader, shuffle=True, batch_size=batch_size)
         loaderLoss = 0
 
         for data, label in tqdm(loader):
