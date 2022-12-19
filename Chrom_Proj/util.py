@@ -23,6 +23,8 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         Trains the model with respect to the data
     """
     totalLoss = []
+    allLabels = []
+    alltargets = []
     labels = []
     targets = []
     for loader in data:
@@ -34,7 +36,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
             loader.drop = None
 
         loader.loadChunk()        
-        loader = DataLoader(loader, shuffle=True, batch_size=1028)
+        loader = DataLoader(loader, shuffle=True, batch_size=128)
         loaderLoss = 0
 
         for data, label in tqdm(loader):
@@ -70,9 +72,10 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         totalLoss.append(loaderLoss)
         
     if work == "validate":
-        labels = torch.flatten(labels[0]).detach().numpy()
-        targets = torch.flatten(targets[0]).detach().numpy()
+        labels = torch.cat(labels).detach().numpy()
+        targets = torch.cat(targets).detach().numpy()
 
+        pdb.set_trace()
         fpr, tpr, _ =  m.roc_curve(labels, targets)
         pre, rec, _ = m.precision_recall_curve(labels, targets)
 
@@ -224,8 +227,7 @@ def runModel(
         testLossEpoch = input_model(tester, batch_size, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
-        
-    torch.save(model.state_dict(), savePath)    
+           
     os.makedirs("./output/Info/", exist_ok=True)
     f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
     f.write("trainLoss: {}\n".format(str([i for i in trainLoss]).replace("\n","").replace(" ", "")))
@@ -234,8 +236,9 @@ def runModel(
 
     print("Validating")
     validLoss = input_model(validator, batch_size, optimizer, model, loss_fn, work="validate")
-
     model = model.to("cpu")
+    torch.save(model.state_dict(), savePath) 
+
     del model
     gc.collect() 
     torch.cuda.empty_cache()
