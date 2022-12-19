@@ -75,7 +75,6 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         labels = torch.cat(labels).detach().numpy()
         targets = torch.cat(targets).detach().numpy()
 
-        pdb.set_trace()
         fpr, tpr, _ =  m.roc_curve(labels, targets)
         pre, rec, _ = m.precision_recall_curve(labels, targets)
 
