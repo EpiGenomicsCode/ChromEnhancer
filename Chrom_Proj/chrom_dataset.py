@@ -47,12 +47,12 @@ class Chromatin_Dataset(Dataset):
 
     def loadChunk(self):
         for key in self.dataFilenames.keys():
-            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=self.length//4096)
-        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=self.length//4096)
+            self.dataIterator[key] = pd.read_csv(self.dataFilenames[key], delimiter=" ", header=None, chunksize=128*5)
+        self.dataIterator["label"] = pd.read_csv(self.labelFilenames, delimiter=" ", header=None, chunksize=128*5)
 
     def nextChunk(self):
         for key in self.dataIterator.keys():
-            self.data[key] = torch.tensor(next(self.dataIterator[key]).values,dtype=torch.float32).to(self.device)
+            self.data[key] = torch.tensor(next(self.dataIterator[key]).values,dtype=torch.float32).to("cuda")
             if key == self.drop:
                 self.data[key][:] = 0
         

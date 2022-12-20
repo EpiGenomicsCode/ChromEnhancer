@@ -27,12 +27,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     alltargets = []
     labels = []
     targets = []
-    clearTorch()
     for loader in data:        
-
-        gc.collect() 
-        torch.cuda.empty_cache()
-
         if work == "valid":
             loader.drop = None
 
@@ -41,7 +36,6 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         loaderLoss = 0
 
         for data, label in tqdm(loader):
-
             # Clear gradients
             optimizer.zero_grad()
 
@@ -85,11 +79,10 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
-    
+    clearTorch()
     return totalLoss
 
-import torch
-import gc
+
 def clearTorch():
     for obj in gc.get_objects():
         try:
@@ -229,12 +222,13 @@ def runModel(
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print("\n\n============Training on: {}===========\n".format(device))
-    model = model.to(device)
     trainLoss = []
     testLoss = []
     # Train the model
     for epoch in range(epochs):     
         print("-----Epoch: {}------".format(epoch)) 
+        clearTorch()
+        model = model.to(device)
         # Set model to train mode and train on training data
         model.train()
         trainLossEpoch = input_model(trainer, batch_size, optimizer, model, loss_fn, work="train")
@@ -256,4 +250,3 @@ def runModel(
     torch.save(model.state_dict(), savePath) 
 
     
-    clearTorch()
