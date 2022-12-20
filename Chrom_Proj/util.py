@@ -27,7 +27,12 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     alltargets = []
     labels = []
     targets = []
+    clearTorch()
     for loader in data:        
+
+        gc.collect() 
+        torch.cuda.empty_cache()
+
         if work == "valid":
             loader.drop = None
 
@@ -78,7 +83,6 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         PRCAUC = plotPRC(model, pre, rec)
         writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC)
     
-    clearTorch()
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
     
@@ -90,8 +94,7 @@ def clearTorch():
     for obj in gc.get_objects():
         try:
             if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                print(type(obj), obj.size())
-                if obj.is_cuda:
+                if obj.device.type  =="cuda":
                     obj = obj.cpu()
         except:
             pass
@@ -239,6 +242,7 @@ def runModel(
         testLossEpoch = input_model(tester, batch_size, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
+    
            
     os.makedirs("./output/Info/", exist_ok=True)
     f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
@@ -251,6 +255,5 @@ def runModel(
     model = model.to("cpu")
     torch.save(model.state_dict(), savePath) 
 
-    del model
-    gc.collect() 
-    torch.cuda.empty_cache()
+    
+    clearTorch()
