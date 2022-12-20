@@ -21,17 +21,17 @@ def main():
         models: list of the model types we want to builld
     """
     # Variables
-    epochs = 10
+    epochs = 20
     batchSize = 128
 
     # Parameters for model
-    ids = ["MCF7" ]
+    ids = ["K562" ]
     trainlabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
     otherlabels = ["chr10","chr17", "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
     groupLabels = validate(groupLabels)
     
-    models = [3]
+    models = [1,2,3,4]
 
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="1")
@@ -65,25 +65,25 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
         tester = []
         validator = []
 
-
-        chr_train, chr_test, chr_valid = getData(chromTypes,  
-            id=id, 
-            trainLabel=trainLabel, 
-            testLabel=testLabel, 
-            validLabel=validLabel,
-            fileLocation="./Data/220802_DATA")
-
-        trainer.append(chr_train)
-        tester.append(chr_test)
-        validator.append(chr_valid)
-
         for modelType in models:
+
             name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
             name = name.replace("/", "-")
             name = name.replace(".","")
             if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
+                chr_train, chr_test, chr_valid = getData(chromTypes,  
+                    id=id, 
+                    trainLabel=trainLabel, 
+                    testLabel=testLabel, 
+                    validLabel=validLabel,
+                    fileLocation="./Data/220802_DATA")
+
+                trainer.append(chr_train)
+                tester.append(chr_test)
+                validator.append(chr_valid)
                 model = loadModel(modelType,name)
                 print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
+                print(name)
                 print(model)
                 runModel(trainer,
                     tester,
@@ -93,5 +93,6 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
                     loss_fn=nn.BCELoss(),
                     batch_size=batchSize,
                     epochs=epochs)
-    
+  
+  
 main()
