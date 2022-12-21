@@ -115,7 +115,7 @@ def readFiles(id, chromType, label, file_location, dataUse):
                     ]
     
 
-    print("using label :{}".format(labelFileName[0]))
+    # print("using label :{}".format(labelFileName[0]))
 
     return data, labelFileName[0]
 
