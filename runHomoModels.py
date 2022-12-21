@@ -71,31 +71,27 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
             name = name.replace("/", "-")
             name = name.replace(".","")
             if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
-                try:
-                    chr_train, chr_test, chr_valid = getData(chromTypes,  
-                        id=id, 
-                        trainLabel=trainLabel, 
-                        testLabel=testLabel, 
-                        validLabel=validLabel,
-                        fileLocation="./Data/220802_DATA")
+                chr_train, chr_test, chr_valid = getData(chromTypes,  
+                    id=id, 
+                    trainLabel=trainLabel, 
+                    testLabel=testLabel, 
+                    validLabel=validLabel,
+                    fileLocation="./Data/220802_DATA")
 
-                    trainer.append(chr_train)
-                    tester.append(chr_test)
-                    validator.append(chr_valid)
-                    model = loadModel(modelType,name)
-                    print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
-                    print(name)
-                    print(model)
-                    runModel(trainer,
-                        tester,
-                        validator,
-                        model=model,
-                        optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
-                        loss_fn=nn.BCELoss(),
-                        batch_size=batchSize,
-                        epochs=epochs)
-                except:
-                    continue
-  
+                trainer.append(chr_train)
+                tester.append(chr_test)
+                validator.append(chr_valid)
+                model = loadModel(modelType,name)
+                print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
+                print(name)
+                print(model)
+                runModel(trainer,
+                    tester,
+                    validator,
+                    model=model,
+                    optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
+                    loss_fn=nn.BCELoss(),
+                    batch_size=batchSize,
+                    epochs=epochs)
   
 main()
