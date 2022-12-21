@@ -49,22 +49,25 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
                         target.to(torch.float32), 
                         label.to(torch.float32)
                         )
+            # save the loss
+            loaderLoss += loss.detach().item() * data.size(0)
+            
             if work == "train":
                 # update loss
                 loss.backward()
                 # Update Weight
                 optimizer.step()
                 
-            if work == "test":
-                # save the loss
-                loaderLoss += loss.detach().item() * data.size(0)
             
+            if work == "test":
                 # Clean the data
                 target = torch.flatten(target)
                 label = torch.flatten(label)
             
-                labels.append(label.cpu())
-                targets.append(target.cpu())
+                labels.append(label.cpu().detach().numpy())
+                targets.append(target.cpu().detach().numpy())
+            del target
+            del label
             
 
         totalLoss.append(loaderLoss)
