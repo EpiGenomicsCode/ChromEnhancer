@@ -64,10 +64,6 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         
             labels.append(label.cpu())
             targets.append(target.cpu())
-            del data
-            del label
-            torch.cuda.empty_cache()
-            gc.collect()
             
 
         totalLoss.append(loaderLoss)
@@ -85,6 +81,10 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
+
+    torch.cuda.empty_cache()
+    gc.collect()
+    
     return totalLoss
 
 
@@ -218,9 +218,10 @@ def runModel(
     trainLoss = []
     testLoss = []
     # Train the model
+
+    model = model.to(device)
     for epoch in range(epochs):     
         print("-----Epoch: {}------".format(epoch)) 
-        model = model.to(device)
         # Set model to train mode and train on training data
         model.train()
         trainLossEpoch = input_model(trainer, batch_size, optimizer, model, loss_fn, work="train")
