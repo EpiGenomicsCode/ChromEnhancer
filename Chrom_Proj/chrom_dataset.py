@@ -97,7 +97,7 @@ def readFiles(id, chromType, label, file_location, dataUse):
     for fileType in chromType:
         filename = [
             i for i in files if id in i and fileType in i and "chromtrack" in i and label in i]
-        print("Processing: {}".format(filename[0]))
+        # print("Processing: {}".format(filename[0]))
         fileName = filename[0]
         data[fileType] = fileName
 

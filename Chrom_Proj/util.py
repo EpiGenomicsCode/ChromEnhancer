@@ -225,12 +225,17 @@ def runModel(
         # Set model to train mode and train on training data
         model.train()
         trainLossEpoch = input_model(trainer, batch_size, optimizer, model, loss_fn, work="train")
+        torch.cuda.empty_cache()
+        gc.collect()
         model.eval()
         testLossEpoch = input_model(tester, batch_size, optimizer, model, loss_fn, work="test")
         trainLoss.append(trainLossEpoch)
         testLoss.append(testLossEpoch)
+        torch.cuda.empty_cache()
+        gc.collect()
     
-           
+    torch.cuda.empty_cache()
+    gc.collect()           
     os.makedirs("./output/Info/", exist_ok=True)
     f = open("./output/Info/Loss_{}.txt".format(model.name), "w+")
     f.write("trainLoss: {}\n".format(str([i for i in trainLoss]).replace("\n","").replace(" ", "")))
