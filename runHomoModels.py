@@ -36,8 +36,8 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="1")
 
-    chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
-    runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="2")
+    # chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
+    # runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="2")
 
 def validate(groupLabels):
     cleanLabel = []
