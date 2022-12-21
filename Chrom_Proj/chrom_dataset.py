@@ -37,7 +37,7 @@ class Chromatin_Dataset(Dataset):
         super(Dataset, self).__init__()
         self.dataFilenames, self.labelFilenames = readFiles(id, chromType, label, file_location, dataUse)
         self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
-        print("\t length: {}".format(self.length))
+        # print("\t length: {}".format(self.length))
         self.dataIterator = {}
         self.data = {}
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -90,7 +90,7 @@ def readFiles(id, chromType, label, file_location, dataUse):
             label: string: Enhancer labels
             file_location: string
     """
-    print(file_location)
+    # print(file_location)
     files = glob(file_location)
     labels = []
     data = {}
