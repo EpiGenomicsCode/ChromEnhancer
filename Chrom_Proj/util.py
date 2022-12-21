@@ -54,16 +54,17 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
                 loss.backward()
                 # Update Weight
                 optimizer.step()
+                
+            if work == "test":
+                # save the loss
+                loaderLoss += loss.detach().item() * data.size(0)
             
-            # save the loss
-            loaderLoss += loss.item() * data.size(0)
-        
-            # Clean the data
-            target = torch.flatten(target)
-            label = torch.flatten(label)
-        
-            labels.append(label.cpu())
-            targets.append(target.cpu())
+                # Clean the data
+                target = torch.flatten(target)
+                label = torch.flatten(label)
+            
+                labels.append(label.cpu())
+                targets.append(target.cpu())
             
 
         totalLoss.append(loaderLoss)
