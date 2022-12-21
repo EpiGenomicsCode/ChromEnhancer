@@ -25,7 +25,7 @@ def main():
     batchSize = 128
 
     # Parameters for model
-    ids = ["A549"]
+    ids = ["A549" ,"MCF7", "HepG2", "K549"]
     trainlabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
     otherlabels = ["chr10","chr17", "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
