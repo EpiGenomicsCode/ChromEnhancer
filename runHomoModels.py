@@ -25,7 +25,7 @@ def main():
     batchSize = 128
 
     # Parameters for model
-    ids = ["K562" ]
+    ids = ["K562", "A549", "MCF7", "HepG2"]
     trainlabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
     otherlabels = ["chr10","chr17", "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
@@ -36,8 +36,8 @@ def main():
     chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
     runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="1")
 
-    # chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
-    # runHomoModels(chromTypes, epochs, batchSize, ids, trainLabels,  models,nameType="2")
+    chromTypes = ["CTCF-2", "H3K4me3-2", "H3K27ac-2", "p300-2", "PolII-2"]
+    runHomoModels(chromTypes, epochs, batchSize, groupLabels,  models, nameType="2")
 
 def validate(groupLabels):
     cleanLabel = []

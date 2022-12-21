@@ -15,6 +15,8 @@ from Chrom_Proj.model import *
 import pdb
 import os
 from torch.utils.data import DataLoader
+from numba import cuda
+
 
 
 
@@ -27,7 +29,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     alltargets = []
     labels = []
     targets = []
-    for loader in data:        
+    for loader in data:    
         if work == "valid":
             loader.drop = None
 
@@ -62,6 +64,10 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
         
             labels.append(label.cpu())
             targets.append(target.cpu())
+            del data
+            del label
+            torch.cuda.empty_cache()
+            gc.collect()
             
 
         totalLoss.append(loaderLoss)
@@ -79,21 +85,8 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
     
     totalLoss = np.sum(totalLoss)/len(loader)
     print("\t{} Loss: {}".format(work, totalLoss) )
-    clearTorch()
     return totalLoss
 
-
-def clearTorch():
-    for obj in gc.get_objects():
-        try:
-            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-                if obj.device.type  =="cuda":
-                    obj = obj.cpu()
-        except:
-            pass
-    
-    torch.cuda.empty_cache()
-    gc.collect()
 
 def writeData(model, pre, rec, fpr, tpr, ROCAUC, PRCAUC):
     """
@@ -227,7 +220,6 @@ def runModel(
     # Train the model
     for epoch in range(epochs):     
         print("-----Epoch: {}------".format(epoch)) 
-        clearTorch()
         model = model.to(device)
         # Set model to train mode and train on training data
         model.train()
