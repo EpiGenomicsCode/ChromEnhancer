@@ -25,7 +25,7 @@ def main():
     batchSize = 128
 
     # Parameters for model
-    ids = ["K562", "A549", "MCF7", "HepG2"]
+    ids = ["A549"]
     trainlabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
     otherlabels = ["chr10","chr17", "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
@@ -71,28 +71,31 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
             name = name.replace("/", "-")
             name = name.replace(".","")
             if not "./output/model_weight_bias/model_"+name+".pt" in glob.glob("./output/model_weight_bias/*"):
-                chr_train, chr_test, chr_valid = getData(chromTypes,  
-                    id=id, 
-                    trainLabel=trainLabel, 
-                    testLabel=testLabel, 
-                    validLabel=validLabel,
-                    fileLocation="./Data/220802_DATA")
+                try:
+                    chr_train, chr_test, chr_valid = getData(chromTypes,  
+                        id=id, 
+                        trainLabel=trainLabel, 
+                        testLabel=testLabel, 
+                        validLabel=validLabel,
+                        fileLocation="./Data/220802_DATA")
 
-                trainer.append(chr_train)
-                tester.append(chr_test)
-                validator.append(chr_valid)
-                model = loadModel(modelType,name)
-                print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
-                print(name)
-                print(model)
-                runModel(trainer,
-                    tester,
-                    validator,
-                    model=model,
-                    optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
-                    loss_fn=nn.BCELoss(),
-                    batch_size=batchSize,
-                    epochs=epochs)
+                    trainer.append(chr_train)
+                    tester.append(chr_test)
+                    validator.append(chr_valid)
+                    model = loadModel(modelType,name)
+                    print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,trainLabel, testLabel, validLabel))
+                    print(name)
+                    print(model)
+                    runModel(trainer,
+                        tester,
+                        validator,
+                        model=model,
+                        optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
+                        loss_fn=nn.BCELoss(),
+                        batch_size=batchSize,
+                        epochs=epochs)
+                except:
+                    continue
   
   
 main()
