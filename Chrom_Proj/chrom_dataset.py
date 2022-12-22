@@ -156,24 +156,28 @@ def getData(chromtypes,
         
         validator: validation data
     """
-    os.makedirs('./output', exist_ok=True)
-    
-    chr_train = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop)
-
-    chr_test = Chromatin_Dataset(
-        id=id,
-        chromType=chromtypes,
-        label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop)
-
-    chr_valid = Chromatin_Dataset(
+    try:
+        chr_train = Chromatin_Dataset(
             id=id,
             chromType=chromtypes,
-            label=validLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop)
-   
-    return chr_train, chr_test, chr_valid   
+            label=trainLabel,
+            file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop)
+
+        chr_test = Chromatin_Dataset(
+            id=id,
+            chromType=chromtypes,
+            label=testLabel,
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop)
+
+        chr_valid = Chromatin_Dataset(
+                id=id,
+                chromType=chromtypes,
+                label=validLabel,
+                file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop)
+        
+        os.makedirs('./output', exist_ok=True)
+        
+    
+        return chr_train, chr_test, chr_valid   
+    except:
+        return None, None, None
