@@ -59,7 +59,7 @@ def input_model(data, batch_size, optimizer, model, loss_fn, work="train"):
                 optimizer.step()
                 
             
-            if work == "test":
+            if work != "train":
                 # Clean the data
                 target = torch.flatten(target)
                 label = torch.flatten(label)
