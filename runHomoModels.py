@@ -99,7 +99,7 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
                     batch_size=batchSize,
                     epochs=epochs)
             except:
-                continue
+                pass
             
 
 main()
