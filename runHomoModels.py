@@ -84,7 +84,7 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
                 fileLocation="./Data/220802_DATA")
 
             model = loadModel(modelType,name)
-            print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,chr_train, chr_test, chr_valid))
+            print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,chr_train.labelFilenames, chr_test.labelFilenames, chr_valid.labelFilenames))
             print(name)
             print(model)
             runModel([chr_train], [chr_test], [chr_valid],
