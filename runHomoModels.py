@@ -41,7 +41,7 @@ def main():
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
     groupLabels = validate(groupLabels)
     
-    models = [1,2,3,4,5]
+    models = [1,2,3,4]
 
     if hostname[-1] == '1':
         chromTypes = ["CTCF-1", "H3K4me3-1", "H3K27ac-1", "p300-1", "PolII-1"]
