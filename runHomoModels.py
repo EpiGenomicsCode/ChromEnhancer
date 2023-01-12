@@ -27,7 +27,7 @@ def main():
 
     # hostname should have type and number
     hostname = os.environ.get("HOSTNAME").split("-")
-    ids = [hostname[-2]]
+    ids = [hostname[-2].upper()]
 
 
 
