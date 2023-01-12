@@ -21,7 +21,7 @@ def main():
         models: list of the model types we want to builld
     """
     # Variables
-    epochs = 1
+    epochs = 20
     batchSize = 128
 
     # Parameters for model
