@@ -77,26 +77,29 @@ def runHomoModels(chromTypes, epochs, batchSize, groupLabels,models, nameType):
         validator = []
 
         for modelType in models:
-            name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
-            name = name.replace("/", "-")
-            name = name.replace(".","")
-            chr_train, chr_test, chr_valid = getData(chromTypes,  
-                id=id, 
-                trainLabel=trainLabel, 
-                testLabel=testLabel, 
-                validLabel=validLabel,
-                fileLocation="./Data/220802_DATA")
+            try:
+                name = "id_{}_TTV_{}_{}_{}_epoch_{}_BS_{}_FL_{}_MT_{}_name_{}".format(id, trainLabel, testLabel,validLabel, epochs, batchSize, "./Data/220802_DATA", modelType, nameType)
+                name = name.replace("/", "-")
+                name = name.replace(".","")
+                chr_train, chr_test, chr_valid = getData(chromTypes,  
+                    id=id, 
+                    trainLabel=trainLabel, 
+                    testLabel=testLabel, 
+                    validLabel=validLabel,
+                    fileLocation="./Data/220802_DATA")
 
-            model = loadModel(modelType,name)
-            print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,chr_train.labelFilenames, chr_test.labelFilenames, chr_valid.labelFilenames))
-            print(name)
-            print(model)
-            runModel([chr_train], [chr_test], [chr_valid],
-                model=model,
-                optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
-                loss_fn=nn.BCELoss(),
-                batch_size=batchSize,
-                epochs=epochs)
+                model = loadModel(modelType,name)
+                print("model:{}\nid: {}\nTraining on {}\nTesting on {}\nValidating on: {}\n".format(modelType,id,chr_train.labelFilenames, chr_test.labelFilenames, chr_valid.labelFilenames))
+                print(name)
+                print(model)
+                runModel([chr_train], [chr_test], [chr_valid],
+                    model=model,
+                    optimizer= torch.optim.Adam(model.parameters(), lr=0.0001),
+                    loss_fn=nn.BCELoss(),
+                    batch_size=batchSize,
+                    epochs=epochs)
+            except:
+                continue
             
 
 main()
