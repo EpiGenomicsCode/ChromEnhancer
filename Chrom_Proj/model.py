@@ -13,25 +13,35 @@ class Chromatin_Network1(nn.Module):
     """
     Deep Neural Network
     """
-    def __init__(self, name):
+    def __init__(self, name, input_size=500, output_size=1, dnn_hidden_size=256):
         super(Chromatin_Network1, self).__init__()
         self.name = name
-        self.layer_1 = nn.Linear(500, 500) 
-        self.layer_2 = nn.Linear(500, 500) 
-        self.layer_3 = nn.Linear(500, 500) 
-        self.layer_4 = nn.Linear(500, 500)
-        self.layer_out = nn.Linear(500, 1) 
+        self.input_size = input_size
+        self.output_size = output_size
+        self.dnn_hidden_size = dnn_hidden_size
 
-        self.dropout = nn.Dropout(0.25)
-
+        # Define the fully-connected layers
+        self.dnn = nn.Sequential(
+            nn.Linear(input_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, output_size)
+        )
 
     def forward(self, x):
-        x = F.relu(self.layer_1(x))
-        x = F.relu(self.layer_2(x))
-        x = F.relu(self.layer_3(x))
-        x = F.relu(self.layer_4(x))
-        x = self.dropout(x)
-        x = torch.sigmoid(self.layer_out(x))
+        # Pass the output through the fully-connected layers
+        x = self.dnn(x)
+        # Apply sigmoid activation function to the output
+        x = torch.sigmoid(x)
         
         return x
 
@@ -40,41 +50,50 @@ class Chromatin_Network2(nn.Module):
     """
     Convolutional Network to Deep Neural Network
     """
-    def __init__(self, name):
-        super(Chromatin_Network2,self).__init__()
+    def __init__(self, name, input_size=500, output_size=1, kernel_size=3, cnn_hidden_size=32, dnn_hidden_size=256):
+        super(Chromatin_Network2, self).__init__()
         self.name = name
-        self.CNNlayer_1 = nn.Conv1d(1, 3, 10) 
-        self.CNNlayer_2 = nn.Conv1d(3, 5, 50) 
-        self.CNNlayer_3 = nn.Conv1d(5, 10, 100)
+        self.input_size = input_size
+        self.output_size = output_size
+        self.kernel_size = kernel_size
+        self.cnn_hidden_size = cnn_hidden_size
+        self.dnn_hidden_size = dnn_hidden_size
 
-        self.DNNlayer_0 = nn.Linear(3430, 500)
-        self.DNNlayer_1 = nn.Linear(500, 500) 
-        self.DNNlayer_2 = nn.Linear(500, 500) 
-        self.DNNlayer_3 = nn.Linear(500, 500) 
+        # Define the 1D CNN layers
+        self.cnn = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=cnn_hidden_size, kernel_size=kernel_size, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2)
+        )
 
-        self.DNNlayer_4 = nn.Linear(500, 500)
-        self.DNNlayer_5 = nn.Linear(500, 1)
+        # Define the fully-connected layers
+        self.dnn = nn.Sequential(
+            nn.Linear(8000, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, output_size)
+        )
 
-        self.dropout = nn.Dropout(0.25)
-    
-        
-
-    def forward(self,x):
-        x = x.reshape(-1, 1, x.shape[1])
-        x = F.relu(self.CNNlayer_1(x))
-        x = F.relu(self.CNNlayer_2(x))
-        x = F.relu(self.CNNlayer_3(x))
-
-        x = torch.flatten(x, start_dim=1)
-
-        x = F.relu(self.DNNlayer_0(x))
-        x = F.relu(self.DNNlayer_1(x))
-        x = F.relu(self.DNNlayer_2(x))
-        x = F.relu(self.DNNlayer_3(x))
-        x = F.relu(self.DNNlayer_4(x))
-        x = self.dropout(x)
-        x = torch.sigmoid(self.DNNlayer_5(x))
-        
+    def forward(self, x):
+        # Reshape the input to have a channel dimension
+        x = x.view(-1, 1, 500)
+        # Pass input through 1D CNN layers
+        x = self.cnn(x)
+        # Flatten the output of the 1D CNN
+        x = x.view(x.size(0), -1)
+        # Pass the output through the fully-connected layers
+        x = self.dnn(x)
+        # Apply sigmoid activation function to the output
+        x = torch.sigmoid(x)
         return x
 
 # LSTM -> DNN
@@ -82,25 +101,21 @@ class Chromatin_Network3(nn.Module):
     """
     Long Short Term Memory to Deep Neural Network
     """
-    def __init__(self, name, hidden_size=30, num_layers=3):
+    def __init__(self, name, hidden_size=64, num_layers=3):
         super(Chromatin_Network3, self).__init__()
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
 
+        self.lstm = nn.LSTM(input_size=500, hidden_size=hidden_size, num_layers=num_layers, batch_first=True) #lstm
 
-        self.lstm = nn.LSTM(input_size=500, hidden_size=hidden_size,
-                          num_layers=num_layers, batch_first=True) #lstm
-
-        self.DNNlayer_0 = nn.Linear(hidden_size, 500)
-        self.DNNlayer_1 = nn.Linear(500, 500) 
-        self.DNNlayer_2 = nn.Linear(500, 500) 
-        self.DNNlayer_3 = nn.Linear(500, 500) 
-
-        self.DNNlayer_4 = nn.Linear(500, 500)
-        self.DNNlayer_5 = nn.Linear(500, 1)
-
-        self.dropout = nn.Dropout(0.25)
+        # Define the fully-connected layers
+        self.dnn = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(32, 1)
+        )
 
         self.h_0 = None
         self.c_0 = None
@@ -114,18 +129,10 @@ class Chromatin_Network3(nn.Module):
             self.hidden = (h_0, c_0)
 
         x = x.reshape(-1,1,500)
-
         output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
-
         out = output.reshape(-1,self.hidden_size)
-        out = F.relu(self.DNNlayer_0(out))
-        out = F.relu(self.DNNlayer_1(out))
-        out = F.relu(self.DNNlayer_2(out))
-        out = F.relu(self.DNNlayer_3(out))
-        out = F.relu(self.DNNlayer_4(out))
-        x = self.dropout(x)
-        out = torch.sigmoid(self.DNNlayer_5(out))
-
+        out = self.dnn(out)
+        out = torch.sigmoid(out)
 
         return out
 
@@ -185,7 +192,6 @@ class Chromatin_Network4(nn.Module):
         out = torch.sigmoid(self.lin5(out))
 
         return out
-
 
 # Transformer -> DNN
 class Chromatin_Network5(nn.Module):
