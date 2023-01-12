@@ -29,7 +29,7 @@ def main():
     # hostname should have type and number
     hostname = re.split( "_|-", os.environ.get("HOSTNAME"))
     id = hostname[-2].upper()
-    idLabels =  ["A549" ,"MCF7", "HepG2", "K549"]
+    idLabels =  ["A549" ,"MCF7", "HepG2", "K562"]
     index = [i.upper() for i in idLabels].index(id)
     ids = [idLabels[index]]
 
