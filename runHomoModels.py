@@ -6,6 +6,7 @@ import numpy as np
 import glob
 import pdb
 import os
+import re
 
 def main():
     """ 
@@ -26,8 +27,12 @@ def main():
     batchSize = 128
 
     # hostname should have type and number
-    hostname = os.environ.get("HOSTNAME").split("-")
-    ids = [hostname[-2].upper()]
+    hostname = re.split( "_ -", os.environ.get("HOSTNAME"))
+    hostname = hostname.split("_")
+    id = hostname[-2].upper()
+    idLabels =  ["A549" ,"MCF7", "HepG2", "K549"]
+    index = [i.upper() for i in idLabels].index(id)
+    ids = [idLabels[index]]
 
 
 
