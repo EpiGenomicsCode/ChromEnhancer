@@ -167,6 +167,8 @@ def loadModel(modelType, name):
         model = Chromatin_Network3(name)   
     elif modelType == 4:
         model = Chromatin_Network4(name)   
+    elif modelType == 5:
+        model = Chromatin_Network5(name)
     else:
         print("model does not exist")
         quit()
