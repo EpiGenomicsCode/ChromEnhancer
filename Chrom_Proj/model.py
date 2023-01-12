@@ -185,3 +185,33 @@ class Chromatin_Network4(nn.Module):
         out = torch.sigmoid(self.lin5(out))
 
         return out
+
+
+# Transformer -> DNN
+class Chromatin_Network5(nn.Module):
+    def __init__(self, name, input_size=500, hidden_size=256, num_heads=10, output_size=1):
+        super().__init__()
+        self.name = name
+        # Use nn.Transformer to compute a weighted sum of the input elements
+        self.transformer = nn.Transformer(input_size, num_heads)
+        self.layer_1 = nn.Linear(input_size, 500) 
+        self.layer_2 = nn.Linear(500, 500) 
+        self.layer_3 = nn.Linear(500, 500) 
+        self.layer_4 = nn.Linear(500, 500)
+        self.layer_out = nn.Linear(500, 1) 
+
+    def forward(self, x):
+        # Reshape the input to (batch_size, sequence_length, input_size)
+        x = x.view(-1, 1, 500)
+        # Apply the transformer to the input sequence, is this 1 to 1?
+        x = self.transformer(x,x)
+        # Flatten the output to (batch_size, input_size)
+        x = x.view(-1, 500)
+        # Apply the DNN to the transformed input
+        x = F.relu(self.layer_1(x))
+        x = F.relu(self.layer_2(x))
+        x = F.relu(self.layer_3(x))
+        x = F.relu(self.layer_4(x))
+        x = F.relu(self.layer_out(x))
+        
+        return x
