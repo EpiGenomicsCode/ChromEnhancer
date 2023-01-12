@@ -36,8 +36,8 @@ def main():
 
 
     # Parameters for model
-    trainlabels = ["chr10-chr17"]#, "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
-    otherlabels = ["chr10","chr17"]#, "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
+    trainlabels = ["chr10-chr17", "chr11-chr7", "chr12-chr8",  "chr13-chr9", "chr15-chr16"]
+    otherlabels = ["chr10","chr17", "chr11","chr7", "chr12","chr8",  "chr13","chr9", "chr15","chr16"]
     groupLabels = [[id,trainlabel,testlabel,validlabel] for id in ids for trainlabel in trainlabels for testlabel in otherlabels for validlabel in otherlabels]
     groupLabels = validate(groupLabels)
     
