@@ -29,21 +29,16 @@ def main():
         # Load the model
         for G in grav:
             # Folder to save the swarm information
-            os.makedirs("./Swarm/grav_{}".format(G), exist_ok=True)
+            os.makedirs("./output/Swarm/grav_{}".format(G), exist_ok=True)
             swarm = Swarm.swarm(numParticles, 500, G, 1, 1, f, epochs, f.split("/")[-1])
             swarm.run()
-            swarm.save_to_csv("./Swarm/grav_{}/{}_Swarm.csv".format(G, f.split("/")[-1]))
+            swarm.save_to_csv("./output/Swarm/grav_{}/{}_Swarm.csv".format(G, f.split("/")[-1]))
             labels = swarm.cluster(5)
-            swarm.plot_clusters(labels, "./Swarm/grav_{}/{}_Swarm".format(G, f.split("/")[-1]))
+            swarm.plot_clusters(labels, "./output/Swarm/grav_{}/{}_Swarm".format(G, f.split("/")[-1]))
 
         # Delete the model
         del swarm
         gc.collect()
     
-        
-
-        
-
-
 if __name__ == "__main__":
     main()
