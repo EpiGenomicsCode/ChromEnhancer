@@ -45,7 +45,7 @@ class Chromatin_Network1(nn.Module):
         
         return x
 
-# CNN -> DNN
+# CNN1 -> DNN
 class Chromatin_Network2(nn.Module):
     """
     Convolutional Network to Deep Neural Network
