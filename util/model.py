@@ -136,7 +136,7 @@ class Chromatin_Network3(nn.Module):
 
         return out
 
-# CNN -> LSTM -> DNN
+# CNN1 -> LSTM -> DNN
 class Chromatin_Network4(nn.Module):
     """
     Convolutional To LSTM To DNN
@@ -220,4 +220,29 @@ class Chromatin_Network5(nn.Module):
         x = F.relu(self.layer_4(x))
         x = F.relu(self.layer_out(x))
         
+        return x
+
+# CNN2 -> DNN
+class Chromatin_Network6(nn.Module):
+    def __init__(self, name):
+        super(Chromatin_Network6, self).__init__()
+        self.name = name
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=10, kernel_size=5, stride=1, padding=0)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        self.fc1 = nn.Linear(10 * 50 * 50, 128)
+        self.fc2 = nn.Linear(128, 1)
+        
+    def forward(self, x):
+        # Batch Size, Channels, Height, Width
+        x = x.reshape(-1, 1, 100, 5)
+        # Channels, Batch Size, Height, Width
+        x = x.permute(0, 1, 3, 2)
+        # process the input
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.pool(x)
+        x = x.view(-1, 10 * 50 * 50)
+        x = self.fc1(x)
+        x = F.relu(x)
+        x = torch.sigmoid(self.fc2(x))
         return x
