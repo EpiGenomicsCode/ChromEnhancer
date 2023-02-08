@@ -44,6 +44,7 @@ class Chromatin_Dataset(Dataset):
         for chromType in chromTypes:
             if chromType != drop:
                 fileFormat = file_location + "{}*_*{}*_{}*.chromtrack".format(id, label, chromType)
+                # Load in data
                 data = pd.read_csv(glob(fileFormat)[0], delimiter=" ", header=None).values.astype(np.float32)
                 # Transpose data
                 data = data.T
@@ -75,7 +76,7 @@ def getData(chromtypes     = [
             trainLabel    = "chr11-chr7", 
             testLabel     = "chr11", 
             validLabel    = "chr7",
-            fileLocation  = "./Data/220802_DATA",
+            fileLocation  = "./Data/220802_DATA/",
             drop=None
         ):
     """
@@ -98,7 +99,7 @@ def getData(chromtypes     = [
             (ex: "chr11")
         
         fileLocation: Relative file path for where the files are being saved 
-            (ex: ./Data/220708/DATA)
+            (ex: ./Data/220802_DATA/)
 
     Return:
         trainer: training data
