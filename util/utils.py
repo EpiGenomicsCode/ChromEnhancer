@@ -41,7 +41,6 @@ def loadModel(modelNumber, name=""):
     """
         Loads the model based on the model number   
     """
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     if modelNumber == 0:
         return Chromatin_Network1(name)
     elif modelNumber == 1:
@@ -78,16 +77,12 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     """
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # send the model to the gpu if available
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
 
     # initialize the values
     best_accuracy = 0
 
     # run the model for the specified number of epochs
-    epoch = 0 
-    for epoch in tqdm.tqdm(range(epochs), leave=True, desc="Epoch", total=epochs):
+    for epoch in tqdm.tqdm(range(epochs)):
         # run the model for one epoch
         model = runEpoch(model, train_loader, criterion, optimizer)
         
@@ -123,9 +118,6 @@ def runEpoch(model, train_loader, criterion, optimizer):
         returns:
             model: The model
     """
-    # send the model to the gpu if available
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
     model.train()
 
     # initialize the values
@@ -135,12 +127,6 @@ def runEpoch(model, train_loader, criterion, optimizer):
 
     # run the model for one epoch with tqdm
     for inputs, labels in train_loader:
-        # send the data to the gpu if available
-        inputs = inputs.to(torch.float32)
-        labels = labels.to(torch.float32)
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -165,10 +151,8 @@ def testModel(model, test_loader, criterion):
         returns:
             accuracy: The accuracy
     """
-    model.eval()
-    # send the model to the gpu if available
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
+    model.eval()    
+    
 
     # initialize the values
     loss = 0
@@ -177,14 +161,6 @@ def testModel(model, test_loader, criterion):
 
     # test the model
     for inputs, labels in test_loader:
-        # send the data to the gpu if available
-
-        inputs = inputs.to(torch.float32)
-        labels = labels.to(torch.float32)
-
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-
         # forward
         outputs = model(inputs)
         loss = criterion(outputs, labels)
@@ -193,7 +169,7 @@ def testModel(model, test_loader, criterion):
         _, predicted = torch.max(outputs.data, 1)
         accuracy += (predicted == labels).sum().item()
         count += labels.size(0)
-    
+
     # return the accuracy
     return accuracy/count
 
@@ -207,32 +183,19 @@ def plotPRC(model, test_loader, name):
             test_loader: The testing data
             name: The name of the model
     """
-    # send the model to the gpu if available
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
     # initialize the values
     y_score = []
     y_true = []
-
     # get the predictions and labels
     for inputs, labels in test_loader:
-        # send the data to the gpu if available
-        inputs = inputs.to(torch.float32)
-        labels = labels.to(torch.float32)
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-
         # forward
         outputs = model(inputs)
 
         # get the predictions
-        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
-        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
+        y_score.append(outputs.detach().cpu().numpy().tolist())
+        y_true.append(labels.detach().cpu().numpy().tolist())
     
-   
     # plot the PRC curve
-    
     precision, recall, _ = precision_recall_curve(np.concatenate(y_true), np.concatenate(y_score))
 
     precision = sorted(precision)
@@ -268,35 +231,25 @@ def plotROC(model, test_loader, name):
             test_loader: The testing data
             name: The name of the model
     """
-    # send the model to the gpu if available
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-
     # initialize the values
     y_score = []
     y_true = []
 
     # get the predictions and labels
     for inputs, labels in test_loader:
-        # send the data to the gpu if available
-        inputs = inputs.to(torch.float32)
-        labels = labels.to(torch.float32)
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-
         # forward
         outputs = model(inputs)
 
         # get the predictions
-        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
-        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
-    
+        y_score.append(outputs.detach().cpu().numpy().tolist())
+        y_true.append(labels.detach().cpu().numpy().tolist())
+
     # plot the ROC curve
-    fpr, tpr, _ = roc_curve( np.concatenate(y_true), np.concatenate(y_score))
+    fpr, tpr, _ = roc_curve(np.concatenate(y_true), np.concatenate(y_score))
     plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
     plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
     # calulate the AUC score
-    auc_score = round(auc(fpr, tpr),2)
+    auc_score = auc(fpr, tpr)
     plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')

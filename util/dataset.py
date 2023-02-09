@@ -57,18 +57,21 @@ class Chromatin_Dataset(Dataset):
         
         # self.data is shape of 5 x 100 x 641883 which is 5 chromatin types, 100 features, 641883 samples
         self.data = np.array(self.data)
-
+        
         # Load in label data
         labelName = glob(file_location + "{}*_*{}*.label".format(id, label))[0]
         self.labelFiles.append(labelName)
         self.label = pd.read_csv(labelName, delimiter=" ", header=None)
 
+        # convert to tensor
+        self.data = torch.tensor(self.data, dtype=torch.float32).to(device)
+        self.label = torch.tensor(np.array(self.label.values), dtype=torch.float32).to(device)
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, index):
-        return self.data[:, :, index].flatten(), np.array(self.label.iloc[index])
+        return self.data[:, :, index].flatten(),self.label[index]
         
 
 def getData(chromtypes     = [

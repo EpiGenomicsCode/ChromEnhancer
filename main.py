@@ -26,6 +26,7 @@ def paramatersStudy():
     ids = ["MCF7"]
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     epochs = 20
     batch_size = 2048
@@ -62,6 +63,7 @@ def paramatersStudy():
                         name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
                         print(name)
                         model = loadModel(modelType, name)
+                        model = model.to(device)
                         model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
                         
                         # run the swarm study
