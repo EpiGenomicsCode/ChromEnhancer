@@ -26,7 +26,6 @@ def paramatersStudy():
     ids = ["MCF7"]
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     epochs = 20
     batch_size = 2048
@@ -38,32 +37,32 @@ def paramatersStudy():
             # go through each study
             for study in studys:
                 # go through each model
-                for modelType in range(0,6):
+                for modelType in range(1,7):
                     data1, data2 = study.split("-")
                     # process the data for each model train, test and test, train
                     for data  in [ [data1, data2], [data2, data1]]:
                         train = data[0]
                         test = data[1]
 
-                        ds_train, ds_test, ds_valid = DS.getData(chromtypes,id, study, train, test)
-                        
                         # print the parameters
-                        print("id: ", id)
+                        name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
+                        print(name)
+                        print("\tid: ", id)
                         print("\tstudy: ", study)
                         print("\tmodel: ", modelType)
                         print("\ttrain:", train )
                         print("\ttest:", test)
-                        
+
+                        ds_train, ds_test, ds_valid = DS.getData(chromtypes,id, study, train, test)
+                                                
                         # cast each dataset to a pytorch dataloader
                         train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
                         test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
                         valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
 
                         # run the model
-                        name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
-                        print(name)
+
                         model = loadModel(modelType, name)
-                        model = model.to(device)
                         model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
                         
                         # run the swarm study
@@ -87,10 +86,7 @@ def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5):
     plotClusters(cluster, particles, name)
 
 
-# clear the cache and gpu memory
-def clearCache():
-    torch.cuda.empty_cache()
-    gc.collect()
+
                         
 if __name__ == "__main__":
     main()

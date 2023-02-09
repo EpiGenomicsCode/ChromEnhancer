@@ -7,23 +7,9 @@ import pandas as pd
 from sklearn.metrics import precision_recall_curve
 import matplotlib.pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import roc_curve, auc, accuracy_score
+import gc 
 import seaborn as sns
-
-def plotLoss(loss_values, name):
-    """
-        Plots the loss values
-    """
-    # convert loss_values from a  list of tensors to a list of floats
-    loss_values = [i.cpu().item() for i in loss_values]
-
-    plt.plot(loss_values)
-    plt.title("Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    os.makedirs("./output/loss", exist_ok=True)
-    plt.savefig("./output/loss/" + name + ".png")
-    plt.clf()
 
 def plotAccuracy(accuracy_values, name):
     """
@@ -41,20 +27,25 @@ def loadModel(modelNumber, name=""):
     """
         Loads the model based on the model number   
     """
-    if modelNumber == 0:
+    if modelNumber == 1:
         return Chromatin_Network1(name)
-    elif modelNumber == 1:
-        return Chromatin_Network2(name)
     elif modelNumber == 2:
-        return Chromatin_Network3(name)
+        return Chromatin_Network2(name)
     elif modelNumber == 3:
-        return Chromatin_Network4(name)
+        return Chromatin_Network3(name)
     elif modelNumber == 4:
-        return Chromatin_Network5(name)
+        return Chromatin_Network4(name)
     elif modelNumber == 5:
+        return Chromatin_Network5(name)
+    elif modelNumber == 6:
         return Chromatin_Network6(name)
     else:
         raise Exception("Invalid model number")
+
+# clear the cache and gpu memory
+def clearCache():
+    torch.cuda.empty_cache()
+    gc.collect()
 
 def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     """
@@ -76,33 +67,46 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
         
     """
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    # send the model to the gpu if available
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print("\n\n============Training on: {}===========\n".format(device))
+    model = model.to(device)
 
     # initialize the values
     best_accuracy = 0
 
     # run the model for the specified number of epochs
-    for epoch in tqdm.tqdm(range(epochs)):
+    epoch = 0 
+    training_accuaracy = []
+    valid_accuaracy = []
+    for epoch in tqdm.tqdm(range(epochs), leave=True, desc="Epoch", total=epochs):
         # run the model for one epoch
-        model = runEpoch(model, train_loader, criterion, optimizer)
-        
+        model.train()
+        model, accuracy = runEpoch(model, train_loader, criterion, optimizer)
+        training_accuaracy.append(accuracy)
+
         # test the model
-        accuracy = testModel(model, test_loader, criterion)
+        model.eval()
+        accuracy = testModel(model, valid_loader, criterion)
+        valid_accuaracy.append(accuracy)
+
         # save the model if it is the best model
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             # check if the output folder exists
             os.makedirs("./output/modelWeights", exist_ok=True)
             torch.save(model.state_dict(), "./output/modelWeights/{}.pt".format(model.name))
-        plotPRC(model, test_loader, model.name)
-        plotROC(model, test_loader, model.name)
+        plotAccuracy(training_accuaracy, "train_"+model.name)
+        plotAccuracy(valid_accuaracy, "valid_"+model.name)
+        clearCache()
         
     # test the model on the validation data
     accuracy = testModel(model, valid_loader, criterion)
     print("Validation Accuracy: ", accuracy)
 
     # return the model, loss values, and accuracy values
-    return model
+    return model.to("cpu")
 
 # run the model for one epoch
 def runEpoch(model, train_loader, criterion, optimizer):
@@ -117,13 +121,16 @@ def runEpoch(model, train_loader, criterion, optimizer):
         
         returns:
             model: The model
+            accuracy: The accuracy
     """
-    model.train()
-
+   
+   
     # initialize the values
     loss = 0
     accuracy = 0
     count = 0
+    y_score = []
+    y_true = []
 
     # run the model for one epoch with tqdm
     for inputs, labels in train_loader:
@@ -135,8 +142,12 @@ def runEpoch(model, train_loader, criterion, optimizer):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-    
-    return model
+
+        # save the output and label
+        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
+        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
+
+    return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
 # test the model
 def testModel(model, test_loader, criterion):
@@ -151,30 +162,34 @@ def testModel(model, test_loader, criterion):
         returns:
             accuracy: The accuracy
     """
-    model.eval()    
-    
-
     # initialize the values
     loss = 0
     accuracy = 0
     count = 0
-
-    # test the model
+    y_score = []
+    y_true = []
+    # validate the model
     for inputs, labels in test_loader:
         # forward
         outputs = model(inputs)
         loss = criterion(outputs, labels)
 
-        # calculate the accuracy
-        _, predicted = torch.max(outputs.data, 1)
-        accuracy += (predicted == labels).sum().item()
-        count += labels.size(0)
+        # save the output and label
+        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
+        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
-    # return the accuracy
-    return accuracy/count
+    plotPRC(model, y_score, y_true, model.name)
+    plotROC(model, y_score, y_true, model.name)   
+
+    # save y_score and y_true as a csv using pandas dataframe
+    df = pd.DataFrame({"y_score": y_score, "y_true": y_true})
+    os.makedirs("./output/prediction", exist_ok=True)
+    df.to_csv("./output/prediction/{}.csv".format(model.name))
+
+    return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
 # plot the PRC curve for the pytorch model
-def plotPRC(model, test_loader, name):
+def plotPRC(model, y_score, y_true, name):
     """
         Plots the PRC curve for the model
 
@@ -183,46 +198,29 @@ def plotPRC(model, test_loader, name):
             test_loader: The testing data
             name: The name of the model
     """
-    # initialize the values
-    y_score = []
-    y_true = []
-    # get the predictions and labels
-    for inputs, labels in test_loader:
-        # forward
-        outputs = model(inputs)
-
-        # get the predictions
-        y_score.append(outputs.detach().cpu().numpy().tolist())
-        y_true.append(labels.detach().cpu().numpy().tolist())
-    
     # plot the PRC curve
+    
     precision, recall, _ = precision_recall_curve(np.concatenate(y_true), np.concatenate(y_score))
 
-    precision = sorted(precision)
-    recall = sorted(recall)
+    auc_score = round(auc(recall, precision),5)
+    
     plt.step(recall, precision, color='b', alpha=0.2, where='post')
     plt.fill_between(recall, precision, step='post', alpha=0.2, color='b')
     # calulate the AUC score
-    auc_score = round(auc(recall, precision),2)
     plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
     plt.xlabel('Recall')
     plt.ylabel('Precision')
     plt.ylim([0.0, 1.05])
     plt.xlim([0.0, 1.0])
     plt.title('Precision-Recall Curve')
+
     # check if the output folder exists
     os.makedirs("./output/PRC", exist_ok=True)
-    # save the y_true, y_score, recall and precision as a csv file using pandas
-    data = {'y_true': y_true, 'y_score': y_score, 'recall': recall, 'precision': precision}
-    for key in data:
-        df = pd.DataFrame(data[key])
-        df.to_csv("./output/PRC/{}_{}.csv".format(key, name), index=False)
-
     plt.savefig("./output/PRC/{}.png".format(name))
     plt.clf()
 
 # plot the ROC curve for the pytorch model
-def plotROC(model, test_loader, name):
+def plotROC(model, y_score, y_true, name):
     """
         Plots the ROC curve for the model
 
@@ -231,25 +229,12 @@ def plotROC(model, test_loader, name):
             test_loader: The testing data
             name: The name of the model
     """
-    # initialize the values
-    y_score = []
-    y_true = []
-
-    # get the predictions and labels
-    for inputs, labels in test_loader:
-        # forward
-        outputs = model(inputs)
-
-        # get the predictions
-        y_score.append(outputs.detach().cpu().numpy().tolist())
-        y_true.append(labels.detach().cpu().numpy().tolist())
-
     # plot the ROC curve
-    fpr, tpr, _ = roc_curve(np.concatenate(y_true), np.concatenate(y_score))
+    fpr, tpr, _ = roc_curve( np.concatenate(y_true), np.concatenate(y_score))
     plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
     plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
     # calulate the AUC score
-    auc_score = auc(fpr, tpr)
+    auc_score = round(auc(fpr, tpr),5)
     plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -259,13 +244,6 @@ def plotROC(model, test_loader, name):
 
     # check if the output folder exists
     os.makedirs("./output/ROC", exist_ok=True)
-
-    # save the y_true, y_score, fpr and tpr as a csv
-    data = {'y_true': y_true, 'y_score': y_score, 'fpr': fpr, 'tpr': tpr}
-    for key in data:
-        df = pd.DataFrame(data[key])
-        df.to_csv("./output/ROC/{}_{}.csv".format(key, name), index=False)
-
     plt.savefig("./output/ROC/{}.png".format(name))
     plt.clf()
 
@@ -318,8 +296,3 @@ def plotClusters(clusters, particles, name):
     plt.clf()
         
 
-    
-
-
-
-    

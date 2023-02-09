@@ -57,22 +57,32 @@ class Chromatin_Dataset(Dataset):
         
         # self.data is shape of 5 x 100 x 641883 which is 5 chromatin types, 100 features, 641883 samples
         self.data = np.array(self.data)
-        
+
         # Load in label data
-        labelName = glob(file_location + "{}*_*{}*.label".format(id, label))[0]
+        labelNames = glob(file_location + "{}*_*{}*.label".format(id, label))
+        if dataUse == "train":
+              labelName = [
+                        i for i in labelNames if  id in i and label in i and not "Leniant" in i and not "Stringent" in i 
+                    ][0]
+        elif dataUse == "test":
+            labelName = [
+                        i for i in labelNames if ".label" in i and id in i and label in i and not "Lenient" in i 
+                    ][0]
+        else:
+            labelName = [
+                        i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i 
+                    ][0]
+        print("\t\tusing label: {} with {}".format(dataUse, labelName))
         self.labelFiles.append(labelName)
         self.label = pd.read_csv(labelName, delimiter=" ", header=None)
 
-        # convert to tensor
-        self.data = torch.tensor(self.data, dtype=torch.float32).to(device)
-        self.label = torch.tensor(np.array(self.label.values), dtype=torch.float32).to(device)
 
     def __len__(self):
         return len(self.label)
 
     def __getitem__(self, index):
-        return self.data[:, :, index].flatten(),self.label[index]
-        
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        return torch.tensor(self.data[:, :, index].flatten(), dtype=torch.float32).to(device), torch.tensor(self.label.iloc[index], dtype=torch.float32).to(device)        
 
 def getData(chromtypes     = [
                                 "CTCF-1",
