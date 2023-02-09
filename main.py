@@ -23,13 +23,13 @@ def paramatersStudy():
     """
         Generates the parameters for the study and runs the study
     """
-    ids = ["A549", "HepG2", "K562", "MCF-7", "Poll2"]
+    ids = ["MCF7"]
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
 
-    epochs = 10
+    epochs = 20
     batch_size = 2048
-    for indexType in ["-1", "-2"]:
+    for indexType in ["-1"]:
         # CTCF-1 vs CTCF-2
         chromtypes = [i+indexType for i in chromtypes]
         # go through each id
@@ -37,7 +37,7 @@ def paramatersStudy():
             # go through each study
             for study in studys:
                 # go through each model
-                for modelType in range(0,5):
+                for modelType in range(0,6):
                     data1, data2 = study.split("-")
                     # process the data for each model train, test and test, train
                     for data  in [ [data1, data2], [data2, data1]]:
@@ -62,26 +62,14 @@ def paramatersStudy():
                         name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
                         print(name)
                         model = loadModel(modelType, name)
-
-                        criterion = nn.CrossEntropyLoss()
-                        optimizer = optim.Adam(model.parameters(), lr=0.001)
-                        model, loss_values, accuracy_values, = runHomoModel(model, train_loader, test_loader, valid_loader, epochs, criterion, optimizer)
-                        # plot all information
-                        plotAll(loss_values, accuracy_values, model, test_loader, name)
-
+                        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+                        
                         # run the swarm study
                         swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
                        
                         # clear the memory
                         clearCache()
-                quit()
 
-# plots all the data
-def plotAll(loss_values, accuracy_values, model, test_loader, name):
-    plotLoss(loss_values, name)
-    plotAccuracy(accuracy_values, name)
-    plotPRC(model, test_loader, name)
-    plotROC(model, test_loader, name)
 
 def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5):
     swarm = Swarm.swarm(num_particles, gravity,  epochs, model)

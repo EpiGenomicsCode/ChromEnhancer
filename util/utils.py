@@ -57,7 +57,7 @@ def loadModel(modelNumber, name=""):
     else:
         raise Exception("Invalid model number")
 
-def runHomoModel(model, train_loader, test_loader, valid_loader, epochs, criterion, optimizer):
+def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     """
         Runs the model, plots the training loss and accuracy, then tests the model and saves the model. this function returns the model, the loss values, and the accuracy values.
 
@@ -76,23 +76,21 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs, criteri
             accuracy_values: The accuracy values
         
     """
+    criterion = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
     # initialize the values
-    loss_values = []
-    accuracy_values = []
     best_accuracy = 0
 
     # run the model for the specified number of epochs
-    for epoch in tqdm.tqdm(range(epochs)):
+    epoch = 0 
+    for epoch in tqdm.tqdm(range(epochs), leave=True, desc="Epoch", total=epochs):
         # run the model for one epoch
-        model, loss, accuracy = runEpoch(model, train_loader, criterion, optimizer)
-        # save the loss and accuracy
-        loss_values.append(loss)
-        accuracy_values.append(accuracy)
-
+        model = runEpoch(model, train_loader, criterion, optimizer)
+        
         # test the model
         accuracy = testModel(model, test_loader, criterion)
         # save the model if it is the best model
@@ -101,13 +99,15 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs, criteri
             # check if the output folder exists
             os.makedirs("./output/modelWeights", exist_ok=True)
             torch.save(model.state_dict(), "./output/modelWeights/{}.pt".format(model.name))
+        plotPRC(model, test_loader, model.name)
+        plotROC(model, test_loader, model.name)
         
     # test the model on the validation data
     accuracy = testModel(model, valid_loader, criterion)
     print("Validation Accuracy: ", accuracy)
 
     # return the model, loss values, and accuracy values
-    return model, loss_values, accuracy_values
+    return model
 
 # run the model for one epoch
 def runEpoch(model, train_loader, criterion, optimizer):
@@ -122,8 +122,6 @@ def runEpoch(model, train_loader, criterion, optimizer):
         
         returns:
             model: The model
-            loss: The loss
-            accuracy: The accuracy
     """
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -151,14 +149,8 @@ def runEpoch(model, train_loader, criterion, optimizer):
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-
-        # calculate the accuracy
-        _, predicted = torch.max(outputs.data, 1)
-        accuracy += (predicted == labels).sum().item()
-        count += labels.size(0)
     
-    # return the model, loss, and accuracy
-    return model, loss, accuracy/count
+    return model
 
 # test the model
 def testModel(model, test_loader, criterion):
@@ -235,16 +227,20 @@ def plotPRC(model, test_loader, name):
         outputs = model(inputs)
 
         # get the predictions
-        _, predicted = torch.max(outputs.data, 1)
-        y_score.extend(predicted.cpu().numpy())
-        y_true.extend(labels.cpu().numpy())
+        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
+        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
     
+   
     # plot the PRC curve
-    precision, recall, _ = precision_recall_curve(y_true, y_score)
+    
+    precision, recall, _ = precision_recall_curve(np.concatenate(y_true), np.concatenate(y_score))
+
+    precision = sorted(precision)
+    recall = sorted(recall)
     plt.step(recall, precision, color='b', alpha=0.2, where='post')
     plt.fill_between(recall, precision, step='post', alpha=0.2, color='b')
     # calulate the AUC score
-    auc_score = auc(recall, precision)
+    auc_score = round(auc(recall, precision),2)
     plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
     plt.xlabel('Recall')
     plt.ylabel('Precision')
@@ -292,16 +288,15 @@ def plotROC(model, test_loader, name):
         outputs = model(inputs)
 
         # get the predictions
-        _, predicted = torch.max(outputs.data, 1)
-        y_score.extend(predicted.cpu().numpy())
-        y_true.extend(labels.cpu().numpy())
+        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
+        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
     
     # plot the ROC curve
-    fpr, tpr, _ = roc_curve(y_true, y_score)
+    fpr, tpr, _ = roc_curve( np.concatenate(y_true), np.concatenate(y_score))
     plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
     plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
     # calulate the AUC score
-    auc_score = auc(fpr, tpr)
+    auc_score = round(auc(fpr, tpr),2)
     plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
@@ -320,7 +315,6 @@ def plotROC(model, test_loader, name):
 
     plt.savefig("./output/ROC/{}.png".format(name))
     plt.clf()
-
 
 def clusterParticles(particles, numClusters):
     """

@@ -39,13 +39,17 @@ class Chromatin_Dataset(Dataset):
         # self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
         # load in every file for chromType
         self.data = []
+        self.dataFiles = []
         self.label = []
+        self.labelFiles = []
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         for chromType in chromTypes:
             if chromType != drop:
                 fileFormat = file_location + "{}*_*{}*_{}*.chromtrack".format(id, label, chromType)
                 # Load in data
-                data = pd.read_csv(glob(fileFormat)[0], delimiter=" ", header=None).values.astype(np.float32)
+                file = glob(fileFormat)[0]
+                data = pd.read_csv(file, delimiter=" ", header=None).values.astype(np.float32)
+                self.dataFiles.append(file)
                 # Transpose data
                 data = data.T
                 # Add data to self.data
@@ -56,6 +60,7 @@ class Chromatin_Dataset(Dataset):
 
         # Load in label data
         labelName = glob(file_location + "{}*_*{}*.label".format(id, label))[0]
+        self.labelFiles.append(labelName)
         self.label = pd.read_csv(labelName, delimiter=" ", header=None)
 
 
