@@ -177,20 +177,17 @@ def testModel(model, test_loader, criterion):
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
-    plotPRC(model, y_score, y_true, model.name)
-    plotROC(model, y_score, y_true, model.name)   
+    recall, precision =   plotPRC(model, y_score, y_true, model.name)
+    fpr   , tpr       =   plotROC(model, y_score, y_true, model.name)   
 
-    # check if the output folder exists
-    os.makedirs("./output/prediction", exist_ok=True)    
+    # save the results
+    os.makedirs("./output/results", exist_ok=True)
 
-    # remove the old prediction file
-    if os.path.exists("./output/prediction/{}.csv".format(model.name)):
-        os.remove("./output/prediction/{}.csv".format(model.name))
-    
-    # save y_score and y_true as a csv using pandas dataframe
-    df = pd.DataFrame({"y_score": y_score, "y_true": y_true})
-    #save the dataframe as a csv
-    df.to_csv("./output/prediction/labels_{}.csv".format(model.name))
+    with open("./output/results/{}.txt".format(model.name), "w") as f:
+        f.write("Recall: {}\n".format(recall))
+        f.write("Precision: {}\n".format(precision))
+        f.write("FPR: {}\n".format(fpr))
+        f.write("TPR: {}\n".format(tpr))
 
     return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
@@ -221,19 +218,11 @@ def plotPRC(model, y_score, y_true, name):
     plt.title('Precision-Recall Curve')
 
     # check if the output folder exists
-    os.makedirs("./output/PRC", exist_ok=True)
+    os.makedirs("./output/PRC/", exist_ok=True)
     plt.savefig("./output/PRC/{}.png".format(name))
     plt.clf()
 
-    # save the PRC curve as a csv
-    df = pd.DataFrame({"precision": precision, "recall": recall})
-    
-    # remove the old prediction file
-    if os.path.exists("./output/prediction/PRC_{}.csv".format(name)):
-        os.remove("./output/prediction/PRC_{}.csv".format(name))
-
-    #save the dataframe as a csv
-    df.to_csv("./output/prediction/PRC_{}.csv".format(name))
+    return recall, precision
 
 
 # plot the ROC curve for the pytorch model
@@ -264,16 +253,7 @@ def plotROC(model, y_score, y_true, name):
     plt.savefig("./output/ROC/{}.png".format(name))
     plt.clf()
 
-
-    # save the ROC curve as a csv
-    df = pd.DataFrame({"fpr": fpr, "tpr": tpr})
-    
-    # remove the old prediction file
-    if os.path.exists("./output/prediction/ROC_{}.csv".format(name)):
-        os.remove("./output/prediction/ROC_{}.csv".format(name))
-
-    #save the dataframe as a csv
-    df.to_csv("./output/prediction/ROC_{}.csv".format(name))
+    return fpr, tpr
 
 def clusterParticles(particles, numClusters):
     """
