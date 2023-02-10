@@ -23,17 +23,14 @@ def paramatersStudy():
     """
         Generates the parameters for the study and runs the study
     """
-    ids = ["MCF7"]
+    ids =  ["A549" ,"MCF7", "HepG2", "K562"]
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
 
     epochs = 20
-    batch_size = 2048
-    for indexType in ["-1"]:
-        # CTCF-1 vs CTCF-2
-        chromtypes = [i+indexType for i in chromtypes]
-        # go through each id
-        for id in ids:
+    batch_size = 64
+    for id in ids:
+        for indexType in ["-1", "-2"]: 
             # go through each study
             for study in studys:
                 # go through each model
@@ -44,32 +41,35 @@ def paramatersStudy():
                         train = data[0]
                         test = data[1]
 
-                        # print the parameters
-                        name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
-                        print(name)
-                        print("\tid: ", id)
-                        print("\tstudy: ", study)
-                        print("\tmodel: ", modelType)
-                        print("\ttrain:", train )
-                        print("\ttest:", test)
+                        try:
+                            name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
 
-                        ds_train, ds_test, ds_valid = DS.getData(chromtypes,id, study, train, test)
-                                                
-                        # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                            log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
+                            
+                            ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
+                            print(name)
+                            print(log)
+                            print("\t\ttrain label: {}".format(ds_train.labelFile))
+                            print("\t\ttest label: {}".format(ds_test.labelFile))
+                            print("\t\tvalid label: {}".format(ds_valid.labelFile))
+                  
+                            # cast each dataset to a pytorch dataloader
+                            train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                            test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                            valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
 
-                        # run the model
+                            # run the model
 
-                        model = loadModel(modelType, name)
-                        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+                            model = loadModel(modelType, name)
+                            model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+                            
+                            # run the swarm study
+                            swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
                         
-                        # run the swarm study
-                        swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
-                       
-                        # clear the memory
-                        clearCache()
+                            # clear the memory
+                            clearCache()
+                        except Exception as e:
+                            continue
 
 
 def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5):

@@ -72,9 +72,8 @@ class Chromatin_Dataset(Dataset):
             labelName = [
                         i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i 
                     ][0]
-        print("\t\tusing label: {} with {}".format(dataUse, labelName))
-        self.labelFiles.append(labelName)
-        self.label = pd.read_csv(labelName, delimiter=" ", header=None)
+        self.labelFile = labelName
+        self.label = pd.read_csv(self.labelFile, delimiter=" ", header=None)
 
 
     def __len__(self):

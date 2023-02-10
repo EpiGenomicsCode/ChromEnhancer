@@ -10,7 +10,7 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import roc_curve, auc, accuracy_score
 import gc 
 import seaborn as sns
-
+import datetime
 def plotAccuracy(accuracy_values, name):
     """
         Plots the accuracy values
@@ -99,7 +99,6 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
             torch.save(model.state_dict(), "./output/modelWeights/{}.pt".format(model.name))
         plotAccuracy(training_accuaracy, "train_"+model.name)
         plotAccuracy(valid_accuaracy, "valid_"+model.name)
-        clearCache()
         
     # test the model on the validation data
     accuracy = testModel(model, valid_loader, criterion)
@@ -133,7 +132,7 @@ def runEpoch(model, train_loader, criterion, optimizer):
     y_true = []
 
     # run the model for one epoch with tqdm
-    for inputs, labels in train_loader:
+    for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -169,7 +168,7 @@ def testModel(model, test_loader, criterion):
     y_score = []
     y_true = []
     # validate the model
-    for inputs, labels in test_loader:
+    for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
         # forward
         outputs = model(inputs)
         loss = criterion(outputs, labels)
@@ -181,10 +180,17 @@ def testModel(model, test_loader, criterion):
     plotPRC(model, y_score, y_true, model.name)
     plotROC(model, y_score, y_true, model.name)   
 
+    # check if the output folder exists
+    os.makedirs("./output/prediction", exist_ok=True)    
+
+    # remove the old prediction file
+    if os.path.exists("./output/prediction/{}.csv".format(model.name)):
+        os.remove("./output/prediction/{}.csv".format(model.name))
+    
     # save y_score and y_true as a csv using pandas dataframe
     df = pd.DataFrame({"y_score": y_score, "y_true": y_true})
-    os.makedirs("./output/prediction", exist_ok=True)
-    df.to_csv("./output/prediction/{}.csv".format(model.name))
+    #save the dataframe as a csv
+    df.to_csv("./output/prediction/labels_{}.csv".format(model.name))
 
     return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
@@ -219,6 +225,17 @@ def plotPRC(model, y_score, y_true, name):
     plt.savefig("./output/PRC/{}.png".format(name))
     plt.clf()
 
+    # save the PRC curve as a csv
+    df = pd.DataFrame({"precision": precision, "recall": recall})
+    
+    # remove the old prediction file
+    if os.path.exists("./output/prediction/PRC_{}.csv".format(name)):
+        os.remove("./output/prediction/PRC_{}.csv".format(name))
+
+    #save the dataframe as a csv
+    df.to_csv("./output/prediction/PRC_{}.csv".format(name))
+
+
 # plot the ROC curve for the pytorch model
 def plotROC(model, y_score, y_true, name):
     """
@@ -246,6 +263,17 @@ def plotROC(model, y_score, y_true, name):
     os.makedirs("./output/ROC", exist_ok=True)
     plt.savefig("./output/ROC/{}.png".format(name))
     plt.clf()
+
+
+    # save the ROC curve as a csv
+    df = pd.DataFrame({"fpr": fpr, "tpr": tpr})
+    
+    # remove the old prediction file
+    if os.path.exists("./output/prediction/ROC_{}.csv".format(name)):
+        os.remove("./output/prediction/ROC_{}.csv".format(name))
+
+    #save the dataframe as a csv
+    df.to_csv("./output/prediction/ROC_{}.csv".format(name))
 
 def clusterParticles(particles, numClusters):
     """
