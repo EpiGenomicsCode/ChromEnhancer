@@ -27,22 +27,27 @@ class Sequence_Dataset(Dataset):
         super(Dataset, self).__init__()
         # process Filename
         self.type = type
-        print(filename)
         if self.type == "train":
             self.filename = filename
+            filename = filename[filename.rindex("/")+1:filename.rindex(".")]
+            self.labelName = "./Data/220802_DATA/TRAIN/"+filename+".label"
+
 
         elif self.type == "test":
             id = filename.split("/")[-1].split("_")[0]
             test_chr = filename[filename.index("chr"):filename.rindex("chr")-1].strip()
-            
-            self.filename = "./Data/230124_CHR-Data_Sequence/CHR-CHROM/HOLDOUT/{}_LenientEnhancer_{}.seq".format(id, test_chr)
+            self.filename = "./Data/230124_CHR-Data_Sequence/CHR-CHROM/HOLDOUT/{}_StringentEnhancer_{}.seq".format(id, test_chr)
+            self.labelName = "./Data/220802_DATA/HOLDOUT/{}_StringentEnhancer_{}.label".format(id, test_chr)
             
         else:
             id = filename.split("/")[-1].split("_")[0]
             test_chr = filename[filename.index("chr"):filename.rindex("chr")-1].strip()
-            
-            self.filename = "./Data/230124_CHR-Data_Sequence/CHR-CHROM/HOLDOUT/{}_StringentEnhancer_{}.seq".format(id, test_chr)
-    
+            self.filename = "./Data/230124_CHR-Data_Sequence/CHR-CHROM/HOLDOUT/{}_LenientEnhancer_{}.seq".format(id, test_chr)
+            self.labelName = "./Data/220802_DATA/HOLDOUT/{}_LenientEnhancer_{}.label".format(id, test_chr)
+
+        print("\n\n\n")
+        print("filename: ", self.filename)
+        print("labelName: ", self.labelName)
 
         # Read in the data
         self.data = []
@@ -53,12 +58,8 @@ class Sequence_Dataset(Dataset):
                 self.data.append(seq)
 
         # Read in the label
-        self.filename = filename[filename.rindex("/")+1:filename.rindex(".")]
-        self.labelName = "./Data/220802_DATA/TRAIN/"+self.filename+".label"
         self.label = pd.read_csv(self.labelName, delimiter=" ", header=None)
-
-        print("filename: ", self.filename)
-        print("labelName: ", self.labelName)
+        
 
         
     def __len__(self):

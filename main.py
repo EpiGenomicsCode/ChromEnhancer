@@ -35,7 +35,7 @@ def sequenceStudy():
 
         validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
         validLoader = DataLoader(validData, batch_size=64, shuffle=True)
-
+        quit()
         for i in range(1,7):
             model = loadModel(i, name, input_size=4000)
             model = runHomoModel(model, trainLoader, testLoader, validLoader, 1)
