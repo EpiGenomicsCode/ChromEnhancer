@@ -36,7 +36,6 @@ class Chromatin_Dataset(Dataset):
         """
         super(Dataset, self).__init__()
 
-        # self.length = int(subprocess.check_output("wc -l {}".format(self.labelFilenames), shell=True).decode().split()[0])
         # load in every file for chromType
         self.data = []
         self.dataFiles = []

@@ -1,8 +1,9 @@
 from util import dataset as DS
+from util import seq_dataset as SeqDS
 from util.utils import *
 from torch.utils.data import DataLoader
 from util.ad_Swarm import swarm as Swarm
-import gc
+import glob
 
 def seedEverything(seed=42):
     """
@@ -17,7 +18,38 @@ def seedEverything(seed=42):
 
 def main():
     seedEverything()
-    paramatersStudy()
+    sequenceStudy()
+    # paramatersStudy()
+
+def sequenceStudy():
+    trainFiles = glob.glob("Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
+
+    for trainFile in trainFiles:
+        name = trainFile[trainFile.rfind("/")+1:-4]
+
+        trainData = SeqDS.Sequence_Dataset(trainFile, type="train")
+        trainLoader = DataLoader(trainData, batch_size=64, shuffle=True)
+        
+        testData = SeqDS.Sequence_Dataset(trainFile, type="test")
+        testLoader = DataLoader(testData, batch_size=64, shuffle=True)
+
+        validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
+        validLoader = DataLoader(validData, batch_size=64, shuffle=True)
+
+        for i in range(1,7):
+            model = loadModel(i, name, input_size=4000)
+            model = runHomoModel(model, trainLoader, testLoader, validLoader, 1)
+            # run the swarm study
+            swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
+                        
+            # clear the memory
+            clearCache()
+
+
+        
+        
+
+
     
 def paramatersStudy():
     """

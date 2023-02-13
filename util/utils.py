@@ -23,22 +23,22 @@ def plotAccuracy(accuracy_values, name):
     plt.savefig("./output/accuracy/" + name + ".png")
     plt.clf()
 
-def loadModel(modelNumber, name=""):
+def loadModel(modelNumber, name="", input_size=500):
     """
         Loads the model based on the model number   
     """
     if modelNumber == 1:
-        return Chromatin_Network1(name)
+        return Chromatin_Network1(name, input_size)
     elif modelNumber == 2:
-        return Chromatin_Network2(name)
+        return Chromatin_Network2(name, input_size)
     elif modelNumber == 3:
-        return Chromatin_Network3(name)
+        return Chromatin_Network3(name, input_size)
     elif modelNumber == 4:
-        return Chromatin_Network4(name)
+        return Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
-        return Chromatin_Network5(name)
+        return Chromatin_Network5(name, input_size)
     elif modelNumber == 6:
-        return Chromatin_Network6(name)
+        return Chromatin_Network6(name, input_size)
     else:
         raise Exception("Invalid model number")
 
