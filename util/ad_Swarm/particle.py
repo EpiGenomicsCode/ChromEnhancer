@@ -3,8 +3,8 @@ import numpy as np
 import torch
 
 class particle:
-    def __init__(self):
-        self.position = torch.abs(torch.tensor(np.random.ranf((1,500)), dtype=torch.float32))
+    def __init__(self, size):
+        self.position = torch.abs(torch.tensor(np.random.ranf((1,size)), dtype=torch.float32))
         device = "cpu"
         self.position = self.position.to(device)
         self.score = 0

@@ -5,14 +5,14 @@ import torch
 import pdb
 
 class swarm:
-    def __init__(self, num_particles, gravity,  epochs, model):
+    def __init__(self, num_particles, gravity,  epochs, model, size=500):
         self.swarm = []
         self.epochs = epochs
         device = "cpu"
         self.model = model.to(device)
         self.gravity = gravity
         for i in range(num_particles):
-            self.swarm.append(particle.particle())
+            self.swarm.append(particle.particle(size))
         self.total_mass = 0
         self.gbest = None
         self.gworse = None
