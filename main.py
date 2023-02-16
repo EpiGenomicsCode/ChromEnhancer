@@ -18,11 +18,10 @@ def seedEverything(seed=42):
 
 def main():
     seedEverything()
-    sequenceStudy()
+    # sequenceStudy()
     paramatersStudy()
 
 def sequenceStudy():
-    epochs = 20
     trainFiles = glob.glob("Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
 
     for trainFile in trainFiles:
@@ -39,14 +38,14 @@ def sequenceStudy():
         
         for i in range(1,7):
             model = loadModel(i, name, input_size=4000)
-            model = runHomoModel(model, trainLoader, testLoader, validLoader, epochs)
+            model = runHomoModel(model, trainLoader, testLoader, validLoader, 1)
             # run the swarm study
-            swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5, size=4000)
+            swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
                         
             # clear the memory
             clearCache()
-
-    
+        
+       
 def paramatersStudy():
     """
         Generates the parameters for the study and runs the study
@@ -55,38 +54,42 @@ def paramatersStudy():
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
 
-    epochs = 20
+    epochs = 1
     batch_size = 64
     for id in ids:
-        for indexType in ["-1", "-2"]: 
+        for indexType in ["-2"]: 
             # go through each study
             for study in studys:
-                # go through each model
-                for modelType in range(1,7):
-                    data1, data2 = study.split("-")
-                    # process the data for each model train, test and test, train
-                    for data  in [ [data1, data2], [data2, data1]]:
-                        train = data[0]
-                        test = data[1]
+                data1, data2 = study.split("-")
+                # process the data for each model train, test and test, train
+                for data  in [ [data1, data2], [data2, data1]]:
+                    train = data[0]
+                    test = data[1]
+
+                    
+                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
+                    
+                    
+                    # cast each dataset to a pytorch dataloader
+                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+
+                    # go through each model
+                    for modelType in range(1,5)[::-1]:
                         name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
 
                         log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
                         
-                        ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
                         print(name)
                         print(log)
                         print("\t\ttrain label: {}".format(ds_train.labelFile))
                         print("\t\ttest label: {}".format(ds_test.labelFile))
                         print("\t\tvalid label: {}".format(ds_valid.labelFile))
                 
-                        # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
-
                         # run the model
-
                         model = loadModel(modelType, name)
+                        print(model)
                         model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
                         
                         # run the swarm study
@@ -96,8 +99,8 @@ def paramatersStudy():
                         clearCache()
 
 
-def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5, size=500):
-    swarm = Swarm.swarm(num_particles, gravity,  epochs, model, size)
+def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5):
+    swarm = Swarm.swarm(num_particles, gravity,  epochs, model)
     swarm.run()
     # get all particles in swarm
     particles = np.array([i.position.numpy() for i in swarm.swarm])
@@ -109,6 +112,8 @@ def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5, size=500):
     # plot the clusters
     plotClusters(cluster, particles, name)
 
-              
+
+
+                        
 if __name__ == "__main__":
     main()

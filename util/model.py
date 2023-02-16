@@ -101,20 +101,29 @@ class Chromatin_Network3(nn.Module):
     """
     Long Short Term Memory to Deep Neural Network
     """
-    def __init__(self, name, hidden_size=64, num_layers=32):
+    def __init__(self, name, input_size=500, hidden_size=500, num_layers=32,dnn_hidden_size=500):
         super(Chromatin_Network3, self).__init__()
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
 
-        self.lstm = nn.LSTM(input_size=500, hidden_size=hidden_size, num_layers=num_layers, batch_first=True) #lstm
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True) #lstm
 
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
-            nn.Linear(64, 32),
+            nn.Linear(self.hidden_size, dnn_hidden_size),
             nn.ReLU(),
             nn.Dropout(0.5),
-            nn.Linear(32, 1)
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, 1)
         )
 
         self.h_0 = None
@@ -141,108 +150,97 @@ class Chromatin_Network4(nn.Module):
     """
     Convolutional To LSTM To DNN
     """
-    def __init__(self, name, hidden_size=1, num_layers=32):
+    def __init__(self, name, hidden_size=500, num_layers=32, dnn_hidden_size=256):
         super(Chromatin_Network4, self).__init__()
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         
-        
-        self.layer_1 = nn.Conv1d(1, 3, 10) 
-        self.layer_2 = nn.Conv1d(3, 5, 50) 
-        self.layer_3 = nn.Conv1d(5, 10, 100)
+        # sequential model names C1D of three Conv1d layers with max pooling
 
-        self.lstm = nn.LSTM(input_size=3430, hidden_size=100,
-                          num_layers=num_layers, batch_first=True) #lstm
+        self.C1D = nn.Sequential(
+            nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2)
+        )
+
+        # LSTM layer that takes in self.C1D output and hidden state size
+        self.lstm = nn.LSTM(input_size=7936, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
 
         
-        self.lin1 = nn.Linear(100,500)
-        self.lin2 = nn.Linear(500,500)
-        self.lin3 = nn.Linear(500,500)
-        self.lin4 = nn.Linear(500,500)
-        self.lin5 = nn.Linear(500,1)
+        # Define the fully-connected layers
+        self.dnn = nn.Sequential(
+            nn.Linear(self.hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, dnn_hidden_size),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(dnn_hidden_size, 1)
+        )
+
 
         self.h_0 = None
         self.c_0 = None
         self.hidden = None
 
-        self.dropout = nn.Dropout(0.25)
-
         
     def forward(self, x):
-        x = x.reshape(-1, 1, x.shape[1])
-        x = F.relu(self.layer_1(x))
-        x = F.relu(self.layer_2(x))
-        x = F.relu(self.layer_3(x))
-        
-        x = torch.flatten(x, start_dim=1)
         
         if self.h_0 == None:    
-            h_0 = Variable(torch.zeros(self.num_layers, 100)).to(x.device) #hidden state
-            c_0 = Variable(torch.zeros(self.num_layers, 100)).to(x.device) #internal state
+            h_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #hidden state
+            c_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #internal state
             self.hidden = (h_0, c_0)
-        
-        output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
 
-        out = F.relu(self.lin1(output))
-        out = F.relu(self.lin2(out))
-        out = F.relu(self.lin3(out))
-        out = F.relu(self.lin4(out))
-        x = self.dropout(x)
-        out = torch.sigmoid(self.lin5(out))
+        
+        # Reshape the input to have a channel dimension
+        x = x.view(-1, 1, 500)
+        # Pass input through 1D CNN layers
+        x = self.C1D(x)
+
+        # Flatten the output of the 1D CNN
+        x = x.view(x.size(0), -1)
+
+        # Pass through the LSTM
+        output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
+        
+        # Pass through the DNN
+        out = self.dnn(output)
+        out = torch.sigmoid(out)
 
         return out
-
-# Transformer -> DNN
-class Chromatin_Network5(nn.Module):
-    def __init__(self, name, input_size=500, hidden_size=256, num_heads=10, output_size=1):
-        super().__init__()
-        self.name = name
-        # Use nn.Transformer to compute a weighted sum of the input elements
-        self.transformer = nn.Transformer(input_size, num_heads)
-        self.layer_1 = nn.Linear(input_size, 500) 
-        self.layer_2 = nn.Linear(500, 500) 
-        self.layer_3 = nn.Linear(500, 500) 
-        self.layer_4 = nn.Linear(500, 500)
-        self.layer_out = nn.Linear(500, 1) 
-
-    def forward(self, x):
-        # Reshape the input to (batch_size, sequence_length, input_size)
-        x = x.view(-1, 1, 500)
-        # Apply the transformer to the input sequence, is this 1 to 1?
-        x = self.transformer(x,x)
-        # Flatten the output to (batch_size, input_size)
-        x = x.view(-1, 500)
-        # Apply the DNN to the transformed input
-        x = F.relu(self.layer_1(x))
-        x = F.relu(self.layer_2(x))
-        x = F.relu(self.layer_3(x))
-        x = F.relu(self.layer_4(x))
-        x = F.relu(self.layer_out(x))
-        
-        return x
-
+       
 # CNN2 -> DNN
-class Chromatin_Network6(nn.Module):
+class Chromatin_Network5(nn.Module):
     def __init__(self, name):
-        super(Chromatin_Network6, self).__init__()
+        super(Chromatin_Network5, self).__init__()
         self.name = name
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=10, kernel_size=5, stride=1, padding=0)
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
-        self.fc1 = nn.Linear(10 * 50 * 50, 128)
-        self.fc2 = nn.Linear(128, 1)
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
+        self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
+        self.fc1 = nn.Linear(32*25, 64)
+        self.fc2 = nn.Linear(64, 1)
         
     def forward(self, x):
-        # Batch Size, Channels, Height, Width
-        x = x.reshape(-1, 1, 100, 5)
-        # Channels, Batch Size, Height, Width
-        x = x.permute(0, 1, 3, 2)
-        # process the input
-        x = self.conv1(x)
-        x = F.relu(x)
+        x = x.view(-1, 1, 100, 5)
+        x = F.relu(self.conv1(x))
         x = self.pool(x)
-        x = x.view(-1, 10 * 50 * 50)
-        x = self.fc1(x)
-        x = F.relu(x)
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
+        x = x.view(-1, 32*25)
+        x = F.relu(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
+
         return x

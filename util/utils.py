@@ -36,9 +36,7 @@ def loadModel(modelNumber, name="", input_size=500):
     elif modelNumber == 4:
         return Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
-        return Chromatin_Network5(name, input_size)
-    elif modelNumber == 6:
-        return Chromatin_Network6(name, input_size)
+        return Chromatin_Network5(name)
     else:
         raise Exception("Invalid model number")
 
