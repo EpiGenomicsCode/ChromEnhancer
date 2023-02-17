@@ -19,7 +19,7 @@ class Chromatin_Network1(nn.Module):
         self.input_size = input_size
         self.output_size = output_size
         self.dnn_hidden_size = dnn_hidden_size
-
+        
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
             nn.Linear(input_size, dnn_hidden_size),
@@ -68,7 +68,7 @@ class Chromatin_Network2(nn.Module):
 
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
-            nn.Linear(self.input_size, dnn_hidden_size),
+            nn.Linear(8000, dnn_hidden_size),
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(dnn_hidden_size, dnn_hidden_size),
@@ -154,19 +154,18 @@ class Chromatin_Network3(nn.Module):
         out = torch.sigmoid(out)
 
         return out
-       
-      
-
+     
 # CNN1 -> LSTM -> DNN
 class Chromatin_Network4(nn.Module):
     """
     Convolutional To LSTM To DNN
     """
-    def __init__(self, name, hidden_size=500, num_layers=8, dnn_hidden_size=256):
+    def __init__(self, name, input_size, hidden_size=500, num_layers=8, dnn_hidden_size=256):
         super(Chromatin_Network4, self).__init__()
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
+        self.input_size = input_size
         
         # sequential model names C1D of three Conv1d layers with max pooling
 
@@ -236,9 +235,10 @@ class Chromatin_Network4(nn.Module):
        
 # CNN2 -> DNN
 class Chromatin_Network5(nn.Module):
-    def __init__(self, name):
-        super(Chromatin_Network5, self).__init__()
+    def __init__(self, name, input_size=500):
+        super(Chromatin_Network5, self,).__init__()
         self.name = name
+        self.input_size = input_size
         self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
         self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
         self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))

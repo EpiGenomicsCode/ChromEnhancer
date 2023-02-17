@@ -76,7 +76,7 @@ class Chromatin_Dataset(Dataset):
 
 
     def __len__(self):
-        return len(self.label)
+        return len(self.label)//50
 
     def __getitem__(self, index):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
