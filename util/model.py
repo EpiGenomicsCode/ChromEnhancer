@@ -68,7 +68,7 @@ class Chromatin_Network2(nn.Module):
 
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
-            nn.Linear(8000, dnn_hidden_size),
+            nn.Linear(self.input_size, dnn_hidden_size),
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Linear(dnn_hidden_size, dnn_hidden_size),
@@ -85,7 +85,7 @@ class Chromatin_Network2(nn.Module):
 
     def forward(self, x):
         # Reshape the input to have a channel dimension
-        x = x.view(-1, 1, 500)
+        x = x.view(-1, 1, self.input_size)
         # Pass input through 1D CNN layers
         x = self.cnn(x)
         # Flatten the output of the 1D CNN
@@ -106,9 +106,14 @@ class Chromatin_Network3(nn.Module):
         self.name = name
         self.num_layers = num_layers
         self.hidden_size = hidden_size
+        self.input_size = input_size
+        
+       
 
-        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers, batch_first=True) #lstm
+        # LSTM layer that takes in self.C1D output and hidden state size
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
 
+        
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
             nn.Linear(self.hidden_size, dnn_hidden_size),
@@ -126,31 +131,38 @@ class Chromatin_Network3(nn.Module):
             nn.Linear(dnn_hidden_size, 1)
         )
 
+
         self.h_0 = None
         self.c_0 = None
         self.hidden = None
 
+        
     def forward(self, x):
-
+        
         if self.h_0 == None:    
-            h_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(x.device) #hidden state
-            c_0 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size)).to(x.device) #internal state
+            h_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #hidden state
+            c_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #internal state
             self.hidden = (h_0, c_0)
 
-        x = x.reshape(-1,1,500)
+        
+        # Reshape the input to have a channel dimension
+        # Pass through the LSTM
         output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
-        out = output.reshape(-1,self.hidden_size)
-        out = self.dnn(out)
+        
+        # Pass through the DNN
+        out = self.dnn(output)
         out = torch.sigmoid(out)
 
         return out
+       
+      
 
 # CNN1 -> LSTM -> DNN
 class Chromatin_Network4(nn.Module):
     """
     Convolutional To LSTM To DNN
     """
-    def __init__(self, name, hidden_size=500, num_layers=32, dnn_hidden_size=256):
+    def __init__(self, name, hidden_size=500, num_layers=8, dnn_hidden_size=256):
         super(Chromatin_Network4, self).__init__()
         self.name = name
         self.num_layers = num_layers
@@ -206,7 +218,7 @@ class Chromatin_Network4(nn.Module):
 
         
         # Reshape the input to have a channel dimension
-        x = x.view(-1, 1, 500)
+        x = x.view(-1, 1, self.input_size)
         # Pass input through 1D CNN layers
         x = self.C1D(x)
 

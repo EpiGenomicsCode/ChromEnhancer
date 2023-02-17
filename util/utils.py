@@ -144,6 +144,10 @@ def runEpoch(model, train_loader, criterion, optimizer):
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
+
+        # clear the memory
+        clearCache()
+
     return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
 # test the model

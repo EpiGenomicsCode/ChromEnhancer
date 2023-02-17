@@ -23,7 +23,7 @@ def main():
 
 def sequenceStudy():
     trainFiles = glob.glob("Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
-
+    epochs = 1
     for trainFile in trainFiles:
         name = trainFile[trainFile.rfind("/")+1:-4]
 
@@ -38,12 +38,14 @@ def sequenceStudy():
         
         for i in range(1,7):
             model = loadModel(i, name, input_size=4000)
-            model = runHomoModel(model, trainLoader, testLoader, validLoader, 1)
+            print(model)
+            model = runHomoModel(model, trainLoader, testLoader, validLoader, epochs)
             # run the swarm study
-            swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
+            # swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5)
                         
             # clear the memory
             clearCache()
+        break
         
        
 def paramatersStudy():
@@ -54,7 +56,7 @@ def paramatersStudy():
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
 
-    epochs = 1
+    epochs = 3
     batch_size = 64
     for id in ids:
         for indexType in ["-2"]: 
@@ -76,7 +78,7 @@ def paramatersStudy():
                     valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
 
                     # go through each model
-                    for modelType in range(1,5)[::-1]:
+                    for modelType in range(1,6)[::-1]:
                         name = "id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
 
                         log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
