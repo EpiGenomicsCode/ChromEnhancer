@@ -132,23 +132,22 @@ class Chromatin_Network3(nn.Module):
         )
 
 
-        self.h_0 = None
-        self.c_0 = None
         self.hidden = None
 
         
     def forward(self, x):
         
-        if self.h_0 == None:    
-            h_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #hidden state
-            c_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #internal state
+        if self.hidden == None:    
+            h_0 = torch.zeros(self.num_layers, self.hidden_size) #hidden state
+            c_0 = torch.zeros(self.num_layers, self.hidden_size) #internal state
             self.hidden = (h_0, c_0)
 
         
         # Reshape the input to have a channel dimension
         # Pass through the LSTM
+        self.hidden = (self.hidden[0].to(x.device), self.hidden[1].to(x.device))
         output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
-        
+        self.hidden = (self.hidden[0].detach(), self.hidden[1].detach())
         # Pass through the DNN
         out = self.dnn(output)
         out = torch.sigmoid(out)
@@ -203,16 +202,14 @@ class Chromatin_Network4(nn.Module):
         )
 
 
-        self.h_0 = None
-        self.c_0 = None
         self.hidden = None
 
         
     def forward(self, x):
         
-        if self.h_0 == None:    
-            h_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #hidden state
-            c_0 = Variable(torch.zeros(self.num_layers, self.hidden_size)).to(x.device) #internal state
+        if self.hidden == None:    
+            h_0 = torch.zeros(self.num_layers, self.hidden_size)#hidden state
+            c_0 = torch.zeros(self.num_layers, self.hidden_size) #internal state
             self.hidden = (h_0, c_0)
 
         
@@ -225,8 +222,9 @@ class Chromatin_Network4(nn.Module):
         x = x.view(x.size(0), -1)
 
         # Pass through the LSTM
+        self.hidden = (self.hidden[0].to(x.device), self.hidden[1].to(x.device))
         output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
-        
+        self.hidden = (self.hidden[0].detach(), self.hidden[1].detach())
         # Pass through the DNN
         out = self.dnn(output)
         out = torch.sigmoid(out)
