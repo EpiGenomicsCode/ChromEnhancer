@@ -208,7 +208,7 @@ class Chromatin_Network4(nn.Module):
     def forward(self, x):
         
         if self.hidden == None:    
-            h_0 = torch.zeros(self.num_layers, self.hidden_size)#hidden state
+            h_0 = torch.zeros(self.num_layers, self.hidden_size) #hidden state
             c_0 = torch.zeros(self.num_layers, self.hidden_size) #internal state
             self.hidden = (h_0, c_0)
 
@@ -231,6 +231,7 @@ class Chromatin_Network4(nn.Module):
 
         return out
        
+
 # CNN2 -> DNN
 class Chromatin_Network5(nn.Module):
     def __init__(self, name, input_size=500):
@@ -250,6 +251,32 @@ class Chromatin_Network5(nn.Module):
         x = F.relu(self.conv2(x))
         x = self.pool(x)
         x = x.view(-1, 32*25)
+        x = F.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+
+        return x
+
+
+# Seq CNN2 -> DNN
+class Chromatin_Network6(nn.Module):
+    def __init__(self, name, input_size=4000):
+        super(Chromatin_Network6, self,).__init__()
+        self.name = name
+        self.input_size = input_size
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
+        self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
+        self.fc1 = nn.Linear(6400, 64)
+        self.fc2 = nn.Linear(64, 1)
+        
+    def forward(self, x):
+        batch_size = x.shape[0]
+        x = x.view(-1, 1, 100, 5)
+        x = F.relu(self.conv1(x))
+        x = self.pool(x)
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)
+        x = x.view(batch_size, -1)
         x = F.relu(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
 
