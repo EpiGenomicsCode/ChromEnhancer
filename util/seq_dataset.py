@@ -63,7 +63,7 @@ class Sequence_Dataset(Dataset):
 
         
     def __len__(self):
-        return min(len(self.label), 2**10)
+        return len(self.label)
 
     def __getitem__(self, index):
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
