@@ -11,6 +11,7 @@ from sklearn.metrics import roc_curve, auc, accuracy_score
 import gc 
 import seaborn as sns
 import datetime
+
 def plotAccuracy(accuracy_values, name):
     """
         Plots the accuracy values
@@ -181,8 +182,8 @@ def testModel(model, test_loader, criterion):
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
-    recall, precision =   plotPRC(model, y_score, y_true, model.name)
-    fpr   , tpr       =   plotROC(model, y_score, y_true, model.name)   
+    recall, precision, auPRC =   plotPRC(model, y_score, y_true, model.name)
+    fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name)   
 
     # save the results
     os.makedirs("./output/results", exist_ok=True)
@@ -192,6 +193,8 @@ def testModel(model, test_loader, criterion):
         f.write("Precision: {}\n".format(precision))
         f.write("FPR: {}\n".format(fpr))
         f.write("TPR: {}\n".format(tpr))
+        f.write("auPRC: {}\n".format(auPRC))
+        f.write("auROC: {}\n".format(auROC))
 
     return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
@@ -226,7 +229,9 @@ def plotPRC(model, y_score, y_true, name):
     plt.savefig("./output/PRC/{}.png".format(name))
     plt.clf()
 
-    return recall, precision
+    
+
+    return recall, precision, auc_score
 
 
 # plot the ROC curve for the pytorch model
@@ -257,7 +262,7 @@ def plotROC(model, y_score, y_true, name):
     plt.savefig("./output/ROC/{}.png".format(name))
     plt.clf()
 
-    return fpr, tpr
+    return fpr, tpr, auc_score
 
 def clusterParticles(particles, numClusters):
     """

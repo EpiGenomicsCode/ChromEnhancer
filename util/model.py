@@ -101,7 +101,7 @@ class Chromatin_Network3(nn.Module):
     """
     Long Short Term Memory to Deep Neural Network
     """
-    def __init__(self, name, input_size=500, hidden_size=500, num_layers=32,dnn_hidden_size=500):
+    def __init__(self, name, input_size=500, hidden_size=500, num_layers=3,dnn_hidden_size=500):
         super(Chromatin_Network3, self).__init__()
         self.name = name
         self.num_layers = num_layers
@@ -159,7 +159,7 @@ class Chromatin_Network4(nn.Module):
     """
     Convolutional To LSTM To DNN
     """
-    def __init__(self, name, input_size, hidden_size=500, num_layers=8, dnn_hidden_size=256):
+    def __init__(self, name, input_size, hidden_size=500, num_layers=3, dnn_hidden_size=256):
         super(Chromatin_Network4, self).__init__()
         self.name = name
         self.num_layers = num_layers
