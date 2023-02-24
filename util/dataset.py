@@ -79,8 +79,8 @@ class Chromatin_Dataset(Dataset):
         return len(self.label)
 
     def __getitem__(self, index):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        return torch.tensor(self.data[:, :, index].flatten(), dtype=torch.float32).to(device), torch.tensor(self.label.iloc[index], dtype=torch.float32).to(device)        
+        
+        return self.data[:, :, index].flatten(), self.label.iloc[index]
 
 def getData(chromtypes     = [
                                 "CTCF-1",

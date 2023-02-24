@@ -132,8 +132,12 @@ def runEpoch(model, train_loader, criterion, optimizer):
     y_score = []
     y_true = []
 
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     # run the model for one epoch with tqdm
     for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -172,8 +176,13 @@ def testModel(model, test_loader, criterion):
     count = 0
     y_score = []
     y_true = []
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     # validate the model
     for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
         # forward
         outputs = model(inputs)
         loss = criterion(outputs, labels)
