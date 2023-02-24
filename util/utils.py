@@ -191,8 +191,9 @@ def testModel(model, test_loader, criterion):
     with open("./output/results/{}.txt".format(model.name), "w") as f:
         f.write("Recall: {}\n".format(recall))
         f.write("Precision: {}\n".format(precision))
-        f.write("FPR: {}\n".format(fpr))
-        f.write("TPR: {}\n".format(tpr))
+        # write fpr and tpr as a string using join to avoid scientific notation
+        f.write("FPR: {}\n".format(','.join(map(str, fpr))))
+        f.write("TPR: {}\n".format(','.join(map(str, tpr))
         f.write("auPRC: {}\n".format(auPRC))
         f.write("auROC: {}\n".format(auROC))
 
