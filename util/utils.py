@@ -136,8 +136,8 @@ def runEpoch(model, train_loader, criterion, optimizer):
 
     # run the model for one epoch with tqdm
     for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+        inputs = inputs.to(torch.float32).to(device)
+        labels = labels.to(torch.float32).to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
 
@@ -180,8 +180,8 @@ def testModel(model, test_loader, criterion):
 
     # validate the model
     for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
-        inputs = inputs.to(device)
-        labels = labels.to(device)
+        inputs = inputs.to(torch.float32).to(device)
+        labels = labels.to(torch.float32).to(device)
 
         # forward
         outputs = model(inputs)

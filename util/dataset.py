@@ -80,7 +80,7 @@ class Chromatin_Dataset(Dataset):
 
     def __getitem__(self, index):
         
-        return self.data[:, :, index].flatten(), self.label.iloc[index]
+        return np.array(self.data[:, :, index]).flatten(), np.array(self.label.iloc[index])
 
 def getData(chromtypes     = [
                                 "CTCF-1",
