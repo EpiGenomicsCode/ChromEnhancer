@@ -193,7 +193,7 @@ def testModel(model, test_loader, criterion):
         f.write("Precision: {}\n".format(precision))
         # write fpr and tpr as a string using join to avoid scientific notation
         f.write("FPR: {}\n".format(','.join(map(str, fpr))))
-        f.write("TPR: {}\n".format(','.join(map(str, tpr))
+        f.write("TPR: {}\n".format(','.join(map(str, tpr))))
         f.write("auPRC: {}\n".format(auPRC))
         f.write("auROC: {}\n".format(auROC))
 
