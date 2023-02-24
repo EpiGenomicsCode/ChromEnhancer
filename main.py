@@ -25,6 +25,9 @@ def main():
     index = getIndex(hostname)
     epochs = 20
     batch_size = 64
+    print("Running on: ", hostname)
+    print("Running w/ ids: ", ids)
+    print("Running w/ index: ", index)
     seedEverything()
     sequenceStudy(epochs)
     paramatersStudy(ids, index, epochs, batch_size)
@@ -131,7 +134,6 @@ def paramatersStudy(ids, index, epochs=3, batch_size=64):
                     
                         # clear the memory
                         clearCache()
-
 
 def swarmStudy(model, name, epochs=10, num_particles=10, gravity=.5, size=500):
     swarm = Swarm.swarm(num_particles, gravity,  epochs, model, size=size)
