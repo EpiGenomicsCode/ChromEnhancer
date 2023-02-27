@@ -66,7 +66,7 @@ def getids(hostname):
         ids = ["MCF7"]
     elif "HepG2" in hostname:
         ids = ["HepG2"]
-    elif "K562" in hostname:
+    elif "K562" in hostname.upper():
         ids = ["K562"]
     else:
         ids =  ["A549" ,"MCF7", "HepG2", "K562"]
@@ -76,12 +76,12 @@ def getIndex(hostname):
     """
         Gets the index for the study
     """
-    if "-1" in hostname:
-        index = ["-1"]
-    elif "-2" in hostname:
-        index = ["-2"]
-    else:
-        index = ["-1", "-2"]
+    # if "-1" in hostname:
+    #     index = ["-1"]
+    # elif "-2" in hostname:
+    #     index = ["-2"]
+    # else:
+    index = ["-1", "-2"]
     return index
 
 def paramatersStudy(ids, index, epochs=3, batch_size=64):
