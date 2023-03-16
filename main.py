@@ -76,11 +76,11 @@ def getIndex(hostname):
     """
         Gets the index for the study
     """
-    # if "-1" in hostname:
-    #     index = ["-1"]
-    # elif "-2" in hostname:
-    #     index = ["-2"]
-    # else:
+    if "-1" in hostname:
+        index = ["-1"]
+    elif "-2" in hostname:
+        index = ["-2"]
+    else:
     index = ["-1", "-2"]
     return index
 
