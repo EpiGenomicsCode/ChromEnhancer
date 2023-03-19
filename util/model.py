@@ -66,6 +66,13 @@ class Chromatin_Network2(nn.Module):
             nn.MaxPool1d(kernel_size=2)
         )
 
+        self.inputDNN = 0
+        if self.input_size == 500:
+            self.inputDNN = 8000
+            
+        if self.input_size==4000:
+            self.inputDNN = 64000
+
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
             nn.Linear(8000, dnn_hidden_size),
@@ -180,8 +187,13 @@ class Chromatin_Network4(nn.Module):
             nn.MaxPool1d(kernel_size=2)
         )
 
+        if input_size == 500:
+            lstmIn = 7936
+        else:
+            lstmIn = 64000
+
         # LSTM layer that takes in self.C1D output and hidden state size
-        self.lstm = nn.LSTM(input_size=7936, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
+        self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
 
         
         # Define the fully-connected layers
@@ -230,8 +242,7 @@ class Chromatin_Network4(nn.Module):
         out = torch.sigmoid(out)
 
         return out
-       
-
+      
 # CNN2 -> DNN
 class Chromatin_Network5(nn.Module):
     def __init__(self, name, input_size=500):
@@ -241,43 +252,30 @@ class Chromatin_Network5(nn.Module):
         self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
         self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
         self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
-        self.fc1 = nn.Linear(32*25, 64)
+        
+        if self.input_size==500:
+            self.layerinput = 800
+            self.fc1 = nn.Linear(self.layerinput, 64)
+
+        if self.input_size==4000:
+            self.layerinput = 8000
+            self.fc1=nn.Linear(self.layerinput, 64)
+
+        
         self.fc2 = nn.Linear(64, 1)
         
     def forward(self, x):
-        x = x.view(-1, 1, 100, 5)
+        if self.input_size==500:
+            x = x.view(-1, 1, 100, 5)
+        if self.input_size==4000:
+            x = x.view(-1, 1, 1000, 4)
         x = F.relu(self.conv1(x))
         x = self.pool(x)
         x = F.relu(self.conv2(x))
         x = self.pool(x)
-        x = x.view(-1, 32*25)
+        x = x.view(x.shape[0], -1)
         x = F.relu(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
 
         return x
 
-
-# Seq CNN2 -> DNN
-class Chromatin_Network6(nn.Module):
-    def __init__(self, name, input_size=4000):
-        super(Chromatin_Network6, self,).__init__()
-        self.name = name
-        self.input_size = input_size
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
-        self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
-        self.fc1 = nn.Linear(6400, 64)
-        self.fc2 = nn.Linear(64, 1)
-        
-    def forward(self, x):
-        batch_size = x.shape[0]
-        x = x.view(-1, 1, 100, 5)
-        x = F.relu(self.conv1(x))
-        x = self.pool(x)
-        x = F.relu(self.conv2(x))
-        x = self.pool(x)
-        x = x.view(batch_size, -1)
-        x = F.relu(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
-
-        return x

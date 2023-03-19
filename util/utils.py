@@ -28,6 +28,7 @@ def loadModel(modelNumber, name="", input_size=500):
     """
         Loads the model based on the model number   
     """
+    modelNumber = int(modelNumber)
     if modelNumber == 1:
         return Chromatin_Network1(name, input_size)
     elif modelNumber == 2:
@@ -37,11 +38,9 @@ def loadModel(modelNumber, name="", input_size=500):
     elif modelNumber == 4:
         return Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
-        return Chromatin_Network5(name)
-    elif modelNumber == 6:
-        return Chromatin_Network6(name)
+        return Chromatin_Network5(name, input_size)
     else:
-        raise Exception("Invalid model number")
+        raise Exception("Invalid model number {}".format(modelNumber))
 
 # clear the cache and gpu memory
 def clearCache():

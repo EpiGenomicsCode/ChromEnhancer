@@ -88,7 +88,7 @@ def getData(chromtypes     = [
                                 "H3K27ac-1",
                                 "PolII-1"
                             ], 
-            id            = "A549", 
+            ids            = ["A549"], 
             trainLabel    = "chr11-chr7", 
             testLabel     = "chr11", 
             validLabel    = "chr7",
@@ -124,29 +124,52 @@ def getData(chromtypes     = [
         
         validator: validation data
     """
-    # Load the training data
-    chr_train = Chromatin_Dataset(
-        id=id,
-        chromTypes=chromtypes,
-        label=trainLabel,
-        file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop)
 
-    # Load the test data
-    chr_test = Chromatin_Dataset(
-        id=id,
-        chromTypes=chromtypes,
-        label=testLabel,
-        file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop)
-
-    # Load the validation data
-    chr_valid = Chromatin_Dataset(
-            id=id,
-            chromTypes=chromtypes,
-            label=validLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop)
-    
     # Create output directory
     os.makedirs('./output', exist_ok=True)
+    chr_train = []
+    chr_test = []
+    chr_valid = []
+    print("Generating data for: ", ids)
+
+    for id in ids:
+        # Load the training data
+        chr_train.append(Chromatin_Dataset(
+            id=id,
+            chromTypes=chromtypes,
+            label=trainLabel,
+            file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop))
+
+        # Load the test data
+        chr_test.append(Chromatin_Dataset(
+            id=id,
+            chromTypes=chromtypes,
+            label=testLabel,
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop))
+
+        # Load the validation data
+        chr_valid.append(Chromatin_Dataset(
+                id=id,
+                chromTypes=chromtypes,
+                label=validLabel,
+                file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop))
+    # if we are doing the celline dropout we need to include all the data
+    if len(ids) != 1:
+        all_data = ["A549", "MCF7", "HepG2", "K562"]
+        # find the id that is not in the list
+        newids = [i for i in all_data if i not in ids]
+        print("Validation data includes {}".format(newids))
+        for id in newids:
+            # Load the extra validation data
+            chr_valid.append(Chromatin_Dataset(
+                    id=newids[0],
+                    chromTypes=chromtypes,
+                    label=validLabel,
+                    file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop))
+        
     
+    chr_train = torch.utils.data.ConcatDataset(chr_train)
+    chr_test = torch.utils.data.ConcatDataset(chr_test)
+    chr_valid = torch.utils.data.ConcatDataset(chr_valid)
 
     return chr_train, chr_test, chr_valid   
