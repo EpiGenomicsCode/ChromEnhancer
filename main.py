@@ -134,16 +134,18 @@ def paramatersStudy(ids, index, epochs=3, batch_size=64):
                     train = data[0]
                     test = data[1]
 
+                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,[id], study, train, test)
+                    
+                    # cast each dataset to a pytorch dataloader
+                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+
                     for modelType in args.model[::-1]:
                         name = "param_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
                         log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
                         
-                        ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,[id], study, train, test)
                         
-                        # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
                         print(name)
                         print(log)
                 
@@ -174,18 +176,20 @@ def paramatersIndependentStudy(ids, index, epochs=3, batch_size=64):
                     train = data[0]
                     test = data[1]
 
+                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
+                        
+                    
+                    # cast each dataset to a pytorch dataloader
+                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    
                     # go through each model
                     for modelType in args.model[::-1]:
                         name = "CLD_id_" + '-'.join(id) + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
                         log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format('-'.join(id), study, modelType, train, test, indexType)
                         
-                        ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
                         
-                        
-                        # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
                         print(name)
                         print(log)
                        
