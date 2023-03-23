@@ -29,6 +29,9 @@ class Chromatin_Network2(nn.Module):
         if self.input_size==4000:
             self.inputDNN = 64000
 
+        if self.input_size == 400:
+            self.inputDNN = 6400
+
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
             nn.Linear(self.inputDNN, dnn_hidden_size),

@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='Run the study')
 parser.add_argument('--sequence', action='store_true', help='Run the sequence study')
 parser.add_argument('--parameter', action='store_true', help='Run the parameter study')
 parser.add_argument('--parameterCLD', action='store_true', help='Run the parameter study with command line dropout')
+parser.add_argument('--parameterChrD', action='store_true', help='Run the parameter study with chromatin droupout')
 
 # optional ids
 parser.add_argument('--ids', nargs='+', help='Run the study on the ids', default=["A549", "MCF7", "HepG2", "K562"])
@@ -30,8 +31,7 @@ def main():
     epochs = args.epochs
     batch_size = args.batch_size
 
-    print("Running w/ ids: ", ids)
-    print("Running w/ index: ", index)
+    print("Running arguments: {}".format(args))
     seedEverything()
 
 
@@ -43,6 +43,9 @@ def main():
 
     if args.parameterCLD:
         paramatersIndependentStudy(ids, index, epochs, batch_size)
+
+    if args.parameterChrD:
+        paramatersChromateStudy(ids, index, epochs, batch_size)
 
 def sequenceStudy(epochs=20, batch_size=64):
     trainFiles = glob.glob("./Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
@@ -153,6 +156,56 @@ def paramatersIndependentStudy(ids, index, epochs=3, batch_size=64):
                         # clear the memory
                         clearCache()
 
-                     
+
+
+
+
+
+        
+def paramatersChromateStudy(ids, index, epochs=3, batch_size=64):
+    """
+        Generates the parameters for the study and runs the study
+    """
+    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+
+    for id in ids:
+        for indexType in index: 
+            # go through each study
+            for study in studys:
+                data1, data2 = study.split("-")
+                # process the data for each model train, test and test, train
+                for data  in [ [data1, data2], [data2, data1]]:
+                    train = data[0]
+                    test = data[1]
+
+                    chromatines = [i+indexType for i in chromtypes]
+                    for drop in chromatines:
+                        ds_train, ds_test, ds_valid = DS.getData( chromatines ,[id], study, train, test, drop=drop)
+                         
+                        # cast each dataset to a pytorch dataloader
+                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+
+                        for modelType in args.model[::-1]:
+                            name = "chrDrop_"+ str(drop) +"_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
+                            log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
+                            
+                            
+                            print(name)
+                            print(log)
+                    
+                            # run the model
+                            model = loadModel(modelType, name, input_size=400)
+                            print(model)
+                            model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+                            
+                        
+                            # clear the memory
+                            clearCache()
+
+
+
 if __name__ == "__main__":
     main()

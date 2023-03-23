@@ -28,9 +28,13 @@ class Chromatin_Network4(nn.Module):
             nn.MaxPool1d(kernel_size=2)
         )
 
+        if input_size == 400:
+            lstmIn = 6400
+            
         if input_size == 500:
             lstmIn = 7936
-        else:
+
+        if input_size == 4000:
             lstmIn = 64000
 
         # LSTM layer that takes in self.C1D output and hidden state size

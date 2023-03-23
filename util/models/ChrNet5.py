@@ -14,20 +14,27 @@ class Chromatin_Network5(nn.Module):
         
         if self.input_size==500:
             self.layerinput = 800
-            self.fc1 = nn.Linear(self.layerinput, 64)
 
         if self.input_size==4000:
             self.layerinput = 8000
-            self.fc1=nn.Linear(self.layerinput, 64)
+
+        if self.input_size == 400:
+            self.layerinput = 800
 
         
+        self.fc1 = nn.Linear(self.layerinput, 64)
         self.fc2 = nn.Linear(64, 1)
         
     def forward(self, x):
+        if self.input_size==400:
+            x = x.view(-1, 1, 100, 4)
+
         if self.input_size==500:
             x = x.view(-1, 1, 100, 5)
+
         if self.input_size==4000:
             x = x.view(-1, 1, 1000, 4)
+
         x = F.relu(self.conv1(x))
         x = self.pool(x)
         x = F.relu(self.conv2(x))
