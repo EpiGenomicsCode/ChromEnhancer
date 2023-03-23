@@ -1,7 +1,7 @@
 import numpy as np
 import torch.optim as optim
 import tqdm
-from util.model import *
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5
 import os
 import pandas as pd
 from sklearn.metrics import precision_recall_curve
@@ -10,8 +10,9 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import roc_curve, auc, accuracy_score
 import gc 
 import seaborn as sns
+import torch
 import datetime
-
+from torch import nn
 
 def seedEverything(seed=42):
     """
@@ -43,15 +44,15 @@ def loadModel(modelNumber, name="", input_size=500):
     """
     modelNumber = int(modelNumber)
     if modelNumber == 1:
-        return Chromatin_Network1(name, input_size)
+        return ChrNet1.Chromatin_Network1(name, input_size)
     elif modelNumber == 2:
-        return Chromatin_Network2(name, input_size)
+        return ChrNet2.Chromatin_Network2(name, input_size)
     elif modelNumber == 3:
-        return Chromatin_Network3(name, input_size)
+        return ChrNet3.Chromatin_Network3(name, input_size)
     elif modelNumber == 4:
-        return Chromatin_Network4(name, input_size)
+        return ChrNet4.Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
-        return Chromatin_Network5(name, input_size)
+        return ChrNet5.Chromatin_Network5(name, input_size)
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
 
