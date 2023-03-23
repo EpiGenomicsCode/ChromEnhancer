@@ -12,6 +12,19 @@ import gc
 import seaborn as sns
 import datetime
 
+
+def seedEverything(seed=42):
+    """
+        Seeds everything for reproducibility
+    """
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
+
 def plotAccuracy(accuracy_values, name):
     """
         Plots the accuracy values

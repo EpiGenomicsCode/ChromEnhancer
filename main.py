@@ -24,34 +24,12 @@ parser.add_argument('--epochs', type=int, help='Run the study on the epochs', de
 
 args = parser.parse_args()
 
-def seedEverything(seed=42):
-    """
-        Seeds everything for reproducibility
-    """
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    torch.backends.cudnn.benchmark = False
-    torch.backends.cudnn.deterministic = True
-
 def main():
-    hostname =  os.environ.get("HOSTNAME")
-    # if ids are not specified, get the ids
-    
-    if not parser.parse_args().ids:
-        ids = getids(hostname)
-    else:
-        ids = args.ids
-
-    if not args.ids:
-        index = getIndex(hostname)
-    else:
-        index = args.index
-
+    ids = args.ids
+    index = args.index
     epochs = args.epochs
     batch_size = args.batch_size
-    print("Running on: ", hostname)
+
     print("Running w/ ids: ", ids)
     print("Running w/ index: ", index)
     seedEverything()
@@ -80,7 +58,7 @@ def sequenceStudy(epochs=20, batch_size=64):
         validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
         validLoader = DataLoader(validData, batch_size=batch_size, shuffle=True)
         for i in args.model[::-1]:
-            name = "seq_"+name + "_model{}".format(i)
+            name = name + "_model{}".format(i)
             model = loadModel(i, name, input_size=4000)
             print(name)
             print(model)
@@ -89,34 +67,6 @@ def sequenceStudy(epochs=20, batch_size=64):
             # clear the memory
             clearCache()
         
-def getids(hostname):
-    """
-        Gets the ids for the study
-    """
-    if "A549" in hostname:
-        ids = ["A549"]
-    elif "MCF7" in hostname:
-        ids = ["MCF7"]
-    elif "HepG2" in hostname:
-        ids = ["HepG2"]
-    elif "K562" in hostname.upper():
-        ids = ["K562"]
-    else:
-        ids =  ["A549" ,"MCF7", "HepG2", "K562"]
-    return ids
-       
-def getIndex(hostname):
-    """
-        Gets the index for the study
-    """
-    if "-1" in hostname:
-        index = ["-1"]
-    elif "-2" in hostname:
-        index = ["-2"]
-    else:
-        index = ["-1", "-2"]
-    return index
-
 def paramatersStudy(ids, index, epochs=3, batch_size=64):
     """
         Generates the parameters for the study and runs the study
