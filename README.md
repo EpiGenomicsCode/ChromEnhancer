@@ -5,20 +5,16 @@ Multi-cellular organisms exhibit diverse cellular phenotypes, largely due to the
 # Steps
 
 ## 1. Preprocessing
+
 * Navigate to the Preprocessing folder and follow the instructions
 
-## 2. Building the enviorment (From .devconatiner)
+## 2. Building the environment (From .devconatiner)
+
 * Install Docker Desktop
-* Install VSCode 
+* Install VSCode
 * Install Python extension with VSCode
 * Install DevContainer extension with VSCode
 * "Shift - CMD - P" > Open Folder in Container
-
-## 2. Building the enviorment (From terminal)
-* navigate to the .devcontainer folder
-* run ```docker build -t <Image_Name> .``` where ```<Image_Name>``` is whatever you decide to name the image
-* run ```docker run -it --rm --gpus all --name <Container_Name> -v $PWD/../:/work <Image_Name>``` where ```<Container_Name>``` is the name of the container
-
 
 ## 3. Running different studies
 
@@ -28,7 +24,8 @@ There are currently three different studies that can be performed:
 2. Parameter: This study ...
 3. Cell Line Dropout: This study ...
 
+### FAQ
 
-### FAQ:
-
-1. How do I add my own Model?
+1. How do I add my own model?
+* Navigate to the util/Model folder and add your model as a new python file
+* Edit the loadModel function in the util.py file
