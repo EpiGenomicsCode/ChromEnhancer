@@ -18,7 +18,7 @@ class Chromatin_Dataset(Dataset):
 
     def __init__(self, id, chromTypes, label, file_location, dataUse, drop=None, batch_size=1000):
         super(Chromatin_Dataset, self).__init__()
-        
+
         self.id = id
         self.chromTypes = chromTypes
         self.label = label
@@ -26,65 +26,70 @@ class Chromatin_Dataset(Dataset):
         self.dataUse = dataUse
         self.drop = drop
         self.batch_size = batch_size
-        
+        self.count = 0
+        self.start_index = 0
+        self.end_index = batch_size
+
         # Load in file paths for data and label files
         self.dataFiles = []
         self.labelFiles = []
         for chromType in chromTypes:
             fileFormat = file_location + "{}*_*{}*_{}*.chromtrack".format(id, label, chromType)
+            print(fileFormat)
             file = glob(fileFormat)[0]
             if chromType == self.drop and self.dataUse == "train":
                 self.dataFiles.append(f"None_{file}")
             else:
                 self.dataFiles.append(file)
-        
+
         labelNames = glob(file_location + "{}*_*{}*.label".format(id, label))
-        if dataUse == "train":
-            labelName = [
-                i for i in labelNames if  id in i and label in i and not "Lenient" in i and not "Stringent" in i 
-            ][0]
+        if dataUse == "train": 
+            labelName = [i for i in labelNames if id in i and label in i and not "Lenient" in i and not "Stringent" in i ][0]
         elif dataUse == "test":
-            labelName = [
-                i for i in labelNames if ".label" in i and id in i and label in i and not "Lenient" in i 
-            ][0]
+            labelName = [i for i in labelNames if ".label" in i and id in i and label in i and not "Lenient" in i  ][0]
         else:
-            labelName = [
-                i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i 
-            ][0]
+            labelName = [i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i ][0]
         self.labelFile = labelName
 
         # Compute length of dataset using system call to wc
         with open(self.labelFile, 'r') as f:
             self.num_samples = len(f.readlines())
-        
+
     def __len__(self):
         return self.num_samples
 
     def __getitem__(self, index):
+        # Check if we need to load a new section of data
+
+        index = index % self.batch_size
+
+        if self.count == self.batch_size:
+            self.count = 0
+            self.start_index += self.batch_size
+            self.end_index += self.batch_size
+
         # Load data for this batch
-        start_index = index * self.batch_size
-        end_index = min(start_index + self.batch_size, self.num_samples)
         batch_data = []
         for data_file in self.dataFiles:
             if "None" in data_file:
                 filename = data_file[data_file.index("None"):]
-                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size).values.astype(np.float32)
+                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=self.start_index, nrows=self.batch_size * 2).values.astype(np.float32)
                 data = data.T
                 data = np.array([np.zeros(data.shape[1])])
             else:
-                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size).values.astype(np.float32)
+                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=self.start_index, nrows=self.batch_size * 2).values.astype(np.float32)
                 data = data.T
 
             batch_data.append(data)
-
-        batch_data = np.array(batch_data)
-        # shuffle the rows
-        batch_data = batch_data[:, np.random.permutation(batch_data.shape[1]), :]
+        batch_data = np.array(batch_data).reshape(self.batch_size * 2, -1)
 
         # Load labels for this batch
-        label = pd.read_csv(self.labelFile, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size)
+        label = pd.read_csv(self.labelFile, delimiter=" ", header=None, skiprows=self.start_index, nrows=self.batch_size * 2).values.astype(np.float32)
+        
+        # Update the count
+        self.count += 1
 
-        return batch_data.reshape(-1), np.array(label)
+        return batch_data[index], np.array(label)[index]
 
 
 def getData(chromtypes     = [
@@ -165,6 +170,8 @@ def getData(chromtypes     = [
         # find the id that is not in the list
         newids = [i for i in all_data if i not in ids]
         print("Validation data includes {}".format(newids))
+        #  load the data for the new ids
+        chr_valid = []
         for id in newids:
             # Load the extra validation data
             chr_valid.append(Chromatin_Dataset(

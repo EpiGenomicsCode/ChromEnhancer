@@ -118,43 +118,27 @@ def paramatersIndependentStudy(ids, index, epochs=3, batch_size=64):
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     
-    for id in combinations(ids, len(ids)-1):
-        id = list(id)
-        for indexType in index: 
-            # go through each study
-            for study in studys:
-                data1, data2 = study.split("-")
-                # process the data for each model train, test and test, train
-                for data  in [ [data1, data2], [data2, data1]]:
-                    train = data[0]
-                    test = data[1]
+    for training_data in combinations(ids, len(ids)-1):
+        # A549, MCF7, HepG2
+        training_data = list(training_data)
+        # MCF7
+        testing_data = [i for i in ids if i not in training_data]
 
-                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test, batch_size=batch_size)
-                        
-                    
-                    # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
-                    
-                    # go through each model
-                    for modelType in args.model[::-1]:
-                        name = "CLD_id_" + '-'.join(id) + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
-                        log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format('-'.join(id), study, modelType, train, test, indexType)
-                        
-                        
-                        print(name)
-                        print(log)
-                       
-                
-                        # run the model
-                        model = loadModel(modelType, name)
-                        print(model)
-                        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-                        
-                    
-                        # clear the memory
-                        clearCache()
+        train, test, valid = DS.getData(chromtypes=chromtypes, ids=training_data, trainLabel="", testLabel="",validLabel="", batch_size=batch_size)
+        
+        # cast each dataset to a pytorch dataloader
+        train_loader = DataLoader(train, batch_size=batch_size)
+        test_loader = DataLoader(test, batch_size=batch_size)
+        valid_loader = DataLoader(valid, batch_size=batch_size)
+
+        name = f"CHD_Train_{'-'.join(training_data)}_Val_{'-'.join(testing_data)}"
+        model = loadModel(4, name )
+        print(name)
+        print(model)
+        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+
+
+
 
 
 
