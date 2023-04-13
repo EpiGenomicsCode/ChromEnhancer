@@ -87,12 +87,12 @@ def paramatersStudy(ids, index, epochs=3, batch_size=64):
                     train = data[0]
                     test = data[1]
 
-                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,[id], study, train, test)
+                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,[id], study, train, test, batch_size=batch_size)
                     
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
 
                     for modelType in args.model[::-1]:
                         name = "param_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
@@ -129,13 +129,13 @@ def paramatersIndependentStudy(ids, index, epochs=3, batch_size=64):
                     train = data[0]
                     test = data[1]
 
-                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test)
+                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,id, study, train, test, batch_size=batch_size)
                         
                     
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
                     
                     # go through each model
                     for modelType in args.model[::-1]:
@@ -181,12 +181,12 @@ def paramatersChromateStudy(ids, index, epochs=3, batch_size=64):
 
                     chromatines = [i+indexType for i in chromtypes]
                     for drop in chromatines:
-                        ds_train, ds_test, ds_valid = DS.getData( chromatines ,[id], study, train, test, drop=drop)
+                        ds_train, ds_test, ds_valid = DS.getData( chromatines ,[id], study, train, test, drop=drop, batch_size=batch_size)
                          
                         # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                        train_loader = DataLoader(ds_train, batch_size=batch_size)
+                        test_loader = DataLoader(ds_test, batch_size=batch_size)
+                        valid_loader = DataLoader(ds_valid, batch_size=batch_size)
 
                         for modelType in args.model[::-1]:
                             name = "chrDrop_"+ str(drop) +"_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
