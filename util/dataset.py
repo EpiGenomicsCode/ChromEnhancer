@@ -16,71 +16,76 @@ class Chromatin_Dataset(Dataset):
     Dataset class for the Chromatin data
     """
 
-    def __init__(
-            self,
-            id,
-            chromTypes,
-            label,
-            file_location, 
-            dataUse , 
-            drop=None):
-        """
-        input:
-        =====
-            id: string: Chromatin Cell identification
-            chromType: list of strings: Order of chromatin types
-            label: string: Enhancer labels
-            file_location: string
-            dataUse: string: train, test or valid dataset
-            drop: string: Chromatin type to drop
-        """
-        super(Dataset, self).__init__()
-
-        # load in every file for chromType
-        self.data = []
-        self.dataFiles = []
-        self.label = []
-        self.labelFiles = []
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        for chromType in chromTypes:
-            if chromType != drop:
-                fileFormat = file_location + "{}*_*{}*_{}*.chromtrack".format(id, label, chromType)
-                # Load in data
-                file = glob(fileFormat)[0]
-                data = pd.read_csv(file, delimiter=" ", header=None).values.astype(np.float32)
-                self.dataFiles.append(file)
-                # Transpose data
-                data = data.T
-                # Add data to self.data
-                self.data.append(data)
+    def __init__(self, id, chromTypes, label, file_location, dataUse, drop=None, batch_size=1000):
+        super(Chromatin_Dataset, self).__init__()
         
-        # self.data is shape of 5 x 100 x 641883 which is 5 chromatin types, 100 features, 641883 samples
-        self.data = np.array(self.data)
-
-        # Load in label data
+        self.id = id
+        self.chromTypes = chromTypes
+        self.label = label
+        self.file_location = file_location
+        self.dataUse = dataUse
+        self.drop = drop
+        self.batch_size = batch_size
+        
+        # Load in file paths for data and label files
+        self.dataFiles = []
+        self.labelFiles = []
+        for chromType in chromTypes:
+            fileFormat = file_location + "{}*_*{}*_{}*.chromtrack".format(id, label, chromType)
+            file = glob(fileFormat)[0]
+            if chromType == self.drop and self.dataUse == "train":
+                self.dataFiles.append(f"None_{file}")
+            else:
+                self.dataFiles.append(file)
+        
         labelNames = glob(file_location + "{}*_*{}*.label".format(id, label))
         if dataUse == "train":
-              labelName = [
-                        i for i in labelNames if  id in i and label in i and not "Leniant" in i and not "Stringent" in i 
-                    ][0]
+            labelName = [
+                i for i in labelNames if  id in i and label in i and not "Lenient" in i and not "Stringent" in i 
+            ][0]
         elif dataUse == "test":
             labelName = [
-                        i for i in labelNames if ".label" in i and id in i and label in i and not "Lenient" in i 
-                    ][0]
+                i for i in labelNames if ".label" in i and id in i and label in i and not "Lenient" in i 
+            ][0]
         else:
             labelName = [
-                        i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i 
-                    ][0]
+                i for i in labelNames if ".label" in i and id in i and label in i and not "Stringent" in i 
+            ][0]
         self.labelFile = labelName
-        self.label = pd.read_csv(self.labelFile, delimiter=" ", header=None)
 
-
+        # Compute length of dataset using system call to wc
+        with open(self.labelFile, 'r') as f:
+            self.num_samples = len(f.readlines())
+        
     def __len__(self):
-        return len(self.label)
+        return self.num_samples
 
     def __getitem__(self, index):
-        
-        return np.array(self.data[:, :, index]).flatten(), np.array(self.label.iloc[index])
+        # Load data for this batch
+        start_index = index * self.batch_size
+        end_index = min(start_index + self.batch_size, self.num_samples)
+        batch_data = []
+        for data_file in self.dataFiles:
+            if "None" in data_file:
+                filename = data_file[data_file.index("None"):]
+                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size).values.astype(np.float32)
+                data = data.T
+                data = np.array([np.zeros(data.shape[1])])
+            else:
+                data = pd.read_csv(data_file, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size).values.astype(np.float32)
+                data = data.T
+
+            batch_data.append(data)
+
+        batch_data = np.array(batch_data)
+        # shuffle the rows
+        batch_data = batch_data[:, np.random.permutation(batch_data.shape[1]), :]
+
+        # Load labels for this batch
+        label = pd.read_csv(self.labelFile, delimiter=" ", header=None, skiprows=index-self.batch_size, nrows=self.batch_size)
+
+        return batch_data.reshape(-1), np.array(label)
+
 
 def getData(chromtypes     = [
                                 "CTCF-1",
@@ -93,7 +98,8 @@ def getData(chromtypes     = [
             testLabel     = "chr11", 
             validLabel    = "chr7",
             fileLocation  = "./Data/220802_DATA/",
-            drop=None
+            drop=None, 
+            batch_size=2048
         ):
     """
     Returns the training, testing and validation data based on the input
@@ -138,21 +144,21 @@ def getData(chromtypes     = [
             id=id,
             chromTypes=chromtypes,
             label=trainLabel,
-            file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop))
+            file_location=fileLocation+"/TRAIN/*", dataUse="train", drop=drop, batch_size=batch_size))
 
         # Load the test data
         chr_test.append(Chromatin_Dataset(
             id=id,
             chromTypes=chromtypes,
             label=testLabel,
-            file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop))
+            file_location=fileLocation+"/HOLDOUT/*", dataUse="test", drop=drop, batch_size=batch_size))
 
         # Load the validation data
         chr_valid.append(Chromatin_Dataset(
                 id=id,
                 chromTypes=chromtypes,
                 label=validLabel,
-                file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop))
+                file_location=fileLocation+"/HOLDOUT/*", dataUse="valid", drop=drop, batch_size=batch_size))
     # if we are doing the celline dropout we need to include all the data
     if len(ids) != 1:
         all_data = ["A549", "MCF7", "HepG2", "K562"]
