@@ -60,13 +60,13 @@ def sequenceStudy(epochs=20, batch_size=64):
         name = trainFile[trainFile.rfind("/")+1:-4]
 
         trainData = SeqDS.Sequence_Dataset(trainFile, type="train")
-        trainLoader = DataLoader(trainData, batch_size=batch_size, shuffle=True)
+        trainLoader = DataLoader(trainData, batch_size=batch_size )
         
         testData = SeqDS.Sequence_Dataset(trainFile, type="test")
-        testLoader = DataLoader(testData, batch_size=batch_size, shuffle=True)
+        testLoader = DataLoader(testData, batch_size=batch_size )
 
         validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
-        validLoader = DataLoader(validData, batch_size=batch_size, shuffle=True)
+        validLoader = DataLoader(validData, batch_size=batch_size )
         for i in args.model[::-1]:
             name = name + "_model{}".format(i)
             model = loadModel(i, name, input_size=4000)
@@ -107,9 +107,9 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                                                                 dataTypes =types)
                     
                     # convert to dataloader
-                    ds_train = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                    ds_test = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                    ds_valid = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    ds_train = DataLoader(ds_train, batch_size=batch_size )
+                    ds_test = DataLoader(ds_test, batch_size=batch_size )
+                    ds_valid = DataLoader(ds_valid, batch_size=batch_size )
                         
                     for modelType in args.model[::-1]:
                         # drop all celllines except the one we are using
@@ -148,7 +148,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 for useCells in combinations(cellLine, len(cellLine)-1):
                     useCells = list(useCells)
                     drop = [i for i in cellLine if i not in useCells]
-                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_chromtypes_{'-'.join(chromtypes)}_type_{types}"
+                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_type_{types}"
                     print(name)
                     ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
                                                                 testLabel=test,
@@ -159,9 +159,9 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                                                                 fileLocation="./Data/220802_DATA/", 
                                                                 dataTypes =types)
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
 
                     #  We are only testing on model 4
                     model = loadModel(4, name)
@@ -207,9 +207,9 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                                                                 dataTypes =types)
                     
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size )
+                    test_loader = DataLoader(ds_test, batch_size=batch_size )
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
                     #  We are only testing on model 4
                     model = loadModel(4, name)
