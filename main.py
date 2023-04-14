@@ -11,41 +11,48 @@ from itertools import combinations
 
 # add command line arguments
 parser = argparse.ArgumentParser(description='Run the study')
-parser.add_argument('--sequence', action='store_true', help='Run the sequence study')
-parser.add_argument('--parameter', action='store_true', help='Run the parameter study')
-parser.add_argument('--parameterCLD', action='store_true', help='Run the parameter study with command line dropout')
-parser.add_argument('--parameterChrD', action='store_true', help='Run the parameter study with chromatin droupout')
+parser.add_argument('--sequence', action='store_false', help='Run the sequence study')
+parser.add_argument('--parameter', action='store_false', help='Run the parameter study')
+parser.add_argument('--parameterCLD', action='store_false', help='Run the parameter study with cell line dropout')
+parser.add_argument('--parameterCHD', action='store_false', help='Run the parameter study with chromatin droupout')
 
-# optional ids
-parser.add_argument('--ids', nargs='+', help='Run the study on the ids', default=["A549", "MCF7", "HepG2", "K562"])
+# optional cellLine
+parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine', default=["A549", "MCF7", "HepG2", "K562"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5"])
 parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=32)
+parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=1024)
 parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
 
 def main():
-    ids = args.ids
+    clearCache()
+    cellLine = args.cellLine
     index = args.index
     epochs = args.epochs
     batch_size = args.batch_size
+    bin_size = args.bin_size
 
     print("Running arguments: {}".format(args))
     seedEverything()
 
 
-    if args.sequence:
+    if not args.sequence:
+        print("Running Sequence Study")
         sequenceStudy(epochs, batch_size)
 
-    if args.parameter:
-        paramatersStudy(ids, index, epochs, batch_size)
+    if not args.parameter:
+        print("Running Parameter Study")
+        paramatersStudy(cellLine, index, epochs, batch_size)
 
-    if args.parameterCLD:
-        paramatersIndependentStudy(ids, index, epochs, batch_size)
+    if not args.parameterCLD:
+        print("Running Parameter Study with Cell Line Dropout")
+        CellLineDropout(cellLine, index, epochs, batch_size, bin_size)
 
-    if args.parameterChrD:
-        paramatersChromateStudy(ids, index, epochs, batch_size)
+    if not args.parameterCHD:
+        print("Running Parameter Study with Chromatin Dropout")
+        ChromatineDropout(cellLine, index, epochs, batch_size, bin_size)
 
 def sequenceStudy(epochs=20, batch_size=64):
     trainFiles = glob.glob("./Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
@@ -70,15 +77,17 @@ def sequenceStudy(epochs=20, batch_size=64):
             # clear the memory
             clearCache()
         
-def paramatersStudy(ids, index, epochs=3, batch_size=64):
+def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
         Generates the parameters for the study and runs the study
+        only A459 all chromatin types
     """
-    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    cellLines = ["A549", "MCF7", "HepG2", "K562"]
+    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
 
-    for id in ids:
-        for indexType in index: 
+    for id in cellLine:
+        for types in ["-1", "-2"]: 
             # go through each study
             for study in studys:
                 data1, data2 = study.split("-")
@@ -86,110 +95,107 @@ def paramatersStudy(ids, index, epochs=3, batch_size=64):
                 for data  in [ [data1, data2], [data2, data1]]:
                     train = data[0]
                     test = data[1]
+                    for modelType in args.model[::-1]:
+                        train, test, valid = DS.getData(trainLabel=study,
+                                                                testLabel=test,
+                                                                validLabel=valid,
+                                                                chrDrop=[],
+                                                                cellLineDrop=[i for i in cellLines if i != id],
+                                                                bin_size=bin_size,
+                                                                fileLocation="./Data/220802_DATA/", 
+                                                                dataTypes =types)
 
-                    ds_train, ds_test, ds_valid = DS.getData([i+indexType for i in chromtypes]  ,[id], study, train, test, batch_size=batch_size)
+
+def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
+    """
+        Generates the parameters for the study and runs the study
+        all cellLines except A549, all chromatin types
+    """
+    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+
+    for types in ["-1", "-2"]:
+        for study in studys:
+            # go through each study
+            data1, data2 = study.split("-")
+            # process the data for each model train, test and test, train
+            for data  in [ [data1, data2], [data2, data1]]:
+                test = data[0]
+                valid = data[1]
+
+                # drop each cellLine type
+                for useCells in combinations(cellLine, len(cellLine)-1):
+                    useCells = list(useCells)
+                    drop = [i for i in cellLine if i not in useCells]
+                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_chromtypes_{'-'.join(chromtypes)}_type_{types}"
+                    print(name)
+                    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
+                                                                testLabel=test,
+                                                                validLabel=valid,
+                                                                chrDrop=[],
+                                                                cellLineDrop=drop,
+                                                                bin_size=bin_size,
+                                                                fileLocation="./Data/220802_DATA/", 
+                                                                dataTypes =types)
+                    # cast each dataset to a pytorch dataloader
+                    train_loader = DataLoader(ds_train, batch_size=batch_size)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
+
+                    #  We are only testing on model 4
+                    model = loadModel(4, name)
+                    print(model)
+                    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+
+                    # clear the memory
+                    clearCache()
+                    
+
+def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
+    """
+        Generates the parameters for the study and runs the study
+        all celllines, all chromatin types except CTCF
+    """    
+    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+
+    for types in ["-1", "-2"]:
+        for study in studys:
+            # go through each study
+            data1, data2 = study.split("-")
+            # process the data for each model train, test and test, train
+            for data  in [ [data1, data2], [data2, data1]]:
+                test = data[0]
+                valid = data[1]
+
+                # drop each cellLine type
+                for useChrome in combinations(chromtypes, len(chromtypes)-1):
+                    useChrome = list(useChrome)
+                    #  get the missing chromtypes
+                    drop = [i for i in chromtypes if i not in useChrome]
+                    name = f"CHD_Data_{'-'.join(useChrome)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_type_{types}"
+                    print(name)
+
+                    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
+                                                                testLabel=test,
+                                                                validLabel=valid,
+                                                                chrDrop=drop,
+                                                                cellLineDrop=[],
+                                                                bin_size=bin_size,
+                                                                fileLocation="./Data/220802_DATA/", 
+                                                                dataTypes =types)
                     
                     # cast each dataset to a pytorch dataloader
                     train_loader = DataLoader(ds_train, batch_size=batch_size)
                     test_loader = DataLoader(ds_test, batch_size=batch_size)
                     valid_loader = DataLoader(ds_valid, batch_size=batch_size)
 
-                    for modelType in args.model[::-1]:
-                        name = "param_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
-                        log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
-                        
-                        
-                        print(name)
-                        print(log)
-                
-                        # run the model
-                        model = loadModel(modelType, name)
-                        print(model)
-                        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-                        
+                    #  We are only testing on model 4
+                    model = loadModel(4, name)
+                    print(model)
+                    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+                    clearCache()
                     
-                        # clear the memory
-                        clearCache()
-
-def paramatersIndependentStudy(ids, index, epochs=3, batch_size=64):
-    """
-        Generates the parameters for the study and runs the study
-    """
-    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    
-    for training_data in combinations(ids, len(ids)-1):
-        # A549, MCF7, HepG2
-        training_data = list(training_data)
-        # MCF7
-        testing_data = [i for i in ids if i not in training_data]
-
-        train, test, valid = DS.getData(chromtypes=chromtypes, ids=training_data, trainLabel="", testLabel="",validLabel="", batch_size=batch_size)
-        
-        # cast each dataset to a pytorch dataloader
-        train_loader = DataLoader(train, batch_size=batch_size)
-        test_loader = DataLoader(test, batch_size=batch_size)
-        valid_loader = DataLoader(valid, batch_size=batch_size)
-
-        name = f"CHD_Train_{'-'.join(training_data)}_Val_{'-'.join(testing_data)}"
-        model = loadModel(4, name )
-        print(name)
-        print(model)
-        model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-
-
-
-
-
-
-
-
-
-        
-def paramatersChromateStudy(ids, index, epochs=3, batch_size=64):
-    """
-        Generates the parameters for the study and runs the study
-    """
-    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-
-    for id in ids:
-        for indexType in index: 
-            # go through each study
-            for study in studys:
-                data1, data2 = study.split("-")
-                # process the data for each model train, test and test, train
-                for data  in [ [data1, data2], [data2, data1]]:
-                    train = data[0]
-                    test = data[1]
-
-                    chromatines = [i+indexType for i in chromtypes]
-                    for drop in chromatines:
-                        ds_train, ds_test, ds_valid = DS.getData( chromatines ,[id], study, train, test, drop=drop, batch_size=batch_size)
-                         
-                        # cast each dataset to a pytorch dataloader
-                        train_loader = DataLoader(ds_train, batch_size=batch_size)
-                        test_loader = DataLoader(ds_test, batch_size=batch_size)
-                        valid_loader = DataLoader(ds_valid, batch_size=batch_size)
-
-                        for modelType in args.model[::-1]:
-                            name = "chrDrop_"+ str(drop) +"_id_" + id + "_study_" + study + "_model_" + str(modelType) + "_train_" + train + "_test_" + test + "_type_" + indexType                         
-                            log = "\n\tid: {}\n\tstudy: {}\n\tmodel: {}\n\ttrain: {}\n\ttest: {}\n\ttype: {}\n\t".format(id, study, modelType, train, test, indexType)
-                            
-                            
-                            print(name)
-                            print(log)
-                    
-                            # run the model
-                            model = loadModel(modelType, name, input_size=400)
-                            print(model)
-                            model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-                            
-                        
-                            # clear the memory
-                            clearCache()
-
-
+          
 
 if __name__ == "__main__":
     main()
