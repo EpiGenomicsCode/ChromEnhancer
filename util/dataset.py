@@ -9,7 +9,7 @@ import pandas as pd
 import pdb
 import subprocess
 import gc
-
+import pdb
 import pandas as pd
 import numpy as np
 from glob import glob
@@ -43,7 +43,7 @@ class Chromatin_Dataset(Dataset):
         self.count = 0
         self.start_index = 0
         self.bin_size = bin_size
-        self.end_index = bin_size
+        self.end_index = self.bin_size
 
         # initialize data and label variables
         self.data = None
@@ -56,43 +56,56 @@ class Chromatin_Dataset(Dataset):
         self.dataFiles = np.array(self.getDataFiles())
         self.labelFiles = np.array(self.getLabelFile())
 
+        # print all datafiles as an indented string
+        for datafile in self.dataFiles:
+            for labelfile in self.labelFiles:
+                print(labelfile)
+                for chr in datafile:
+                    print("\t", chr[1])
+        print(f"Usage: {self.dataUse}")
+        print("=================================\n")
+
+                
+
         # get the number of samples
         self.num_samples = self.getNumSamples()
 
 
     def getDataFiles(self):
         datafiles = []
+
         for cellLine in self.cellLines:
             cellLineFiles = []
             for chr in self.chromatine:
                 if cellLine not in self.cellLinesDrop:
                     files = glob(f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*")
-                    if chr not in self.chrDrop:
-                        cellLineFiles.append([1, files[0]])
-                    else:
-                        cellLineFiles.append([0, files[0]])
-            datafiles.append(cellLineFiles)
+                    try:
+                        if chr not in self.chrDrop:
+                            cellLineFiles.append([1, files[0]])
+                        else:
+                            cellLineFiles.append([0, files[0]])
+                    except:
+                        pdb.set_trace()
+            if len(cellLineFiles) != 0:
+                datafiles.append(cellLineFiles)
 
         return datafiles
     
     def getLabelFile(self):
         labelNames = []
         for cellLine in self.cellLines:
-            fileFormat = f"{self.file_location}/*{cellLine}*{self.label}*.label*"
-            files = glob(fileFormat)
-            print("==")
-            print(fileFormat)
-            print(files)
-            print(self.dataUse)
-            if self.dataUse == "train":
-                labelName = [f for f in files if "Leniant" not in f and "Stringent" not in f][0]
-            if self.dataUse == "test":
-                labelName = [f for f in files if "Lenient" in f][0]
-            if self.dataUse == "valid":
-                labelName = [f for f in files if "Stringent" in f][0]
-
-            labelNames.append(labelName)
-            
+            if cellLine not in self.cellLinesDrop:
+                fileFormat = f"{self.file_location}/*{cellLine}*{self.label}*.label*"
+                files = glob(fileFormat)
+                if self.dataUse == "train":
+                    labelName = [f for f in files if "Leniant" not in f and "Stringent" not in f][0]
+                if self.dataUse == "test":
+                    labelName = [f for f in files if "Lenient" in f][0]
+                if self.dataUse == "valid":
+                    labelName = [f for f in files if "Stringent" in f][0]
+                if len(labelName) != 0:
+                    labelNames.append(labelName)
+                
         return labelNames
     
     def getNumSamples(self):
@@ -112,7 +125,7 @@ class Chromatin_Dataset(Dataset):
         # Load data for this bin
         batch_data_list = []
         batch_label_list = []
-        import pdb;
+        
         for data_file, label_file in zip(self.dataFiles, self.labelFiles):
             chrData = []
             for chrFile in data_file:

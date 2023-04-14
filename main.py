@@ -21,7 +21,7 @@ parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5"])
 parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=32)
-parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=1024)
+parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=2)
 parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
@@ -44,7 +44,7 @@ def main():
 
     if not args.parameter:
         print("Running Parameter Study")
-        paramatersStudy(cellLine, index, epochs, batch_size)
+        paramatersStudy(cellLine, index, epochs, batch_size, bin_size)
 
     if not args.parameterCLD:
         print("Running Parameter Study with Cell Line Dropout")
@@ -93,17 +93,39 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 data1, data2 = study.split("-")
                 # process the data for each model train, test and test, train
                 for data  in [ [data1, data2], [data2, data1]]:
-                    train = data[0]
-                    test = data[1]
-                    for modelType in args.model[::-1]:
-                        train, test, valid = DS.getData(trainLabel=study,
+                    test = data[0]
+                    valid = data[1]
+                    
+                    cellLineDrop = [i for i in cellLines if i != id]
+                    ds_train, ds_test, ds_valid = DS.getData(trainLabel=study,
                                                                 testLabel=test,
                                                                 validLabel=valid,
                                                                 chrDrop=[],
-                                                                cellLineDrop=[i for i in cellLines if i != id],
+                                                                cellLineDrop=cellLineDrop,
                                                                 bin_size=bin_size,
                                                                 fileLocation="./Data/220802_DATA/", 
                                                                 dataTypes =types)
+                    
+                    # convert to dataloader
+                    ds_train = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    ds_test = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    ds_valid = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
+                        
+                    for modelType in args.model[::-1]:
+                        # drop all celllines except the one we are using
+                        name = f"Param_study_{id}_types{types}_train_{study}_test_{test}_valid_{valid}_model{modelType}_drop_{'-'.join(cellLineDrop)}"
+                        print(name)
+                       
+                        model = loadModel(modelType, name)
+                        print(model)
+
+                        model = runHomoModel(model, ds_train, ds_test, ds_valid, epochs)
+                        
+                        # clear the memory
+                        clearCache()
+                        
+  
+                        
 
 
 def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
@@ -137,9 +159,9 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                                                                 fileLocation="./Data/220802_DATA/", 
                                                                 dataTypes =types)
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
 
                     #  We are only testing on model 4
                     model = loadModel(4, name)
@@ -185,9 +207,9 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                                                                 dataTypes =types)
                     
                     # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
+                    train_loader = DataLoader(ds_train, batch_size=batch_size, shuffle=True)
+                    test_loader = DataLoader(ds_test, batch_size=batch_size, shuffle=True)
+                    valid_loader = DataLoader(ds_valid, batch_size=batch_size, shuffle=True)
 
                     #  We are only testing on model 4
                     model = loadModel(4, name)
