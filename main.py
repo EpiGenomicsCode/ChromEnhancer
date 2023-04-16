@@ -127,8 +127,9 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 for useCells in combinations(cellLine, len(cellLine)-1):
                     useCells = list(useCells)
                     cldrop = [i for i in cellLine if i not in useCells]
-                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(cldrop)}_type_{types}"
                     modelconfig = 4
+                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(cldrop)}_type_{types}_model{modelconfig}"
+                    
                     params.append([study, test, valid,[], cldrop, types, name, epochs, batch_size, bin_size, modelconfig])
 
     # run the study
@@ -157,8 +158,8 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     useChrome = list(useChrome)
                     #  get the missing chromtypes
                     chdrop = [i for i in chromtypes if i not in useChrome]
-                    name = f"CHD_Data_{'-'.join(useChrome)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(chdrop)}_type_{types}"
                     modelconfig = 4
+                    name = f"CHD_Data_{'-'.join(useChrome)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(chdrop)}_type_{types}_model{modelconfig}"
                     params.append([study, test, valid, chdrop,[], types, name, epochs, batch_size, bin_size, modelconfig])
     parseParam(params)
 
