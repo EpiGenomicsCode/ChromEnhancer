@@ -84,7 +84,7 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print("\n\n============Training on: {}===========\n".format(device))
+    # print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
 
     # initialize the values
@@ -94,7 +94,7 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     epoch = 0 
     training_accuaracy = []
     valid_accuaracy = []
-    for epoch in tqdm.tqdm(range(epochs), leave=True, desc="Epoch", total=epochs):
+    for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
         # run the model for one epoch
         model.train()
         model, accuracy = runEpoch(model, train_loader, criterion, optimizer)

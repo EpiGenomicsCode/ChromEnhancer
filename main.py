@@ -85,7 +85,7 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-
+    params = []
     for id in cellLine:
         for types in ["-1", "-2"]: 
             # go through each study
@@ -96,45 +96,24 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     test = data[0]
                     valid = data[1]
                     
-                    cellLineDrop = [i for i in cellLines if i != id]
-                    ds_train, ds_test, ds_valid = DS.getData(trainLabel=study,
-                                                                testLabel=test,
-                                                                validLabel=valid,
-                                                                chrDrop=[],
-                                                                cellLineDrop=cellLineDrop,
-                                                                bin_size=bin_size,
-                                                                fileLocation="./Data/220802_DATA/", 
-                                                                dataTypes =types)
-                    
-                    # convert to dataloader
-                    ds_train = DataLoader(ds_train, batch_size=batch_size )
-                    ds_test = DataLoader(ds_test, batch_size=batch_size )
-                    ds_valid = DataLoader(ds_valid, batch_size=batch_size )
+                    cldrop = [i for i in cellLines if i != id]
                         
                     for modelType in args.model[::-1]:
                         # drop all celllines except the one we are using
-                        name = f"Param_study_{id}_types{types}_train_{study}_test_{test}_valid_{valid}_model{modelType}_drop_{'-'.join(cellLineDrop)}"
-                        print(name)
-                       
-                        model = loadModel(modelType, name)
-                        print(model)
+                        name = f"Param_study_{id}_types{types}_train_{study}_test_{test}_valid_{valid}_model{modelType}_drop_{'-'.join(cldrop)}"
+                        params.append([study, test, valid,[], cldrop, types, name, epochs, batch_size, bin_size, modelType])
+    parseParam(params)
 
-                        model = runHomoModel(model, ds_train, ds_test, ds_valid, epochs)
-                        
-                        # clear the memory
-                        clearCache()
-                        
-  
-                        
+    
 
-
+                        
 def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
         Generates the parameters for the study and runs the study
         all cellLines except A549, all chromatin types
     """
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-
+    params = []
     for types in ["-1", "-2"]:
         for study in studys:
             # go through each study
@@ -147,29 +126,13 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 # drop each cellLine type
                 for useCells in combinations(cellLine, len(cellLine)-1):
                     useCells = list(useCells)
-                    drop = [i for i in cellLine if i not in useCells]
-                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_type_{types}"
-                    print(name)
-                    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
-                                                                testLabel=test,
-                                                                validLabel=valid,
-                                                                chrDrop=[],
-                                                                cellLineDrop=drop,
-                                                                bin_size=bin_size,
-                                                                fileLocation="./Data/220802_DATA/", 
-                                                                dataTypes =types)
-                    # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size)
-                    test_loader = DataLoader(ds_test, batch_size=batch_size)
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size)
+                    cldrop = [i for i in cellLine if i not in useCells]
+                    name = f"CLD_Data_{'-'.join(useCells)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(cldrop)}_type_{types}"
+                    modelconfig = 4
+                    params.append([study, test, valid,[], cldrop, types, name, epochs, batch_size, bin_size, modelconfig])
 
-                    #  We are only testing on model 4
-                    model = loadModel(4, name)
-                    print(model)
-                    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-
-                    # clear the memory
-                    clearCache()
+    # run the study
+    parseParam(params)
                     
 
 def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
@@ -179,7 +142,7 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """    
     chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-
+    params = [] 
     for types in ["-1", "-2"]:
         for study in studys:
             # go through each study
@@ -193,29 +156,53 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 for useChrome in combinations(chromtypes, len(chromtypes)-1):
                     useChrome = list(useChrome)
                     #  get the missing chromtypes
-                    drop = [i for i in chromtypes if i not in useChrome]
-                    name = f"CHD_Data_{'-'.join(useChrome)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(drop)}_type_{types}"
-                    print(name)
+                    chdrop = [i for i in chromtypes if i not in useChrome]
+                    name = f"CHD_Data_{'-'.join(useChrome)}_test_{test}_valid_{valid}_study_{study}_drop_{'-'.join(chdrop)}_type_{types}"
+                    modelconfig = 4
+                    params.append([study, test, valid, chdrop,[], types, name, epochs, batch_size, bin_size, modelconfig])
+    parseParam(params)
 
-                    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
-                                                                testLabel=test,
-                                                                validLabel=valid,
-                                                                chrDrop=drop,
-                                                                cellLineDrop=[],
-                                                                bin_size=bin_size,
-                                                                fileLocation="./Data/220802_DATA/", 
-                                                                dataTypes =types)
-                    
-                    # cast each dataset to a pytorch dataloader
-                    train_loader = DataLoader(ds_train, batch_size=batch_size )
-                    test_loader = DataLoader(ds_test, batch_size=batch_size )
-                    valid_loader = DataLoader(ds_valid, batch_size=batch_size )
+def parseParam(params):
+    
+    params.sort(key=lambda x: x[6])
+    for i in params:
+        print(i[6])
+    
+    for i in tqdm.tqdm(params):
+        study = i[0]
+        test = i[1]
+        valid = i[2]
+        chrdrop = i[3]
+        cldrop = i[4]
+        types = i[5]
+        name = i[6]
+        epochs = i[7]
+        batch_size = i[8]
+        bin_size = i[9]
+        modelconfig = i[10]
+        runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig)
+        
 
-                    #  We are only testing on model 4
-                    model = loadModel(4, name)
-                    print(model)
-                    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-                    clearCache()
+def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig):
+    clearCache()
+    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
+                                                testLabel=test,
+                                                validLabel=valid,
+                                                chrDrop=chrdrop,
+                                                cellLineDrop=cldrop,
+                                                bin_size=bin_size,
+                                                fileLocation="./Data/220802_DATA/", 
+                                                dataTypes =types)
+    
+    # cast each dataset to a pytorch dataloader
+    train_loader = DataLoader(ds_train, batch_size=batch_size )
+    test_loader = DataLoader(ds_test, batch_size=batch_size )
+    valid_loader = DataLoader(ds_valid, batch_size=batch_size )
+
+    #  We are only testing on model 4
+    model = loadModel(modelconfig, name)
+    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+    clearCache()
                     
           
 

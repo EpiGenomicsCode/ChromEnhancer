@@ -59,14 +59,14 @@ class Chromatin_Dataset(Dataset):
         self.length = self.getNumSamples()
         # print all datafiles as an indented string
 
-        print(f"Usage: {self.dataUse}")
-        print(f"length: {self.length}")
-        for datafile in self.dataFiles:
-            for labelfile in self.labelFiles:
-                print("\t",labelfile)
-                for chr in datafile:
-                    print("\t\t", chr[1], "\t", chr[0])
-        print("=================================\n")
+        # print(f"Usage: {self.dataUse}")
+        # print(f"length: {self.length}")
+        # for datafile in self.dataFiles:
+        #     for labelfile in self.labelFiles:
+        #         print("\t",labelfile)
+        #         for chr in datafile:
+        #             print("\t\t", chr[1], "\t", chr[0])
+        # print("=================================\n")
        
 
 
@@ -209,7 +209,7 @@ def getData(
         trainLabel,
         fileLocation + "/TRAIN/",
         "train",
-        bin_size // len(cellLineDrop),
+        bin_size // (len(cellLineDrop)+1),
         dataTypes,
     )
     test = Chromatin_Dataset(
@@ -218,7 +218,7 @@ def getData(
         testLabel,
         fileLocation + "/HOLDOUT/",
         "test",
-        bin_size // len(cellLineDrop),
+        bin_size // (len(cellLineDrop)+1),
         dataTypes,
     )
     valid = Chromatin_Dataset(
@@ -227,7 +227,7 @@ def getData(
         validLabel,
         fileLocation + "/HOLDOUT/",
         "valid",
-        bin_size // len(cellLineDrop),
+        bin_size //(len(cellLineDrop)+1),
         dataTypes,
     )
     chr_train.append(train)
