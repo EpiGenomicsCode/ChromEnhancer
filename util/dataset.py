@@ -41,12 +41,6 @@ class Chromatin_Dataset(Dataset):
         self.dataUse = dataUse
         self.dataTypes = dataTypes
 
-        # initialize bining variables
-        self.count = -1
-        self.start_index = 0
-        self.bin_size = max(bin_size//(len(self.cellLines)-len(self.cellLinesDrop)), 1)
-        self.end_index =0
-
         # initialize data and label variables
         self.data = None
         self.labels = None
@@ -57,19 +51,27 @@ class Chromatin_Dataset(Dataset):
         self.labelFiles = np.array(self.getLabelFile())
 
         self.length = self.getNumSamples()
+
+
+        # initialize bining variables
+        self.count = -1
+        self.countSize = 0
+        self.start_index = 0
+        self.bin_size = max(bin_size//(len(self.cellLines)-len(self.cellLinesDrop)), 1)
+        self.end_index =0
+
+        self.reset = False
         # print all datafiles as an indented string
-
-        # print(f"Usage: {self.dataUse}")
-        # print(f"length: {self.length}")
-        # for datafile in self.dataFiles:
-        #     for labelfile in self.labelFiles:
-        #         print("\t",labelfile)
-        #         for chr in datafile:
-        #             print("\t\t", chr[1], "\t", chr[0])
-        # print("=================================\n")
+        print(f"Usage: {self.dataUse}")
+        print(f"length: {self.length}")
+        print(f"bin_size: {self.bin_size} per cellLine")
+        for datafile in self.dataFiles:
+            for labelfile in self.labelFiles:
+                print("\t",labelfile)
+                for chr in datafile:
+                    print("\t\t", chr[1], "\t", chr[0])
+        print("=================================\n")
        
-
-
     def getDataFiles(self):
         datafiles = []
 
@@ -89,6 +91,27 @@ class Chromatin_Dataset(Dataset):
 
         return datafiles
 
+    def loadDataFiles(self):
+        batch_data_list = []
+        # Load data for this bin
+        for cellLineFile in self.dataFiles:
+            chrData = []
+            for chrtrackFile in cellLineFile:
+                try:
+                    data = pd.read_csv(chrtrackFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values
+                except:
+                    import pdb; pdb.set_trace()
+                data = np.multiply(int(chrtrackFile[0]), data, dtype=np.float32)
+                chrData.append(data)
+            chrData = np.array(chrData)
+            chrData = chrData.transpose(1, 0, 2)
+            chrData = chrData.reshape(-1,chrData.shape[1]*chrData.shape[2])
+            batch_data_list.append(chrData)
+
+        batch_data_list = np.array(batch_data_list)
+        batch_data_list = np.concatenate(np.array(batch_data_list))
+        return batch_data_list
+    
     def getLabelFile(self):
         labelNames = []
         for cellLine in self.cellLines:
@@ -106,6 +129,13 @@ class Chromatin_Dataset(Dataset):
       
         return labelNames
 
+    def loadLabelFiles(self):
+        batch_label_list = []
+        for labelFile in self.labelFiles:
+            batch_label_list.append(pd.read_csv(labelFile, sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values)
+        batch_label_list = np.concatenate(np.array(batch_label_list))
+        return batch_label_list
+
     def getNumSamples(self):
         numSamples = []
         for labelFile in self.labelFiles:
@@ -120,71 +150,36 @@ class Chromatin_Dataset(Dataset):
         self.end_index = min(self.end_index + self.bin_size, self.length)
 
         # Load data for this bin
-        batch_data_list = []
-        batch_label_list = []
+        batch_data_list = self.loadDataFiles()
+        batch_label_list = self.loadLabelFiles()
 
-        with Pool(processes=len(self.dataFiles)) as pool:
-            args = [
-                (data_file, label_file, self.start_index, self.bin_size)
-                for data_file, label_file in zip(self.dataFiles, self.labelFiles)
-            ]
-            results = pool.starmap(load_data, args)
-
-        for batch_data, batch_label in results:
-            batch_data_list.append(batch_data.reshape(500, -1))
-            batch_label_list.append(batch_label)
-
-        batch_data_list = np.array(batch_data_list).reshape(-1, 500)
-        batch_label_list = np.array(batch_label_list).reshape(-1, 1)
-
-        if self.end_index == self.length:
-            self.start_index = 0
-            self.end_index = 0
-
+        self.countSize = batch_data_list.shape[0]
 
         return batch_data_list, batch_label_list
-    
+        
     def __getitem__(self, index):
-        # Check if current bin is exhausted
-        if self.count >= self.bin_size or self.count < 0:
-            self.count = 0
-            self.data, self.labels = self.loadbin()
+
+        # Increment the count
         self.count += 1
-        self.count %= self.bin_size
-        
-        # Get data for the current index
-        data = self.data[self.count]
-        label = self.labels[self.count]
-        
+
+        # Check if we have reached the end of the dataset and reset the indices
+        if self.count >= self.length:
+            self.end_index = 0
+            self.start_index = 0
+            self.count = -1
+            self.countSize = 0
+            self.reset = True
+
+        # Check if we need to load the next bin
+        if self.count == self.countSize or self.count == -1:
+            self.data, self.labels = self.loadbin()
+
+        # Get the current data and labels for the current index
+        data = self.data[index % self.bin_size]
+        label = self.labels[index % self.bin_size]
+
         return data, label
     
-def load_data(data_file, label_file, start_index, bin_size):
-    chrData = []
-    for chrFile in data_file:
-        data = pd.read_csv(
-            chrFile[1],
-            delimiter=" ",
-            header=None,
-            skiprows=start_index,
-            nrows=bin_size,
-        )
-        data = data.values.astype(np.float32)
-        data = np.multiply(data.T, int(chrFile[0]))
-        chrData.append(data)
-
-    chrData = np.array(chrData)
-
-    # get the values
-    label = pd.read_csv(
-        label_file,
-        delimiter=" ",
-        header=None,
-        skiprows=start_index,
-        nrows=bin_size,
-    )
-    label = label.values.astype(np.float32)
-
-    return chrData, label
 
 def getData(
     trainLabel="chr11-chr7",
@@ -209,7 +204,7 @@ def getData(
         trainLabel,
         fileLocation + "/TRAIN/",
         "train",
-        bin_size // (len(cellLineDrop)+1),
+        bin_size,
         dataTypes,
     )
     test = Chromatin_Dataset(
@@ -218,7 +213,7 @@ def getData(
         testLabel,
         fileLocation + "/HOLDOUT/",
         "test",
-        bin_size // (len(cellLineDrop)+1),
+        bin_size,
         dataTypes,
     )
     valid = Chromatin_Dataset(
@@ -227,7 +222,7 @@ def getData(
         validLabel,
         fileLocation + "/HOLDOUT/",
         "valid",
-        bin_size //(len(cellLineDrop)+1),
+        bin_size,
         dataTypes,
     )
     chr_train.append(train)
