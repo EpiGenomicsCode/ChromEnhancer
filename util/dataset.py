@@ -44,7 +44,6 @@ class Chromatin_Dataset(Dataset):
         # initialize data and label variables
         self.data = None
         self.labels = None
-        self.labelFile = None
 
         # Load in file paths for data and label files
         self.dataFiles = np.array(self.getDataFiles())
@@ -65,11 +64,11 @@ class Chromatin_Dataset(Dataset):
         print(f"Usage: {self.dataUse}")
         print(f"length: {self.length}")
         print(f"bin_size: {self.bin_size} per cellLine")
-        for datafile in self.dataFiles:
-            for labelfile in self.labelFiles:
-                print("\t",labelfile)
-                for chr in datafile:
-                    print("\t\t", chr[1], "\t", chr[0])
+        for index in range(len(self.labelFiles)):
+            print(f"\tLabel: {self.labelFiles[index]}")
+            files = self.dataFiles[index]
+            for file in files:
+                print(f"\t\tData: {file[1]}\n\t\t\tkeep: {file[0]}")
         print("=================================\n")
        
     def getDataFiles(self):
@@ -88,6 +87,8 @@ class Chromatin_Dataset(Dataset):
                         cellLineFiles.append([0, files[0]])
             if len(cellLineFiles) != 0:
                 datafiles.append(cellLineFiles)
+        #  remove duplicates from datafiles
+        datafiles = list(datafiles for datafiles, _ in itertools.groupby(datafiles))
 
         return datafiles
 
