@@ -28,7 +28,7 @@ class Chromatin_Dataset(Dataset):
         bin_size=10,
         dataTypes="-1",
     ):
-        super(Dataset, self).__init__()
+        super(Chromatin_Dataset, self).__init__()
 
         self.cellLines = ["A549", "MCF7", "HepG2", "K562"]
         self.chromatine = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
