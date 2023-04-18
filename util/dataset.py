@@ -48,18 +48,17 @@ class Chromatin_Dataset(Dataset):
         # Load in file paths for data and label files
         self.dataFiles = np.array(self.getDataFiles())
         self.labelFiles = np.array(self.getLabelFile())
-
         self.length = self.getNumSamples()
 
 
         # initialize bining variables
-        self.count = -1
+        self.count = 0
         self.countSize = 0
         self.start_index = 0
         self.bin_size = max(bin_size//(len(self.cellLines)-len(self.cellLinesDrop)), 1)
-        self.end_index =0
+        self.end_index = self.bin_size
+        self.loadbin()
 
-        self.reset = False
         # print all datafiles as an indented string
         print(f"Usage: {self.dataUse}")
         print(f"length: {self.length}")
@@ -99,6 +98,7 @@ class Chromatin_Dataset(Dataset):
             cellLineData = []
 
             # CTCF-1, H3K4me3-1, H3K27ac-1, p300-1, PolII-1
+            #TODO is this correct?
             for chrFile in cellLine:
                 data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values.astype(np.float32)
                 data = np.multiply(data, int(chrFile[0])) #  multiply by 0 or 1 to remove data
@@ -109,8 +109,7 @@ class Chromatin_Dataset(Dataset):
             batch_data_list.append(cellLineData)
         batch_data_list = np.concatenate(np.array(batch_data_list))
         
-        return batch_data_list
-    
+        self.data = batch_data_list
     
     def getLabelFile(self):
         labelNames = []
@@ -134,7 +133,8 @@ class Chromatin_Dataset(Dataset):
         for labelFile in self.labelFiles:
             batch_label_list.append(pd.read_csv(labelFile, sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values)
         batch_label_list = np.concatenate(np.array(batch_label_list))
-        return batch_label_list
+        self.labels = batch_label_list
+        self.countSize += batch_label_list.shape[0]
 
     def getNumSamples(self):
         numSamples = []
@@ -146,39 +146,34 @@ class Chromatin_Dataset(Dataset):
         return self.length
     
     def loadbin(self):
-        self.start_index = self.end_index
-        self.end_index = min(self.end_index + self.bin_size, self.length)
-
-        # Load data for this bin
-        batch_data_list = self.loadDataFiles()
-        batch_label_list = self.loadLabelFiles()
-
-        self.countSize = batch_data_list.shape[0]
-
-        return batch_data_list, batch_label_list
+        self.loadDataFiles()
+        self.loadLabelFiles()
         
     def __getitem__(self, index):
 
-        # Increment the count
-        self.count += 1
-
         # Check if we have reached the end of the dataset and reset the indices
         if self.count >= self.length:
-            self.end_index = 0
             self.start_index = 0
-            self.count = -1
-            self.countSize = 0
-            self.reset = True
+            self.count = 0
+            self.end_index = min(self.bin_size, self.length)
+            self.loadbin()
 
         # Check if we need to load the next bin
-        if self.count == self.countSize or self.count == -1:
-            self.data, self.labels = self.loadbin()
+        if self.count >= self.countSize:
+            self.start_index = self.end_index
+            self.end_index = min(self.end_index+self.bin_size, self.length)
+            self.loadbin()
 
         # Get the current data and labels for the current index
         data = self.data[index % self.bin_size]
+        data = np.round(data,5)
         label = self.labels[index % self.bin_size]
 
-        return np.round(data,5), label
+        # Increment the count
+        self.count += 1
+        if self.dataUse == "valid":
+            import pdb; pdb.set_trace()
+        return data, label
     
 
 def getData(
@@ -225,13 +220,5 @@ def getData(
         bin_size,
         dataTypes,
     )
-    chr_train.append(train)
-    chr_test.append(test)
-    chr_valid.append(valid)
-
-    # Concatenate the datasets
-    train = torch.utils.data.ConcatDataset(chr_train)
-    test = torch.utils.data.ConcatDataset(chr_test)
-    valid = torch.utils.data.ConcatDataset(chr_valid)
-
+   
     return train, test, valid
