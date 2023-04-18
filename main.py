@@ -130,7 +130,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     chdrop = []
                     cldrop = [i for i in cellLine if i not in useCells]
                     modelType = 4
-                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
+                    name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
                     params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
 
     # run the study
@@ -161,7 +161,7 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     chdrop = [i for i in chromtypes if i not in useChrome]
                     cldrop = []
                     modelType = 4
-                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
+                    name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
                     params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
     parseParam(params)
 
