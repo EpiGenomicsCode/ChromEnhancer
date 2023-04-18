@@ -70,6 +70,7 @@ class Chromatin_Dataset(Dataset):
             for file in files:
                 print(f"\t\tData: {file[1]}\n\t\t\tkeep: {file[0]}")
         print("=================================\n")
+
        
     def getDataFiles(self):
         datafiles = []
@@ -94,24 +95,22 @@ class Chromatin_Dataset(Dataset):
 
     def loadDataFiles(self):
         batch_data_list = []
-        # Load data for this bin
-        for cellLineFile in self.dataFiles:
-            chrData = []
-            for chrtrackFile in cellLineFile:
-                try:
-                    data = pd.read_csv(chrtrackFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values
-                except:
-                    import pdb; pdb.set_trace()
-                data = np.multiply(int(chrtrackFile[0]), data, dtype=np.float32)
-                chrData.append(data)
-            chrData = np.array(chrData)
-            chrData = chrData.transpose(1, 0, 2)
-            chrData = chrData.reshape(-1,chrData.shape[1]*chrData.shape[2])
-            batch_data_list.append(chrData)
+        for cellLine in self.dataFiles:
+            cellLineData = []
 
-        batch_data_list = np.array(batch_data_list)
+            # CTCF-1, H3K4me3-1, H3K27ac-1, p300-1, PolII-1
+            for chrFile in cellLine:
+                data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values.astype(np.float32)
+                data = np.multiply(data, int(chrFile[0])) #  multiply by 0 or 1 to remove data
+                cellLineData.append(data)
+
+            
+            cellLineData = np.concatenate(np.array(cellLineData), axis=1)
+            batch_data_list.append(cellLineData)
         batch_data_list = np.concatenate(np.array(batch_data_list))
+        
         return batch_data_list
+    
     
     def getLabelFile(self):
         labelNames = []
@@ -179,7 +178,7 @@ class Chromatin_Dataset(Dataset):
         data = self.data[index % self.bin_size]
         label = self.labels[index % self.bin_size]
 
-        return data, label
+        return np.round(data,5), label
     
 
 def getData(
