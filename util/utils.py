@@ -84,6 +84,7 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print(f"Name: {model.name}\t Device: {device}")
     # print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
 

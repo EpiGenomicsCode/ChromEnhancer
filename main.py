@@ -98,11 +98,10 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     
                     cldrop = [i for i in cellLines if i != id]
                     chdrop = []
-                        
-                    for modelType in args.model[::-1]:
-                        # drop all celllines except the one we are using
-                        name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
+                    modelType = 4
+                    # drop all celllines except the one we are using
+                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
+                    params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
     parseParam(params)
 
     
@@ -113,6 +112,9 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
         Generates the parameters for the study and runs the study
         all cellLines except A549, all chromatin types
     """
+
+    cellLines = ["A549", "MCF7", "HepG2", "K562"]
+    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     params = []
     for types in ["-1", "-2"]:
@@ -130,7 +132,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     chdrop = []
                     cldrop = [i for i in cellLine if i not in useCells]
                     modelType = 4
-                    name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
+                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
                     params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
 
     # run the study
@@ -142,7 +144,8 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
         Generates the parameters for the study and runs the study
         all celllines, all chromatin types except CTCF
     """    
-    chromtypes = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    cellLines = ["A549", "MCF7", "HepG2", "K562"]
+    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     params = [] 
     for types in ["-1", "-2"]:
@@ -155,13 +158,13 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 valid = data[1]
 
                 # drop each cellLine type
-                for useChrome in combinations(chromtypes, len(chromtypes)-1):
+                for useChrome in combinations(chromatine, len(chromatine)-1):
                     useChrome = list(useChrome)
                     #  get the missing chromtypes
-                    chdrop = [i for i in chromtypes if i not in useChrome]
+                    chdrop = [i for i in chromatine if i not in useChrome]
                     cldrop = []
                     modelType = 4
-                    name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_cldrop_{'-'.join(cldrop)}_chdrop_{'-'.join(chdrop)}"
+                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
                     params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
     parseParam(params)
 
@@ -183,6 +186,7 @@ def parseParam(params):
         batch_size = i[8]
         bin_size = i[9]
         modelconfig = i[10]
+        clearCache()
         runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig)
         
 
@@ -205,7 +209,7 @@ def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_siz
     #  We are only testing on model 4
     model = loadModel(modelconfig, name)
     model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-    clearCache()
+
                     
           
 
