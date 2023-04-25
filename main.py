@@ -85,6 +85,7 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+    fileLocation = "./Data/220802_DATA/"
     params = []
     for id in cellLine:
         for types in ["-1", "-2"]: 
@@ -98,14 +99,12 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     
                     cldrop = [i for i in cellLines if i != id]
                     chdrop = []
-                    modelType = 4
-                    # drop all celllines except the one we are using
-                    name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                    params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
-    parseParam(params)
-
+                    for modelType in args.model:
+                        # drop all celllines except the one we are using
+                        name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
+                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
     
-
+    parseParam(params)
                         
 def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
@@ -116,6 +115,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+    fileLocation = "./Data/220803_CelllineDATA/"
     params = []
     for types in ["-1", "-2"]:
         for study in studys:
@@ -131,14 +131,13 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     useCells = list(useCells)
                     chdrop = []
                     cldrop = [i for i in cellLine if i not in useCells]
-                    modelType = 4
-                    name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                    params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
+                    for modelType in args.model:
+                        name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
+                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
 
     # run the study
     parseParam(params)
                     
-
 def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
         Generates the parameters for the study and runs the study
@@ -147,6 +146,7 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+    fileLocation = "./Data/230124_CHR-Data_Sequence/"
     params = [] 
     for types in ["-1", "-2"]:
         for study in studys:
@@ -163,14 +163,14 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     #  get the missing chromtypes
                     chdrop = [i for i in chromatine if i not in useChrome]
                     cldrop = []
-                    modelType = 4
-                    name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                    params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType])
+                    for modelType in args.model:
+                        name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
+                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
     parseParam(params)
 
 def parseParam(params):
-    
     params.sort(key=lambda x: x[6])
+
     for i in params:
         print(i[6])
 
@@ -186,11 +186,11 @@ def parseParam(params):
         batch_size = i[8]
         bin_size = i[9]
         modelconfig = i[10]
+        fileLocation = i[11]
         clearCache()
-        runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig)
-        
+        runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation)    
 
-def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig):
+def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation):
     clearCache()
     ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
                                                 testLabel=test,
@@ -198,7 +198,7 @@ def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_siz
                                                 chrDrop=chrdrop,
                                                 cellLineDrop=cldrop,
                                                 bin_size=bin_size,
-                                                fileLocation="./Data/220802_DATA/", 
+                                                fileLocation=fileLocation, 
                                                 dataTypes =types)
     
     # cast each dataset to a pytorch dataloader
@@ -206,12 +206,9 @@ def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_siz
     test_loader = DataLoader(ds_test, batch_size=batch_size )
     valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
-    #  We are only testing on model 4
     model = loadModel(modelconfig, name)
     model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
-
-                    
-          
+    
 
 if __name__ == "__main__":
     main()
