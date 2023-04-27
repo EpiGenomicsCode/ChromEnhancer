@@ -21,7 +21,7 @@ parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5"])
 parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=2048)
-parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=16384)
+parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
 parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
