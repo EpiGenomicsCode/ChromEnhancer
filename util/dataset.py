@@ -108,7 +108,7 @@ class Chromatin_Dataset(Dataset):
             cellLineData = []
 
             for chrFile in cellLine:
-                data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=min(self.bin_size, self.length-self.start_index) ).values.astype(np.float32)
+                data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values.astype(np.float32)
                 data = np.multiply(data, int(chrFile[0])) #  multiply by 0 or 1 to remove data
                 cellLineData.append(data)
 
