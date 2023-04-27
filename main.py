@@ -20,8 +20,8 @@ parser.add_argument('--parameterCHD', action='store_false', help='Run the parame
 parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine', default=["A549", "MCF7", "HepG2", "K562"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5"])
-parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=32)
-parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=2)
+parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=2048)
+parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=16384)
 parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
@@ -102,7 +102,8 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     for modelType in args.model:
                         # drop all celllines except the one we are using
                         name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
+                        if name not in params:
+                            params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
     
     parseParam(params)
                         
@@ -200,7 +201,6 @@ def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_siz
                                                 bin_size=bin_size,
                                                 fileLocation=fileLocation, 
                                                 dataTypes =types)
-    
     # cast each dataset to a pytorch dataloader
     train_loader = DataLoader(ds_train, batch_size=batch_size )
     test_loader = DataLoader(ds_test, batch_size=batch_size )
