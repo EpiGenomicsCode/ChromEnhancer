@@ -68,7 +68,6 @@ class Chromatin_Dataset(Dataset):
             files = self.dataFiles[index]
             for file in files:
                 print(f"\t\tData: {file[1]}\n\t\t\tkeep: {file[0]}")
-        print("=================================\n")
 
        
     def globDataFiles(self, cellLine, chr):
@@ -83,16 +82,17 @@ class Chromatin_Dataset(Dataset):
     def globLabelFiles(self, cellLine):
         if "220802" in self.file_location:
             files = glob(f"{self.file_location}/*{cellLine}*{self.label}*.label*")
-            if self.dataUse == "train":
-                labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
-            if self.dataUse == "test":
-                labelName = [f for f in files if "Stringent" in f][0]
-            if self.dataUse == "valid":
-                labelName = [f for f in files if "Lenient" in f][0]
-            return labelName
         
         if "220803" in self.file_location:
-            return glob(f"{self.file_location}/{cellLine}*.label")[0]
+            files =  glob(f"{self.file_location}/{cellLine}*.label")
+
+        if self.dataUse == "train":
+            labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
+        if self.dataUse == "test":
+            labelName = [f for f in files if "Stringent" in f][0]
+        if self.dataUse == "valid":
+            labelName = [f for f in files if "Lenient" in f][0]
+        return labelName
 
     def getDataFiles(self):
         datafiles = []
@@ -203,33 +203,60 @@ def getData(
     chr_valid = []
     # train test valid 
     bin_size = bin_size//3
-    # Create the datasets
-    train = Chromatin_Dataset(
-        cellLineDrop,
-        chrDrop,
-        trainLabel,
-        fileLocation + "/TRAIN/",
-        "train",
-        bin_size,
-        dataTypes,
-    )
-    test = Chromatin_Dataset(
-        cellLineDrop,
-        chrDrop,
-        testLabel,
-        fileLocation + "/HOLDOUT/",
-        "test",
-        bin_size,
-        dataTypes,
-    )
-    valid = Chromatin_Dataset(
-        cellLineDrop,
-        chrDrop,
-        validLabel,
-        fileLocation + "/HOLDOUT/",
-        "valid",
-        bin_size,
-        dataTypes,
-    )
-   
-    return train, test, valid
+
+    cellLines = ["A549", "MCF7", "HepG2", "K562"]
+    clkeep = [i for i in cellLines if i not in cellLineDrop]
+    for keep in clkeep:
+        clDrop = [i for i in cellLines if i not in keep]
+        # Create the datasets
+        train = Chromatin_Dataset(
+                    clDrop,
+                    chrDrop,
+                    trainLabel,
+                    fileLocation + "/TRAIN/",
+                    "train",
+                    bin_size,
+                    dataTypes,
+                ) 
+        
+        chr_train.append(train)
+    print("=================================\n")
+
+    
+    for keep in clkeep:
+        clDrop = [i for i in cellLines if i not in keep]
+        test = Chromatin_Dataset(
+                clDrop,
+                chrDrop,
+                testLabel,
+                fileLocation + "/HOLDOUT/",
+                "test",
+                bin_size,
+                dataTypes,
+            )
+        
+        chr_test.append(test)
+
+    print("=================================\n")
+
+    for keep in clkeep:
+        clDrop = [i for i in cellLines if i not in keep]
+        valid = Chromatin_Dataset(
+                clDrop,
+                chrDrop,
+                validLabel,
+                fileLocation + "/HOLDOUT/",
+                "valid",
+                bin_size,
+                dataTypes,
+            )
+        chr_valid.append(valid)
+    print("=================================\n")
+
+    #  concat using pytorch
+    chr_train = torch.utils.data.ConcatDataset(chr_train)
+    chr_valid = torch.utils.data.ConcatDataset(chr_valid)
+    chr_test = torch.utils.data.ConcatDataset(chr_test)
+
+
+    return chr_train, chr_test, chr_valid
