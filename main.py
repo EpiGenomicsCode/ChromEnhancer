@@ -105,7 +105,7 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                         if name not in params:
                             params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
     
-    parseParam(params)
+    parseParam("param.log", params)
                         
 def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
@@ -137,7 +137,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                         params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
 
     # run the study
-    parseParam(params)
+    parseParam("CLD.log", params)
                     
 def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
@@ -167,10 +167,32 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                     for modelType in args.model:
                         name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
                         params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
-    parseParam(params)
+    parseParam("CHD.log", params)
 
-def parseParam(params):
+
+
+# Function to check if a simulation has already been started
+def simulation_started(started_file, simulation_name):
+    sim =  open(started_file, "r")
+    for line in sim:
+        print(line)
+        if simulation_name in line:
+            return True
+    return False
+
+# Function to mark a simulation as started
+def mark_simulation_as_started(started_file,simulation_name):
+    with open(started_file, "a") as f:
+        f.write(simulation_name + "\n")
+
+
+def parseParam(startedFile, params):
     params.sort(key=lambda x: x[6])
+    # create a new file if it does not exist
+    if not os.path.exists(startedFile):
+        with open(startedFile, "w") as f:
+            f.write("")
+    # print the params  
 
     for i in params:
         print(i[6])
@@ -189,7 +211,13 @@ def parseParam(params):
         modelconfig = i[10]
         fileLocation = i[11]
         clearCache()
-        runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation)    
+        import pdb; pdb.set_trace()
+        if simulation_started(startedFile, name):
+            print(f"{name} has already been started, skipping.")
+            continue
+        else:
+            mark_simulation_as_started(startedFile, name)
+            runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation)    
 
 def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation):
     clearCache()
