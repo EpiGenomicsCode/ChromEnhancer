@@ -102,7 +102,7 @@ class Chromatin_Dataset(Dataset):
             for chr in self.chromatine:
                 if cellLine not in self.cellLinesDrop:
                     files = self.globDataFiles(cellLine, chr)
-                    if chr not in self.chrDrop or self.dataUse == "valid":
+                    if chr not in self.chrDrop or self.dataUse == "valid" or self.dataUse == "test":
                         cellLineFiles.append([1, files[0]])
                     else:
                         cellLineFiles.append([0, files[0]])
