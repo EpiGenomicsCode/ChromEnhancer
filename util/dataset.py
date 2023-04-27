@@ -178,8 +178,6 @@ class Chromatin_Dataset(Dataset):
 
         # Increment the count
         self.count += 1
-        if self.dataUse == "valid":
-            import pdb; pdb.set_trace()
         return data, label
     
 
@@ -198,7 +196,8 @@ def getData(
     chr_train = []
     chr_test = []
     chr_valid = []
-
+    # train test valid 
+    bin_size = bin_size//3
     # Create the datasets
     train = Chromatin_Dataset(
         cellLineDrop,
