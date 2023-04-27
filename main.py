@@ -116,7 +116,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    fileLocation = "./Data/220803_CelllineDATA/"
+    fileLocation = "./Data/220802_DATA/"
     params = []
     for types in ["-1", "-2"]:
         for study in studys:
@@ -147,7 +147,7 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    fileLocation = "./Data/230124_CHR-Data_Sequence/"
+    fileLocation = "./Data/220802_DATA/"
     params = [] 
     for types in ["-1", "-2"]:
         for study in studys:
@@ -206,8 +206,15 @@ def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_siz
     test_loader = DataLoader(ds_test, batch_size=batch_size )
     valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
+    # load the model
     model = loadModel(modelconfig, name)
+    # run the model
     model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+
+    del ds_train, ds_test, ds_valid, train_loader, test_loader, valid_loader
+    gc.collect()
+    torch.cuda.empty_cache()
+
     
 
 if __name__ == "__main__":

@@ -71,6 +71,18 @@ class Chromatin_Dataset(Dataset):
         print("=================================\n")
 
        
+    def globDataFiles(self, cellLine, chr):
+        if "220802" in self.file_location:
+                return glob(f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*")
+        
+        if "220803" in self.file_location:
+                return glob(f"{self.file_location}/*{cellLine}*_train_{chr}{self.dataTypes}*")
+    
+
+    def globLabelFiles(self, cellLine):
+        if "220802" in self.file_location:
+            return glob(f"{self.file_location}/*{cellLine}*{self.label}*.label*")
+
     def getDataFiles(self):
         datafiles = []
 
@@ -78,16 +90,14 @@ class Chromatin_Dataset(Dataset):
             cellLineFiles = []
             for chr in self.chromatine:
                 if cellLine not in self.cellLinesDrop:
-                    files = glob(
-                        f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*"
-                    )
+                    files = self.globDataFiles(cellLine, chr)
+
                     if chr not in self.chrDrop:
                         cellLineFiles.append([1, files[0]])
                     else:
                         cellLineFiles.append([0, files[0]])
             if len(cellLineFiles) != 0:
                 datafiles.append(cellLineFiles)
-        #  remove duplicates from datafiles
         datafiles = list(datafiles for datafiles, _ in itertools.groupby(datafiles))
 
         return datafiles
@@ -97,8 +107,6 @@ class Chromatin_Dataset(Dataset):
         for cellLine in self.dataFiles:
             cellLineData = []
 
-            # CTCF-1, H3K4me3-1, H3K27ac-1, p300-1, PolII-1
-            #TODO is this correct?
             for chrFile in cellLine:
                 data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values.astype(np.float32)
                 data = np.multiply(data, int(chrFile[0])) #  multiply by 0 or 1 to remove data
@@ -115,8 +123,7 @@ class Chromatin_Dataset(Dataset):
         labelNames = []
         for cellLine in self.cellLines:
             if cellLine not in self.cellLinesDrop:
-                fileFormat = f"{self.file_location}/*{cellLine}*{self.label}*.label*"
-                files = glob(fileFormat)
+                files = self.globLabelFiles(cellLine)
                 if self.dataUse == "train":
                     labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
                 if self.dataUse == "test":
