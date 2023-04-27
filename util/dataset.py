@@ -73,15 +73,26 @@ class Chromatin_Dataset(Dataset):
        
     def globDataFiles(self, cellLine, chr):
         if "220802" in self.file_location:
-                return glob(f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*")
+            return glob(f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*")
         
         if "220803" in self.file_location:
-                return glob(f"{self.file_location}/*{cellLine}*_train_{chr}{self.dataTypes}*")
+            return glob(f"{self.file_location}/*{cellLine}*{chr}*{self.dataTypes}*")
+        
     
 
     def globLabelFiles(self, cellLine):
         if "220802" in self.file_location:
-            return glob(f"{self.file_location}/*{cellLine}*{self.label}*.label*")
+            files = glob(f"{self.file_location}/*{cellLine}*{self.label}*.label*")
+            if self.dataUse == "train":
+                labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
+            if self.dataUse == "test":
+                labelName = [f for f in files if "Stringent" in f][0]
+            if self.dataUse == "valid":
+                labelName = [f for f in files if "Lenient" in f][0]
+            return labelName
+        
+        if "220803" in self.file_location:
+            return glob(f"{self.file_location}/{cellLine}*.label")[0]
 
     def getDataFiles(self):
         datafiles = []
@@ -91,7 +102,6 @@ class Chromatin_Dataset(Dataset):
             for chr in self.chromatine:
                 if cellLine not in self.cellLinesDrop:
                     files = self.globDataFiles(cellLine, chr)
-
                     if chr not in self.chrDrop:
                         cellLineFiles.append([1, files[0]])
                     else:
@@ -123,13 +133,8 @@ class Chromatin_Dataset(Dataset):
         labelNames = []
         for cellLine in self.cellLines:
             if cellLine not in self.cellLinesDrop:
-                files = self.globLabelFiles(cellLine)
-                if self.dataUse == "train":
-                    labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
-                if self.dataUse == "test":
-                    labelName = [f for f in files if "Stringent" in f][0]
-                if self.dataUse == "valid":
-                    labelName = [f for f in files if "Lenient" in f][0]
+                labelName = self.globLabelFiles(cellLine)
+
                 if len(labelName) != 0:
                     labelNames.append(labelName)
       
