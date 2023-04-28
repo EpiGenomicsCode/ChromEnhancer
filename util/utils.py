@@ -1,7 +1,7 @@
 import numpy as np
 import torch.optim as optim
 import tqdm
-from util.model import *
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5
 import os
 import pandas as pd
 from sklearn.metrics import precision_recall_curve
@@ -10,7 +10,21 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import roc_curve, auc, accuracy_score
 import gc 
 import seaborn as sns
+import torch
 import datetime
+from torch import nn
+
+def seedEverything(seed=42):
+    """
+        Seeds everything for reproducibility
+    """
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cudnn.deterministic = True
+
 
 def plotAccuracy(accuracy_values, name):
     """
@@ -30,15 +44,15 @@ def loadModel(modelNumber, name="", input_size=500):
     """
     modelNumber = int(modelNumber)
     if modelNumber == 1:
-        return Chromatin_Network1(name, input_size)
+        return ChrNet1.Chromatin_Network1(name, input_size)
     elif modelNumber == 2:
-        return Chromatin_Network2(name, input_size)
+        return ChrNet2.Chromatin_Network2(name, input_size)
     elif modelNumber == 3:
-        return Chromatin_Network3(name, input_size)
+        return ChrNet3.Chromatin_Network3(name, input_size)
     elif modelNumber == 4:
-        return Chromatin_Network4(name, input_size)
+        return ChrNet4.Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
-        return Chromatin_Network5(name, input_size)
+        return ChrNet5.Chromatin_Network5(name, input_size)
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
 
@@ -70,7 +84,8 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    print("\n\n============Training on: {}===========\n".format(device))
+    print(f"Name: {model.name}\t Device: {device}")
+    # print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
 
     # initialize the values
@@ -80,7 +95,7 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     epoch = 0 
     training_accuaracy = []
     valid_accuaracy = []
-    for epoch in tqdm.tqdm(range(epochs), leave=True, desc="Epoch", total=epochs):
+    for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
         # run the model for one epoch
         model.train()
         model, accuracy = runEpoch(model, train_loader, criterion, optimizer)
@@ -139,6 +154,7 @@ def runEpoch(model, train_loader, criterion, optimizer):
         labels = labels.to(torch.float32).to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
+
 
         # forward + backward + optimize
         outputs = model(inputs)
