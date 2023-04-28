@@ -211,7 +211,6 @@ def parseParam(startedFile, params):
         modelconfig = i[10]
         fileLocation = i[11]
         clearCache()
-        import pdb; pdb.set_trace()
         if simulation_started(startedFile, name):
             print(f"{name} has already been started, skipping.")
             continue
