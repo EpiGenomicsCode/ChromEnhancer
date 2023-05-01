@@ -192,12 +192,15 @@ def mark_simulation_as_started(started_file,simulation_name):
         f.write(simulation_name + "\n")
 
 
-
 def parseParam(startedFile, params):
     # print the params  
     for i in params:
         print(i[6])
 
+    # create a new file if it does not exist
+    if not os.path.exists(startedFile):
+        with open(startedFile, "w") as f:
+            f.write("")
     for i in tqdm.tqdm(params):
         name = i[6]
         if simulation_started(startedFile, name):
@@ -205,9 +208,9 @@ def parseParam(startedFile, params):
             continue
         else:
             mark_simulation_as_started(startedFile, name)
-            runStudy(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10])
+            runStudy(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], args.bin_size)
         
-def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,modelconfig, fileLocation):
+def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,modelconfig, fileLocation, bin_size=1024):
   
     ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
                                                 testLabel=test,
@@ -215,7 +218,8 @@ def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,
                                                 dataTypes=types,
                                                 fileLocation=fileLocation,
                                                 chrUse=chrUse,
-                                                cellLineUse=clUse
+                                                cellLineUse=clUse,
+                                                bin_size=bin_size
                                             )
     
     # cast each dataset to a pytorch dataloader
