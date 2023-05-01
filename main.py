@@ -124,7 +124,7 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    fileLocation = "./Data/220802_DATA/"
+    fileLocation = "./Data/220803_CelllineDATA/"
     params = []
     for types in ["-1", "-2"]:
         for study in studys:
@@ -135,14 +135,11 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 test = data[0]
                 valid = data[1]
 
-                # drop each cellLine type
                 for useCells in combinations(cellLine, len(cellLine)-1):
-                    useCells = list(useCells)
-                    chdrop = []
-                    cldrop = [i for i in cellLine if i not in useCells]
                     for modelType in args.model:
-                        name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
+                        name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(useCells)}_chkeep_{'-'.join(chromatine)}_type{types}"
+                        params.append([study, test, valid,chromatine, list(useCells), types, name, epochs, batch_size, modelType, fileLocation])
+                    
 
     # run the study
     parseParam("CLD.log", params)
@@ -169,12 +166,10 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 # drop each cellLine type
                 for useChrome in combinations(chromatine, len(chromatine)-1):
                     useChrome = list(useChrome)
-                    #  get the missing chromtypes
-                    chdrop = [i for i in chromatine if i not in useChrome]
-                    cldrop = []
                     for modelType in args.model:
-                        name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
+                        name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(cellLine)}_chkeep_{'-'.join(useChrome)}_type{types}"
+                        params.append([study, test, valid,useChrome, cellLine, types, name, epochs, batch_size, modelType, fileLocation])
+
     parseParam("CHD.log", params)
 
 
@@ -190,7 +185,6 @@ def simulation_started(started_file, simulation_name):
 def mark_simulation_as_started(started_file,simulation_name):
     with open(started_file, "a") as f:
         f.write(simulation_name + "\n")
-
 
 def parseParam(startedFile, params):
     # print the params  

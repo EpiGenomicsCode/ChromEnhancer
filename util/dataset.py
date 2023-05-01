@@ -12,8 +12,8 @@ class Chromatin_Dataset(Dataset):
         dataTypes,
         label,
         fileLocation,
-        mode="train",
         chunk_size=4096,
+        mode="train",
     ):
         """
         Args:
@@ -39,16 +39,47 @@ class Chromatin_Dataset(Dataset):
         self.start_chunk = 0
         self.end_chunk = self.chunk_size
         self.chunk_counter = 0
+        if "220802" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_labels"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
+            else:
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
+        elif "220803" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_labels"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_train"
+                self.labelName = f"{self.cellLine}_StringentEnhancer"
+            else:
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_LenientEnhancer"
+        elif "Sequence" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.label}_train"
+                self.labelName = f"{self.cellLine}_{self.label}_train"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_StringentEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_StringentEnhancer_{self.label}"
+            else:
+                self.dataName = f"{self.cellLine}_LenientEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_LenientEnhancer_{self.label}"
+        elif "230124" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.label}_train"
+                self.labelName = f"{self.cellLine}_train"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_StringentEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_StringentEnhancer"
+            else:
+                self.dataName = f"{self.cellLine}_LenientEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_LenientEnhancer"
 
-        if self.mode == "train":
-            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
-            self.labelName = f"{self.cellLine}_{self.label}_labels"
-        elif self.mode == "test":
-            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
-            self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
-        else:
-            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
-            self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
 
         self.DataFile, self.LabelFile = self.getFiles()
         self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]
@@ -91,20 +122,18 @@ class Chromatin_Dataset(Dataset):
             self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
 
 
-        try:
-            pos = index % (self.end_chunk - self.start_chunk)
-            
-            data = self.Dataset[pos]
-            label = self.Labelset[pos]
+        pos = index % (self.end_chunk - self.start_chunk)
+        
+        data = self.Dataset[pos]
+        label = self.Labelset[pos]
 
+        if self.mode == "train":
             # zero out the missing chromatin type
             for i in missing_index:
                 data[i*100:(i+1)*100] = 0
 
-            self.chunk_counter += 1
+        self.chunk_counter += 1
 
-        except:
-            import pdb; pdb.set_trace()
 
         return data, label
 
@@ -118,7 +147,8 @@ def getData(
     dataTypes="-1",
     fileLocation="./Data/220802_DATA/",
     chrUse=None,
-    cellLineUse=None
+    cellLineUse=None,
+    bin_size=4096
 ):
     train = []
     test = []
@@ -132,6 +162,7 @@ def getData(
                 dataTypes,    # -1
                 trainLabel,   # chr11-chr7
                 fileLocation+"TRAIN/", # ./Data/220802_DATA/
+                bin_size,
                 "train")
         )
         test.append(
@@ -141,6 +172,7 @@ def getData(
                 dataTypes,    # -1
                 testLabel,   # chr11-chr7
                 fileLocation+"HOLDOUT/", # ./Data/220802_DATA/
+                bin_size,
                 "test")
         )
 
@@ -151,6 +183,7 @@ def getData(
                 dataTypes,    # -1
                 validLabel,   # chr11-chr7
                 fileLocation+"HOLDOUT/", # ./Data/220802_DATA/
+                bin_size,
                 "valid")
                
         )
