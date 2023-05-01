@@ -98,7 +98,10 @@ class Chromatin_Dataset(Dataset):
 
     def __len__(self):
         return self.length
-    
+
+    def convertSequence(self, sequence, alphabet='ACGT'):
+        return torch.tensor([[1 if letter == alphabet[i] else 0 for i in range(len(alphabet))] for letter in sequence])
+
     def __getitem__(self, index):
         """
         Returns a data-label pair.
@@ -134,8 +137,10 @@ class Chromatin_Dataset(Dataset):
 
         self.chunk_counter += 1
 
-
-        return data, label
+        if "Sequence" in self.fileLocation:
+            return self.convertSequence(data[0]).flatten(), label
+        else:
+            return data, label
 
 
         

@@ -55,28 +55,23 @@ def main():
         ChromatineDropout(cellLine, index, epochs, batch_size, bin_size)
 
 def sequenceStudy(epochs=20, batch_size=64):
-    trainFiles = glob.glob("./Data/230124_CHR-Data_Sequence/CHR-CHROM/TRAIN/*.seq")
-    for trainFile in trainFiles:
-        name = trainFile[trainFile.rfind("/")+1:-4]
+    cellLines = ["A549", "MCF7", "HepG2", "K562"]
+    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
+    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
 
-        trainData = SeqDS.Sequence_Dataset(trainFile, type="train")
-        trainLoader = DataLoader(trainData, batch_size=batch_size )
-        
-        testData = SeqDS.Sequence_Dataset(trainFile, type="test")
-        testLoader = DataLoader(testData, batch_size=batch_size )
+    fileLocation = "./Data/230124_CHR-Data_Sequence/"
+    params = []
+    for cellLine in cellLines:
+        for study in studys:
+            test, valid = study.split("-")
+            for t,v in [[test, valid], [valid, test]]:
+                for modelType in args.model:
+                    name = f"sequence_study_{study}_test_{t}_valid_{v}_model{modelType}_clkeep_{cellLine}_type-1"
+                    # study, test, valid, chrUse, clUse, types, name, epochs, batch_size,modelconfig, fileLocation, bin_size=1024)
+                    params.append([study, t, v, chromatine, [cellLine], "", name, epochs, batch_size, modelType, fileLocation])
 
-        validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
-        validLoader = DataLoader(validData, batch_size=batch_size )
-        for i in args.model[::-1]:
-            name = name + "_model{}".format(i)
-            model = loadModel(i, name, input_size=4000)
-            print(name)
-            print(model)
-            model = runHomoModel(model, trainLoader, testLoader, validLoader, epochs)
+    parseParam("sequence.log", params)
 
-            # clear the memory
-            clearCache()
-        
 def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
         Generates the parameters for the study and runs the study
@@ -187,10 +182,11 @@ def mark_simulation_as_started(started_file,simulation_name):
         f.write(simulation_name + "\n")
 
 def parseParam(startedFile, params):
+    
     # print the params  
     for i in params:
         print(i[6])
-
+    print(f"len(params): {len(params)}")
     # create a new file if it does not exist
     if not os.path.exists(startedFile):
         with open(startedFile, "w") as f:
@@ -222,7 +218,10 @@ def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,
     valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
     # load the model
-    model = loadModel(modelconfig, name)
+    if "Sequence" in fileLocation:
+        model = loadModel(modelconfig, name, 4000)
+    else:
+        model = loadModel(modelconfig, name)
     # run the model
     model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
 
