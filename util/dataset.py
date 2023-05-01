@@ -158,7 +158,8 @@ def getData(
     train = []
     test = []
     valid = []
-
+    bin_size = bin_size // len(cellLineUse)
+    bin_size = bin_size // 3
     for cellLine in cellLineUse:
         train.append(
             Chromatin_Dataset(
