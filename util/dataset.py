@@ -1,262 +1,161 @@
-from torch.utils.data import Dataset
-from glob import glob
+import h5py
 import numpy as np
 import torch
-from tqdm import tqdm
-import itertools
-import os
-import pandas as pd
-import pdb
-import subprocess
-import gc
-import pdb
-import pandas as pd
-import numpy as np
-from glob import glob
 from torch.utils.data import Dataset
-from multiprocessing import Pool
-
+from glob import glob
 
 class Chromatin_Dataset(Dataset):
     def __init__(
         self,
-        cellLinesDrop,
-        chromTypesDrop,
+        cellLine,
+        chrUse,
+        dataTypes,
         label,
-        file_location,
-        dataUse,
-        bin_size=10,
-        dataTypes="-1",
+        fileLocation,
+        mode="train",
+        chunk_size=4096,
     ):
+        """
+        Args:
+            cellLine (str): cell line name.
+            chrUse (list): list of chromatin types to use.
+            dataTypes (str): data type to use.
+            label (str): label name.
+            fileLocation (str): path to the data files.
+            mode (str): dataset mode (train, test or valid).
+            chunk_size (int): chunk size to use when loading the HDF5 data. Default: 1000.
+        """
         super(Chromatin_Dataset, self).__init__()
 
-        self.cellLines = ["A549", "MCF7", "HepG2", "K562"]
-        self.chromatine = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-
-        # Saving the parameters
-        self.cellLinesDrop = cellLinesDrop
-        self.chrDrop = chromTypesDrop
-        self.label = label
-        self.file_location = file_location
-        self.dataUse = dataUse
+        self.cellLine = cellLine
+        self.chrUse = chrUse
         self.dataTypes = dataTypes
+        self.label = label
+        self.fileLocation = fileLocation
+        self.mode = mode
+        self.chromatin =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+        self.missing = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
+        self.chunk_size = chunk_size
+        self.start_chunk = 0
+        self.end_chunk = self.chunk_size
+        self.chunk_counter = 0
 
-        # initialize data and label variables
-        self.data = None
-        self.labels = None
+        if self.mode == "train":
+            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+            self.labelName = f"{self.cellLine}_{self.label}_labels"
+        elif self.mode == "test":
+            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+            self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
+        else:
+            self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+            self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
 
-        # Load in file paths for data and label files
-        self.dataFiles = np.array(self.getDataFiles())
-        self.labelFiles = np.array(self.getLabelFile())
-        self.length = self.getNumSamples()
+        self.DataFile, self.LabelFile = self.getFiles()
+        self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]
+        self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName]
+        assert len(self.Dataset) == len(self.Labelset), "Data and label lengths do not match."
+        self.length = len(self.Dataset)
 
 
-        # initialize bining variables
-        self.count = 0
-        self.countSize = 0
-        self.start_index = 0
-        self.bin_size = max(bin_size//(len(self.cellLines)-len(self.cellLinesDrop)), 1)
-        self.end_index = self.bin_size
-        self.loadbin()
-
-        # print all datafiles as an indented string
-        print(f"Usage: {self.dataUse}")
-        print(f"length: {self.length}")
-        print(f"bin_size: {self.bin_size} per cellLine")
-        for index in range(len(self.labelFiles)):
-            print(f"\tLabel: {self.labelFiles[index]}")
-            files = self.dataFiles[index]
-            for file in files:
-                print(f"\t\tData: {file[1]}\n\t\t\tkeep: {file[0]}")
-
-       
-    def globDataFiles(self, cellLine, chr):
-        if "220802" in self.file_location:
-            return glob(f"{self.file_location}/*{cellLine}*{self.label}*{chr}*{self.dataTypes}*")
-        
-        if "220803" in self.file_location:
-            return glob(f"{self.file_location}/*{cellLine}*{chr}*{self.dataTypes}*")
-        
-    
-
-    def globLabelFiles(self, cellLine):
-        if "220802" in self.file_location:
-            files = glob(f"{self.file_location}/*{cellLine}*{self.label}*.label*")
-        
-        if "220803" in self.file_location:
-            files =  glob(f"{self.file_location}/{cellLine}*.label")
-
-        if self.dataUse == "train":
-            labelName = [i for i in files if i and not "Leniant" in i and not "Stringent" in i ][0]
-        if self.dataUse == "test":
-            labelName = [f for f in files if "Stringent" in f][0]
-        if self.dataUse == "valid":
-            labelName = [f for f in files if "Lenient" in f][0]
-        return labelName
-
-    def getDataFiles(self):
-        datafiles = []
-
-        for cellLine in self.cellLines:
-            cellLineFiles = []
-            for chr in self.chromatine:
-                if cellLine not in self.cellLinesDrop:
-                    files = self.globDataFiles(cellLine, chr)
-                    if chr not in self.chrDrop or self.dataUse == "valid" or self.dataUse == "test":
-                        cellLineFiles.append([1, files[0]])
-                    else:
-                        cellLineFiles.append([0, files[0]])
-            if len(cellLineFiles) != 0:
-                datafiles.append(cellLineFiles)
-        datafiles = list(datafiles for datafiles, _ in itertools.groupby(datafiles))
-
-        return datafiles
-
-    def loadDataFiles(self):
-        batch_data_list = []
-        for cellLine in self.dataFiles:
-            cellLineData = []
-
-            for chrFile in cellLine:
-                data = pd.read_csv(chrFile[1], sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values.astype(np.float32)
-                data = np.multiply(data, int(chrFile[0])) #  multiply by 0 or 1 to remove data
-                cellLineData.append(data)
-
-            
-            cellLineData = np.concatenate(np.array(cellLineData), axis=1)
-            batch_data_list.append(cellLineData)
-        batch_data_list = np.concatenate(np.array(batch_data_list))
-        
-        self.data = batch_data_list
-    
-    def getLabelFile(self):
-        labelNames = []
-        for cellLine in self.cellLines:
-            if cellLine not in self.cellLinesDrop:
-                labelName = self.globLabelFiles(cellLine)
-
-                if len(labelName) != 0:
-                    labelNames.append(labelName)
-      
-        return labelNames
-
-    def loadLabelFiles(self):
-        batch_label_list = []
-        for labelFile in self.labelFiles:
-            batch_label_list.append(pd.read_csv(labelFile, sep=" ", header=None, skiprows=self.start_index,nrows=self.bin_size ).values)
-        batch_label_list = np.concatenate(np.array(batch_label_list))
-        self.labels = batch_label_list
-        self.countSize += batch_label_list.shape[0]
-
-    def getNumSamples(self):
-        numSamples = []
-        for labelFile in self.labelFiles:
-            numSamples.append(sum(1 for line in open(labelFile)))
-        return sum(numSamples)
+    def getFiles(self):
+        """
+        Returns the file names for the data and labels.
+        """
+        DataFile = glob(f"{self.fileLocation}*D*.h5")[0]
+        LabelFile = glob(f"{self.fileLocation}*L*.h5")[0]
+        return DataFile, LabelFile
 
     def __len__(self):
         return self.length
     
-    def loadbin(self):
-        self.loadDataFiles()
-        self.loadLabelFiles()
-        
     def __getitem__(self, index):
+        """
+        Returns a data-label pair.
+        """
+        # find the index of the missing chromatin type
+        missing_index = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
 
-        # Check if we have reached the end of the dataset and reset the indices
-        if self.count >= self.length:
-            self.start_index = 0
-            self.count = 0
-            self.end_index = min(self.bin_size, self.length)
-            self.loadbin()
+        if self.chunk_counter % self.chunk_size == 0:
+            self.start_chunk = self.end_chunk
+            self.end_chunk = min(self.end_chunk + self.chunk_size, self.length)
+            # load the next chunk
+            self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName][self.start_chunk:self.end_chunk]
+            self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
 
-        # Check if we need to load the next bin
-        if self.count >= self.countSize:
-            self.start_index = self.end_index
-            self.end_index = min(self.end_index+self.bin_size, self.length)
-            self.loadbin()
 
-        # Get the current data and labels for the current index
-        data = self.data[index % self.bin_size]
-        data = np.round(data,5)
-        label = self.labels[index % self.bin_size]
+        if self.chunk_counter >= self.length or self.start_chunk >= self.end_chunk:
+            self.chunk_counter = 0
+            self.start_chunk = 0
+            self.end_chunk = self.chunk_size
+            self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName][self.start_chunk:self.end_chunk]
+            self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
 
-        # Increment the count
-        self.count += 1
+
+        try:
+            pos = index % (self.end_chunk - self.start_chunk)
+            
+            data = self.Dataset[pos]
+            label = self.Labelset[pos]
+
+            # zero out the missing chromatin type
+            for i in missing_index:
+                data[i*100:(i+1)*100] = 0
+
+            self.chunk_counter += 1
+
+        except:
+            import pdb; pdb.set_trace()
+
         return data, label
-    
+
+
+        
 
 def getData(
     trainLabel="chr11-chr7",
     testLabel="chr11",
     validLabel="chr7",
-    fileLocation="./Data/220802_DATA/",
-    chrDrop=None,
-    cellLineDrop=None,
-    bin_size=256,
     dataTypes="-1",
+    fileLocation="./Data/220802_DATA/",
+    chrUse=None,
+    cellLineUse=None
 ):
-    # Create output directory
-    os.makedirs("./output", exist_ok=True)
-    chr_train = []
-    chr_test = []
-    chr_valid = []
-    # train test valid 
-    bin_size = bin_size//3
+    train = []
+    test = []
+    valid = []
 
-    cellLines = ["A549", "MCF7", "HepG2", "K562"]
-    clkeep = [i for i in cellLines if i not in cellLineDrop]
-    for keep in clkeep:
-        clDrop = [i for i in cellLines if i not in keep]
-        # Create the datasets
-        train = Chromatin_Dataset(
-                    clDrop,
-                    chrDrop,
-                    trainLabel,
-                    fileLocation + "/TRAIN/",
-                    "train",
-                    bin_size,
-                    dataTypes,
-                ) 
-        
-        chr_train.append(train)
-    print("=================================\n")
+    for cellLine in cellLineUse:
+        train.append(
+            Chromatin_Dataset(
+                cellLine,     # A549
+                chrUse,       # ["CTCF", "H3K27ac", "H3K27me3"...]
+                dataTypes,    # -1
+                trainLabel,   # chr11-chr7
+                fileLocation+"TRAIN/", # ./Data/220802_DATA/
+                "train")
+        )
+        test.append(
+            Chromatin_Dataset(
+                cellLine,     # A549
+                chrUse,       # ["CTCF", "H3K27ac", "H3K27me3"...]
+                dataTypes,    # -1
+                testLabel,   # chr11-chr7
+                fileLocation+"HOLDOUT/", # ./Data/220802_DATA/
+                "test")
+        )
 
-    
-    for keep in clkeep:
-        clDrop = [i for i in cellLines if i not in keep]
-        test = Chromatin_Dataset(
-                clDrop,
-                chrDrop,
-                testLabel,
-                fileLocation + "/HOLDOUT/",
-                "test",
-                bin_size,
-                dataTypes,
-            )
-        
-        chr_test.append(test)
+        valid.append(
+            Chromatin_Dataset(
+                cellLine,     # A549
+                chrUse,       # ["CTCF", "H3K27ac", "H3K27me3"...]
+                dataTypes,    # -1
+                validLabel,   # chr11-chr7
+                fileLocation+"HOLDOUT/", # ./Data/220802_DATA/
+                "valid")
+               
+        )
+    train = torch.utils.data.ConcatDataset(train)
+    test = torch.utils.data.ConcatDataset(test)
+    valid = torch.utils.data.ConcatDataset(valid)
 
-    print("=================================\n")
-
-    for keep in clkeep:
-        clDrop = [i for i in cellLines if i not in keep]
-        valid = Chromatin_Dataset(
-                clDrop,
-                chrDrop,
-                validLabel,
-                fileLocation + "/HOLDOUT/",
-                "valid",
-                bin_size,
-                dataTypes,
-            )
-        chr_valid.append(valid)
-    print("=================================\n")
-
-    #  concat using pytorch
-    chr_train = torch.utils.data.ConcatDataset(chr_train)
-    chr_valid = torch.utils.data.ConcatDataset(chr_valid)
-    chr_test = torch.utils.data.ConcatDataset(chr_test)
-
-
-    return chr_train, chr_test, chr_valid
+    return train, test, valid
