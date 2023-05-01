@@ -102,57 +102,6 @@ def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     fileLocation = "./Data/220802_DATA/"
-<<<<<<< HEAD
-    params = []
-    for id in cellLine:
-        for types in ["-1", "-2"]: 
-            # go through each study
-            for study in studys:
-                data1, data2 = study.split("-")
-                # process the data for each model train, test and test, train
-                for data  in [ [data1, data2], [data2, data1]]:
-                    test = data[0]
-                    valid = data[1]
-                    
-                    cldrop = [i for i in cellLines if i != id]
-                    chdrop = []
-                    for modelType in args.model:
-                        # drop all celllines except the one we are using
-                        name = f"Param_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        if name not in params:
-                            params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
-    
-    parseParam("param.log", params)
-                        
-def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
-    """
-        Generates the parameters for the study and runs the study
-        all cellLines except A549, all chromatin types
-    """
-
-    cellLines = ["A549", "MCF7", "HepG2", "K562"]
-    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    fileLocation = "./Data/220802_DATA/"
-    params = []
-    for types in ["-1", "-2"]:
-        for study in studys:
-            # go through each study
-            data1, data2 = study.split("-")
-            # process the data for each model train, test and test, train
-            for data  in [ [data1, data2], [data2, data1]]:
-                test = data[0]
-                valid = data[1]
-
-                # drop each cellLine type
-                for useCells in combinations(cellLine, len(cellLine)-1):
-                    useCells = list(useCells)
-                    chdrop = []
-                    cldrop = [i for i in cellLine if i not in useCells]
-                    for modelType in args.model:
-                        name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
-=======
     
     params = []
     for cellLine in cellLines:
@@ -207,7 +156,6 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                         name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(useCells)}_chkeep_{'-'.join(chromatine)}_type{types}"
                         params.append([study, test, valid,chromatine, list(useCells), types, name, epochs, batch_size, modelType, fileLocation])
                     
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
 
     # run the study
     parseParam("CLD.log", params)
@@ -234,19 +182,6 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
                 # drop each cellLine type
                 for useChrome in combinations(chromatine, len(chromatine)-1):
                     useChrome = list(useChrome)
-<<<<<<< HEAD
-                    #  get the missing chromtypes
-                    chdrop = [i for i in chromatine if i not in useChrome]
-                    cldrop = []
-                    for modelType in args.model:
-                        name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join([i for i in cellLines if i not in cldrop])}_chkeep_{'-'.join([i for i in chromatine if i not in chdrop])}_type{types}"
-                        params.append([study, test, valid,chdrop, cldrop, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
-    parseParam("CHD.log", params)
-
-
-
-# Function to check if a simulation has already been started
-=======
                     for modelType in args.model:
                         name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(cellLine)}_chkeep_{'-'.join(useChrome)}_type{types}"
                         params.append([study, test, valid,useChrome, cellLine, types, name, epochs, batch_size, modelType, fileLocation])
@@ -254,7 +189,6 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     parseParam("CHD.log", params)
 
 
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
     for line in sim:
@@ -268,65 +202,23 @@ def mark_simulation_as_started(started_file,simulation_name):
     with open(started_file, "a") as f:
         f.write(simulation_name + "\n")
 
-<<<<<<< HEAD
-
-def parseParam(startedFile, params):
-    params.sort(key=lambda x: x[6])
-=======
 def parseParam(startedFile, params):
     
     # print the params  
     for i in params:
         print(i[6])
     print(f"len(params): {len(params)}")
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
     # create a new file if it does not exist
     if not os.path.exists(startedFile):
         with open(startedFile, "w") as f:
             f.write("")
-<<<<<<< HEAD
-    # print the params  
-
-    for i in params:
-        print(i[6])
-
-    for i in tqdm.tqdm(params):
-        study = i[0]
-        test = i[1]
-        valid = i[2]
-        chrdrop = i[3]
-        cldrop = i[4]
-        types = i[5]
-        name = i[6]
-        epochs = i[7]
-        batch_size = i[8]
-        bin_size = i[9]
-        modelconfig = i[10]
-        fileLocation = i[11]
-        clearCache()
-=======
     for i in tqdm.tqdm(params):
         name = i[6]
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
         if simulation_started(startedFile, name):
             print(f"{name} has already been started, skipping.")
             continue
         else:
             mark_simulation_as_started(startedFile, name)
-<<<<<<< HEAD
-            runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation)    
-
-def runStudy(study, test, valid, chrdrop, cldrop, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation):
-    clearCache()
-    ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
-                                                testLabel=test,
-                                                validLabel=valid,
-                                                chrDrop=chrdrop,
-                                                cellLineDrop=cldrop,
-                                                bin_size=bin_size,
-                                                fileLocation=fileLocation, 
-                                                dataTypes =types)
-=======
             runStudy(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7], i[8], i[9], i[10], args.bin_size)
         
 def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,modelconfig, fileLocation, bin_size=1024):
@@ -341,21 +233,16 @@ def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,
                                                 bin_size=bin_size
                                             )
     
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
     # cast each dataset to a pytorch dataloader
     train_loader = DataLoader(ds_train, batch_size=batch_size )
     test_loader = DataLoader(ds_test, batch_size=batch_size )
     valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
     # load the model
-<<<<<<< HEAD
-    model = loadModel(modelconfig, name)
-=======
     if "Sequence" in fileLocation:
         model = loadModel(modelconfig, name, 4000)
     else:
         model = loadModel(modelconfig, name)
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
     # run the model
     model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
 
