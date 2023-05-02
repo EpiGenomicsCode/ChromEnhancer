@@ -5,109 +5,118 @@ import numpy as np
 import h5py
 import pandas as pd
 import os
-
+import gc 
 import multiprocessing 
+import glob
+import h5py
+import numpy as np
+import pandas as pd
 
-def saveDict(data, directory, output):
-    #  create an empty hdf5 file 
-    with h5py.File(output, 'w') as f:
-        pass  # An empty "with" statement body creates an empty file
-     
-    #  go through dictionary and sort files
-    for cell in data:
-        for study in data[cell]:
-            for file_type in data[cell][study]:
-                files = data[cell][study][file_type]
-                types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-                sortedData = []
-                for t in types:
-                    for f in files:
-                        if t in f:
-                            sortedData.append(f)
-                data[cell][study][file_type] = sortedData
 
-                df = []
-                for f in sortedData:
-                    df.append(pd.read_csv(directory[:-1]+f, sep=" ", header=None))
-                df = pd.concat(df, axis=1)
-                
-                # append data to hdf5 file as a new dataset
+
+
+def compressTrainData(directory="./TRAIN/*", output="./TRAIN/trainData.h5", chunk_size=10000):
+    """
+    Compresses training data into an HDF5 file with gzip compression.
+
+    Args:
+        directory (str): Path to the directory containing the input training data files.
+        output (str): Path to the output HDF5 file.
+        chunk_size (int): Number of samples to process in each chunk.
+
+    Returns:
+        None
+    """
+    print(f"directory: {directory}, output: {output}")
+
+    # Get a list of all the input training data files
+    files = sorted(glob.glob(directory + "*track"))
+
+    # Remove ".label" files
+    files = sorted([i.split("/")[-1] for i in files])
+
+    # Get unique cell lines and chromosome types from the file names
+    cellLine = np.unique([i.split("_")[0] for i in files])
+    chrtypes = np.unique([i.split("_")[1] for i in files])
+
+
+    # get the length of one file
+    datashape = pd.read_csv(directory[:-1]+files[0], sep=" ", header=None).shape
+    length = datashape[0]
+    columns = datashape[1]*len(files)
+    print(datashape)
+
+    for cell in cellLine:
+        for chrt in chrtypes:
+            print(f"\tProcessing {cell} {chrt}  from {directory} to {output}\n")
+
+            # Create an empty dataset 
+            with h5py.File(output, 'a') as f:
+                pass
+
+
+            # get the number of chunks
+            num_chunks = length // chunk_size
+            if length % chunk_size != 0:
+                num_chunks += 1
+
+            # Iterate over the chunks
+            for i in range(num_chunks):
+                data = []
+                # go through every file
+                for f in files:
+                    # calculate the start and end row for the current chunk
+                    start_row = i * chunk_size
+                    end_row = min((i + 1) * chunk_size, length)
+
+                    # skip rows and load in the chunk
+                    df = pd.read_csv(directory[:-1] + f, sep=" ", header=None, skiprows=start_row, nrows=end_row - start_row)
+
+                    # add it to the data list
+                    data.append(df.values)
+
+                # concatenate the data list
+                data = np.concatenate(data, axis=1)
+
+                # create the dataset if it does not exist, else append to the end of the dataset
                 with h5py.File(output, 'a') as f:
-                    f.create_dataset(cell + "_" + study + "_" + file_type, data=df.values,compression='gzip', compression_opts=6)
-                
-                # print out current h5 structure
-                with h5py.File(output, 'r') as f:
-                    for key in f.keys():
-                        print(f"key: {key}\tshape: {f[key].shape}")
-                print("============")
+                    if cell+"_"+chrt not in f.keys():
+                        print("\t\t\tcreating dataset")
+                        f.create_dataset(cell+"_"+chrt, data=data ,compression='gzip', compression_opts=6, maxshape=(length, columns))
+                    else:
+                        # concatenate the data to the end of the dataset
+                        current_length = f[cell+"_"+chrt].shape[0]
+                        print(f"\t\t\tappending to dataset left: {length - current_length}")
+                        f[cell+"_"+chrt].resize((current_length + data.shape[0], data.shape[1]))      
+                        f[cell+"_"+chrt][current_length:] = data
 
-                        
-    return data
 
-def compressTrainData(directory="./TRAIN/*", output="./TRAIN/trainData.h5"):
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
-    types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-    files = glob.glob(directory)
-    files = [i.split("/")[-1] for i in files if "seq" in i]
-    study = np.unique([i.split("_")[1] for i in files])
-    dict = {}
 
-    # create an empty hdf5 file
-    with h5py.File(output, 'w') as f:
-        pass
 
-    for file in files:
-        print(file)
-        # read file and add it to the h5
-        df = pd.read_csv(directory[:directory.rindex("/")+1]+file, sep=" ", header=None)
-        with h5py.File(output, 'a') as f:
-            f.create_dataset(file.split(".")[0], data=df.values,compression='gzip', compression_opts=6)
-                        
-                    
-    # print out current h5 structure
-    with h5py.File(output, 'r') as f:
-        for key in f.keys():
-            print(f"key: {key}\tshape: {f[key].shape}")
-        print("============")
 
-    return dict
-
-def compressTrainLables(outfile="./TRAIN/trainLabels.h5"):
-    directory =  "./TRAIN/*label*"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
+    
+def compressTrainLables(directory =  "./TRAIN/*label*",outfile="./TRAIN/trainLabels.h5"):
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files]
-    
+
     #  create an empty hdf5 file
     with h5py.File(outfile, 'w') as f:
         pass
 
     for file in files:
+        print(f"\tProcessing {file}  from {directory} to {outfile}\n")
         df = pd.read_csv(directory[:directory.rindex("/")+1]+file, sep=" ", header=None)
         with h5py.File(outfile, 'a') as f:
             f.create_dataset(file.split(".")[0], data=df.values,compression='gzip', compression_opts=6)
 
-    return dict
+            
 
 def compressHoldoutLabels(outfile="./HOLDOUT/testLabels.h5"):
-    directory =  "./HOLDOUT/*label*"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
-    files = glob.glob(directory)
-    files = [i.split("/")[-1] for i in files]
-    
-    #  create an empty hdf5 file
-    with h5py.File(outfile, 'w') as f:
-        pass
-   
-    for file in files:
-        df = pd.read_csv(directory[:directory.rindex("/")+1]+file, sep=" ", header=None)
-        with h5py.File(outfile, 'a') as f:
-            f.create_dataset(file.split(".")[0], data=df.values,compression='gzip', compression_opts=6)
-
-    return dict
+    compressTrainLables("./HOLDOUT/*label*", outfile)
 
 def compressHoldoutData(output="./HOLDOUT/testData.h5"):
     compressTrainData("./HOLDOUT/*", output)
+   
 
 def main():
     #  run the functions in parallel
@@ -119,10 +128,12 @@ def main():
     pool.close()
     pool.join()
 
-    # nested_train = compressTrainData("./TRAIN/trainData.h5")
-    # nested_labels = compressTrainLables("./TRAIN/trainLabels.h5")
-    # nested_test = compressHoldoutData("./HOLDOUT/testData.h5")
-    # nested_test_labels = compressHoldoutLabels("./HOLDOUT/testLabels.h5")
+
+    # nested_test_labels = compressHoldoutLabels()
+    # nested_labels = compressTrainLables()
+
+    # nested_test = compressHoldoutData()
+    # nested_train = compressTrainData()
 
 
     
