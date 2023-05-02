@@ -79,6 +79,19 @@ class Chromatin_Dataset(Dataset):
             else:
                 self.dataName = f"{self.cellLine}_LenientEnhancer_{self.label}"
                 self.labelName = f"{self.cellLine}_LenientEnhancer"
+        elif "230415" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.label}"
+                self.labelName = f"{self.cellLine}_{self.label}_train"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_{self.label}"
+                self.labelName = f"{self.cellLine}_StringentEnhancer_{self.label}"
+            else:
+                self.dataName = f"{self.cellLine}_{self.label}"
+                self.labelName = f"{self.cellLine}_LenientEnhancer_{self.label}"
+        else:
+            raise ValueError("Invalid file location.")
+
 
 
         self.DataFile, self.LabelFile = self.getFiles()
@@ -102,6 +115,10 @@ class Chromatin_Dataset(Dataset):
     def convertSequence(self, sequence, alphabet='ACGT'):
         return torch.tensor([[1 if letter == alphabet[i] else 0 for i in range(len(alphabet))] for letter in sequence])
 
+    def loadData(self):
+        self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName][self.start_chunk:self.end_chunk]
+        self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
+
     def __getitem__(self, index):
         """
         Returns a data-label pair.
@@ -113,16 +130,14 @@ class Chromatin_Dataset(Dataset):
             self.start_chunk = self.end_chunk
             self.end_chunk = min(self.end_chunk + self.chunk_size, self.length)
             # load the next chunk
-            self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName][self.start_chunk:self.end_chunk]
-            self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
-
+            self.loadData()
+        
 
         if self.chunk_counter >= self.length or self.start_chunk >= self.end_chunk:
             self.chunk_counter = 0
             self.start_chunk = 0
             self.end_chunk = self.chunk_size
-            self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName][self.start_chunk:self.end_chunk]
-            self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName][self.start_chunk:self.end_chunk]
+            self.loadData()
 
 
         pos = index % (self.end_chunk - self.start_chunk)

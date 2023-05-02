@@ -59,26 +59,6 @@ def sequenceStudy(epochs=20, batch_size=64):
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
 
-<<<<<<< HEAD
-        trainData = SeqDS.Sequence_Dataset(trainFile, type="train")
-        trainLoader = DataLoader(trainData, batch_size=batch_size )
-        
-        testData = SeqDS.Sequence_Dataset(trainFile, type="test")
-        testLoader = DataLoader(testData, batch_size=batch_size )
-
-        validData = SeqDS.Sequence_Dataset(trainFile, type="valid")
-        validLoader = DataLoader(validData, batch_size=batch_size )
-        for i in args.model[::-1]:
-            name = name + "_model{}".format(i)
-            model = loadModel(i, name, input_size=4000)
-            print(name)
-            print(model)
-            model = runHomoModel(model, trainLoader, testLoader, validLoader, epochs)
-
-            # clear the memory
-            clearCache()
-        
-=======
     fileLocation = "./Data/230124_CHR-Data_Sequence/"
     params = []
     for cellLine in cellLines:
@@ -92,7 +72,6 @@ def sequenceStudy(epochs=20, batch_size=64):
 
     parseParam("sequence.log", params)
 
->>>>>>> 7e141c2019beef5081246e97bf8c6201ac29275d
 def paramatersStudy(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     """
         Generates the parameters for the study and runs the study
