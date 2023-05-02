@@ -52,12 +52,12 @@ class Chromatin_Dataset(Dataset):
         elif "220803" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.dataTypes}"
-                self.labelName = f"{self.cellLine}_labels"
+                self.labelName = f"{self.cellLine}_train"
             elif self.mode == "test":
-                self.dataName = f"{self.cellLine}_train"
+                self.dataName = f"{self.cellLine}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_StringentEnhancer"
             else:
-                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.dataName = f"{self.cellLine}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_LenientEnhancer"
         elif "Sequence" in fileLocation:
             if self.mode == "train":
@@ -90,14 +90,14 @@ class Chromatin_Dataset(Dataset):
                 self.dataName = f"{self.cellLine}_{self.label}"
                 self.labelName = f"{self.cellLine}_LenientEnhancer_{self.label}"
         else:
-            raise ValueError("Invalid file location.")
+            raise ValueError(f"Invalid file location: {self.fileLocation}")
 
 
 
         self.DataFile, self.LabelFile = self.getFiles()
         self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]
         self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName]
-        assert len(self.Dataset) == len(self.Labelset), "Data and label lengths do not match."
+        assert len(self.Dataset) == len(self.Labelset), f"Data and label lengths do not match: {len(self.Dataset)} != {len(self.Labelset)}\n\t{self.mode}\n\tDatafile:{self.DataFile}\n\tLabelFile{self.LabelFile}\n\t\tDataName:{self.dataName}\n\t\tLabelName:{self.labelName}"
         self.length = len(self.Dataset)
 
 
@@ -145,7 +145,7 @@ class Chromatin_Dataset(Dataset):
         data = self.Dataset[pos]
         label = self.Labelset[pos]
 
-        if self.mode == "train":
+        if self.mode == "train" and not "Large" in self.fileLocation:
             # zero out the missing chromatin type
             for i in missing_index:
                 data[i*100:(i+1)*100] = 0

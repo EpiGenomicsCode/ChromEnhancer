@@ -15,6 +15,7 @@ parser.add_argument('--sequence', action='store_false', help='Run the sequence s
 parser.add_argument('--parameter', action='store_false', help='Run the parameter study')
 parser.add_argument('--parameterCLD', action='store_false', help='Run the parameter study with cell line dropout')
 parser.add_argument('--parameterCHD', action='store_false', help='Run the parameter study with chromatin droupout')
+parser.add_argument('--parameterLDS', action='store_false', help='Run the parameter study with Large Dataset')
 
 # optional cellLine
 parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine', default=["A549", "MCF7", "HepG2", "K562"])
@@ -53,6 +54,11 @@ def main():
     if not args.parameterCHD:
         print("Running Parameter Study with Chromatin Dropout")
         ChromatineDropout(cellLine, index, epochs, batch_size, bin_size)
+
+    if not args.parameterLDS:
+        print("Running Parameter Study with Large Dataset")
+        LargeDataset()
+
 
 def sequenceStudy(epochs=20, batch_size=64):
     cellLines = ["A549", "MCF7", "HepG2", "K562"]
@@ -167,7 +173,13 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
 
     parseParam("CHD.log", params)
 
+def LargeDataset():
+    #  hard coded for now
 
+    param1 = ["chr12-chr8", "chr12", "chr8", [], ["K562"], "", "LargeDataset1", args.epochs, args.batch_size, 4, "./Data/230415_LargeData/", args.bin_size]
+    parseParam("LDS.log", [param1])
+    # param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", "LargeDataset2", args.epochs, args.batch_size, 4, "./Data/230415_LargeData/", args.bin_size]
+    # parseParam("LDS.log", [param1])
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
     for line in sim:
@@ -191,6 +203,7 @@ def parseParam(startedFile, params):
     if not os.path.exists(startedFile):
         with open(startedFile, "w") as f:
             f.write("")
+
     for i in tqdm.tqdm(params):
         name = i[6]
         if simulation_started(startedFile, name):
