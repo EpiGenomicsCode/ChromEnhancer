@@ -128,18 +128,10 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     fileLocation = "./Data/220803_CelllineDATA/"
     params = []
     for types in ["-1", "-2"]:
-        for study in studys:
-            # go through each study
-            data1, data2 = study.split("-")
-            # process the data for each model train, test and test, train
-            for data  in [ [data1, data2], [data2, data1]]:
-                test = data[0]
-                valid = data[1]
-
-                for useCells in combinations(cellLine, len(cellLine)-1):
-                    for modelType in args.model:
-                        name = f"CLD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(useCells)}_chkeep_{'-'.join(chromatine)}_type{types}"
-                        params.append([study, test, valid,chromatine, list(useCells), types, name, epochs, batch_size, modelType, fileLocation])
+        for useCells in combinations(cellLine, len(cellLine)-1):
+            for modelType in args.model:
+                name = f"CLD_model{modelType}_clkeep_{'-'.join(useCells)}_chkeep_{'-'.join(chromatine)}_type{types}"
+                params.append(["", "", "",chromatine, list(useCells), types, name, epochs, batch_size, modelType, fileLocation])
                     
 
     # run the study
@@ -175,11 +167,12 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
 
 def LargeDataset():
     #  hard coded for now
-
-    param1 = ["chr12-chr8", "chr12", "chr8", [], ["K562"], "", "LargeDataset1", args.epochs, args.batch_size, 4, "./Data/230415_LargeData/", args.bin_size]
-    parseParam("LDS.log", [param1])
-    # param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", "LargeDataset2", args.epochs, args.batch_size, 4, "./Data/230415_LargeData/", args.bin_size]
-    # parseParam("LDS.log", [param1])
+    for model in args.model:
+        param1 = ["chr12-chr8", "chr12", "chr8", [], ["K562"], "", f"LargeDataset1_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
+        parseParam("LDS.log", [param1])
+        param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
+        parseParam("LDS.log", [param1])
+        
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
     for line in sim:
@@ -233,6 +226,8 @@ def runStudy(study, test, valid, chrUse, clUse, types, name, epochs, batch_size,
     # load the model
     if "Sequence" in fileLocation:
         model = loadModel(modelconfig, name, 4000)
+    elif "Large" in fileLocation:
+        model = loadModel(modelconfig, name, 32900)
     else:
         model = loadModel(modelconfig, name)
     # run the model

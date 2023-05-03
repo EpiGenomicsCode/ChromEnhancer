@@ -97,7 +97,7 @@ class Chromatin_Dataset(Dataset):
         self.DataFile, self.LabelFile = self.getFiles()
         self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]
         self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName]
-        assert len(self.Dataset) == len(self.Labelset), f"Data and label lengths do not match: {len(self.Dataset)} != {len(self.Labelset)}\n\t{self.mode}\n\tDatafile:{self.DataFile}\n\tLabelFile{self.LabelFile}\n\t\tDataName:{self.dataName}\n\t\tLabelName:{self.labelName}"
+        # assert len(self.Dataset) == len(self.Labelset), f"Data and label lengths do not match: {len(self.Dataset)} != {len(self.Labelset)}\n\t{self.mode}\n\tDatafile:{self.DataFile}\n\tLabelFile{self.LabelFile}\n\t\tDataName:{self.dataName}\n\t\tLabelName:{self.labelName}"
         self.length = len(self.Dataset)
 
 

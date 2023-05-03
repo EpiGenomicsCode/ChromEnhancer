@@ -37,6 +37,10 @@ class Chromatin_Network4(nn.Module):
         if input_size == 4000:
             lstmIn = 64000
 
+        if input_size == 32900:
+            lstmIn = 526336
+
+
         # LSTM layer that takes in self.C1D output and hidden state size
         self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
 
