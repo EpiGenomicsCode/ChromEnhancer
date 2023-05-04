@@ -132,7 +132,6 @@ def CellLineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
             for modelType in args.model:
                 name = f"CLD_model{modelType}_clkeep_{'-'.join(useCells)}_chkeep_{'-'.join(chromatine)}_type{types}"
                 params.append(["", "", "",chromatine, list(useCells), types, name, epochs, batch_size, modelType, fileLocation])
-                    
 
     # run the study
     parseParam("CLD.log", params)
@@ -146,22 +145,34 @@ def ChromatineDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
     chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
     fileLocation = "./Data/220802_DATA/"
-    params = [] 
-    for types in ["-1", "-2"]:
-        for study in studys:
+    
+    params = []
+    for cellLine in cellLines:
+        for types in ["-1", "-2"]: 
             # go through each study
-            data1, data2 = study.split("-")
-            # process the data for each model train, test and test, train
-            for data  in [ [data1, data2], [data2, data1]]:
-                test = data[0]
-                valid = data[1]
-
-                # drop each cellLine type
-                for useChrome in combinations(chromatine, len(chromatine)-1):
-                    useChrome = list(useChrome)
-                    for modelType in args.model:
-                        name = f"CHD_study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{'-'.join(cellLine)}_chkeep_{'-'.join(useChrome)}_type{types}"
-                        params.append([study, test, valid,useChrome, cellLine, types, name, epochs, batch_size, modelType, fileLocation])
+            for study in studys:
+                data1, data2 = study.split("-")
+                # process the data for each model train, test and test, train
+                for data  in [ [data1, data2], [data2, data1]]:
+                    test = data[0]
+                    valid = data[1]
+                    for chromatineUse in combinations(chromatine, len(chromatine)-1):
+                        for modelType in args.model:
+                            name = f"study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{cellLine}_chkeep_{'-'.join(chromatine)}_type{types}"
+                            params.append( [
+                                study, # chr10-chr17
+                                test, # chr10
+                                valid, # chr17
+                                chromatineUse, # chUse
+                                [cellLine], # clUse: ["A549"]
+                                types, # -1
+                                name, # study_chr10-chr17_test_chr10_valid_chr17_model1_clkeep_A549_chkeep_CTCF-H3K4me3-H3K27ac-p300-PolII_type-1
+                                epochs, # 20
+                                batch_size, # 2048  
+                                modelType, # 1
+                                fileLocation # ./Data/220802_DATA/                           
+                            ] )
+    
 
     parseParam("CHD.log", params)
 
