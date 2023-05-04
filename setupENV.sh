@@ -28,4 +28,4 @@ conda init
 conda update conda -y
 conda update anaconda -y
 conda update --all -y
-conda install pytorch torchvision torchaudio cudatoolkit=11.1 -c pytorch -c nvidia -y
+conda env update --file environment.yml --prune
