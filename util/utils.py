@@ -94,7 +94,9 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     # run the model for the specified number of epochs
     epoch = 0 
     training_accuaracy = []
-    valid_accuaracy = []
+    testing_accuaracy = []
+    test_auROC = []
+    test_auPRC = []
     for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
         # run the model for one epoch
         model.train()
@@ -103,9 +105,12 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
 
         # test the model
         model.eval()
-        accuracy = testModel(model, valid_loader, criterion)
-        valid_accuaracy.append(accuracy)
+        accuracy, auROC, auPRC = testModel(model, test_loader, criterion)
+        testing_accuaracy.append(accuracy)
+        test_auROC.append(auROC)
+        test_auPRC.append(auPRC)
 
+        
         # save the model if it is the best model
         if accuracy > best_accuracy:
             best_accuracy = accuracy
@@ -113,11 +118,38 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
             os.makedirs("./output/modelWeights", exist_ok=True)
             torch.save(model.state_dict(), "./output/modelWeights/{}.pt".format(model.name))
         plotAccuracy(training_accuaracy, "train_"+model.name)
-        plotAccuracy(valid_accuaracy, "valid_"+model.name)
-        
+        plt.clf()
+        plotAccuracy(testing_accuaracy, "test_"+model.name)
+        plt.clf()
+        plt.plot(test_auROC)
+        plt.plot(test_auPRC)
+        plt.legend(["auROC", "auPRC"])
+        plt.title("auROC and auPRC")
+        plt.xlabel("Epoch")
+        plt.ylabel("Score")
+        plt.savefig("./output/auROC_PRC/" + model.name + ".png")
+        plt.clf()
+                
     # test the model on the validation data
-    accuracy = testModel(model, valid_loader, criterion)
-    print("Validation Accuracy: ", accuracy)
+    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion)
+    test_auPRC.append(auPRC)
+    test_auROC.append(auROC)
+
+    plt.clf()
+    plt.plot(test_auROC)
+    plt.plot(test_auPRC)
+    #  plot the validation auROC and auPRC  as black dots
+    plt.scatter([len(test_auROC)-1], [test_auROC[-1]], c="black")
+    plt.scatter([len(test_auPRC)-1], [test_auPRC[-1]], c="black")    
+    plt.legend(["auROC", "auPRC"])
+    plt.title("auROC and auPRC")
+    plt.xlabel("Epoch")
+    plt.ylabel("Score")
+    plt.savefig("./output/auROC_PRC/" + model.name + ".png")
+    plt.clf()
+
+
+    
 
     # return the model, loss values, and accuracy values
     return model.to("cpu")
@@ -206,6 +238,12 @@ def testModel(model, test_loader, criterion):
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
+    acc, auROC, auPRC = calcData(model, np.concatenate(y_score), np.concatenate(y_true))
+
+    return acc, auROC, auPRC
+
+
+def calcData(model, y_score, y_true):
     recall, precision, auPRC =   plotPRC(model, y_score, y_true, model.name)
     fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name)   
 
@@ -221,7 +259,7 @@ def testModel(model, test_loader, criterion):
         f.write("auPRC: {}\n".format(auPRC))
         f.write("auROC: {}\n".format(auROC))
 
-    return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
+    return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), auROC, auPRC
 
 # plot the PRC curve for the pytorch model
 def plotPRC(model, y_score, y_true, name):
