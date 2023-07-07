@@ -4,10 +4,9 @@ import tqdm
 from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5
 import os
 import pandas as pd
-from sklearn.metrics import precision_recall_curve
 import matplotlib.pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.metrics import roc_curve, auc, accuracy_score
+from sklearn.metrics import roc_curve, auc, accuracy_score, precision_recall_curve
 import gc 
 import seaborn as sns
 import torch
@@ -25,7 +24,6 @@ def seedEverything(seed=42):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-
 def plotAccuracy(accuracy_values, name):
     """
         Plots the accuracy values
@@ -34,8 +32,8 @@ def plotAccuracy(accuracy_values, name):
     plt.title("Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    os.makedirs("./output/accuracy", exist_ok=True)
-    plt.savefig("./output/accuracy/" + name + ".png")
+    os.makedirs("/mnt/celllinedata/DATA/output/accuracy", exist_ok=True)
+    plt.savefig("/mnt/celllinedata/DATA/output/accuracy/" + name + ".png")
     plt.clf()
 
 def loadModel(modelNumber, name="", input_size=500):
@@ -94,29 +92,30 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     # run the model for the specified number of epochs
     epoch = 0 
     training_accuaracy = []
+    training_loss = []
     testing_accuaracy = []
     test_auROC = []
     test_auPRC = []
     for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
         # run the model for one epoch
         model.train()
-        model, accuracy = runEpoch(model, train_loader, criterion, optimizer)
+        model, accuracy, loss = runEpoch(model, train_loader, criterion, optimizer)
         training_accuaracy.append(accuracy)
+        training_loss.append(loss)
 
         # test the model
         model.eval()
-        accuracy, auROC, auPRC = testModel(model, test_loader, criterion)
+        accuracy, auROC, auPRC = testModel(model, test_loader, criterion, save=False)
         testing_accuaracy.append(accuracy)
         test_auROC.append(auROC)
         test_auPRC.append(auPRC)
 
         
-        # save the model if it is the best model
-        if accuracy > best_accuracy:
-            best_accuracy = accuracy
-            # check if the output folder exists
-            os.makedirs("./output/modelWeights", exist_ok=True)
-            torch.save(model.state_dict(), "./output/modelWeights/{}.pt".format(model.name))
+        best_accuracy = accuracy
+        # check if the output folder exists
+        os.makedirs("/mnt/celllinedata/DATA/output/modelWeights", exist_ok=True)
+        torch.save(model.state_dict(), "/mnt/celllinedata/DATA/output/{}_epoch_{}.pt".format(model.name, epoch))
+
         plotAccuracy(training_accuaracy, "train_"+model.name)
         plt.clf()
         plotAccuracy(testing_accuaracy, "test_"+model.name)
@@ -127,11 +126,22 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
         plt.title("auROC and auPRC")
         plt.xlabel("Epoch")
         plt.ylabel("Score")
-        plt.savefig("./output/auROC_PRC/" + model.name + ".png")
+        os.makedirs("/mnt/celllinedata/DATA/output/auROC_PRC", exist_ok=True)
+        plt.savefig("/mnt/celllinedata/DATA/output/auROC_PRC/" + model.name + ".png")
         plt.clf()
+
+        # plot loss
+        plt.plot(training_loss)
+        plt.title("Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        os.makedirs("/mnt/celllinedata/DATA/output/loss", exist_ok=True)
+        plt.savefig("/mnt/celllinedata/DATA/output/loss/" + model.name + ".png")
+        plt.clf()
+        
                 
     # test the model on the validation data
-    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion)
+    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, save=True)
     test_auPRC.append(auPRC)
     test_auROC.append(auROC)
 
@@ -145,11 +155,8 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     plt.title("auROC and auPRC")
     plt.xlabel("Epoch")
     plt.ylabel("Score")
-    plt.savefig("./output/auROC_PRC/" + model.name + ".png")
+    plt.savefig("/mnt/celllinedata/DATA/output/auROC_PRC/" + model.name + ".png")
     plt.clf()
-
-
-    
 
     # return the model, loss values, and accuracy values
     return model.to("cpu")
@@ -180,6 +187,7 @@ def runEpoch(model, train_loader, criterion, optimizer):
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    epochloss = 0
     # run the model for one epoch with tqdm
     for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
         inputs = inputs.to(torch.float32).to(device)
@@ -191,9 +199,10 @@ def runEpoch(model, train_loader, criterion, optimizer):
         # forward + backward + optimize
         outputs = model(inputs)
         loss = criterion(outputs, labels)
+
         loss.backward()
         optimizer.step()
-
+        epochloss += loss.item()
         # save the output and label
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
@@ -202,10 +211,10 @@ def runEpoch(model, train_loader, criterion, optimizer):
         # clear the memory
         clearCache()
 
-    return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
+    return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), epochloss/len(train_loader)
 
 # test the model
-def testModel(model, test_loader, criterion):
+def testModel(model, test_loader, criterion, save=False):
     """
         Tests the model
 
@@ -238,31 +247,30 @@ def testModel(model, test_loader, criterion):
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
-    acc, auROC, auPRC = calcData(model, np.concatenate(y_score), np.concatenate(y_true))
+    acc, auROC, auPRC = calcData(model, y_score, y_true, save)
 
     return acc, auROC, auPRC
 
-
-def calcData(model, y_score, y_true):
-    recall, precision, auPRC =   plotPRC(model, y_score, y_true, model.name)
-    fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name)   
+def calcData(model, y_score, y_true, save):
+    recall, precision, auPRC =   plotPRC(model, y_score, y_true, model.name, save)
+    fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name, save)   
 
     # save the results
-    os.makedirs("./output/results", exist_ok=True)
-
-    with open("./output/results/{}.txt".format(model.name), "w") as f:
-        f.write("Recall: {}\n".format(recall))
-        f.write("Precision: {}\n".format(precision))
-        # write fpr and tpr as a string using join to avoid scientific notation
-        f.write("FPR: {}\n".format(','.join(map(str, fpr))))
-        f.write("TPR: {}\n".format(','.join(map(str, tpr))))
-        f.write("auPRC: {}\n".format(auPRC))
-        f.write("auROC: {}\n".format(auROC))
+    os.makedirs("/mnt/celllinedata/DATA/output/results", exist_ok=True)
+    if save:
+        with open("/mnt/celllinedata/DATA/output/results/{}.txt".format(model.name), "w") as f:
+            f.write("Recall: {}\n".format(recall))
+            f.write("Precision: {}\n".format(precision))
+            # write fpr and tpr as a string using join to avoid scientific notation
+            f.write("FPR: {}\n".format(','.join(map(str, fpr))))
+            f.write("TPR: {}\n".format(','.join(map(str, tpr))))
+            f.write("auPRC: {}\n".format(auPRC))
+            f.write("auROC: {}\n".format(auROC))
 
     return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), auROC, auPRC
 
 # plot the PRC curve for the pytorch model
-def plotPRC(model, y_score, y_true, name):
+def plotPRC(model, y_score, y_true, name, save):
     """
         Plots the PRC curve for the model
 
@@ -272,33 +280,32 @@ def plotPRC(model, y_score, y_true, name):
             name: The name of the model
     """
     # plot the PRC curve
-    
     precision, recall, _ = precision_recall_curve(np.concatenate(y_true), np.concatenate(y_score))
 
     auc_score = round(auc(recall, precision),5)
     
-    plt.step(recall, precision, color='b', alpha=0.2, where='post')
-    plt.fill_between(recall, precision, step='post', alpha=0.2, color='b')
-    # calulate the AUC score
-    plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title('Precision-Recall Curve')
+    if save:
+        plt.step(recall, precision, color='b', alpha=0.2, where='post')
+        plt.fill_between(recall, precision, step='post', alpha=0.2, color='b')
+        # calulate the AUC score
+        plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('Precision-Recall Curve')
 
-    # check if the output folder exists
-    os.makedirs("./output/PRC/", exist_ok=True)
-    plt.savefig("./output/PRC/{}.png".format(name))
-    plt.clf()
+        # check if the output folder exists
+        os.makedirs("/mnt/celllinedata/DATA/output/PRC/", exist_ok=True)
+        plt.savefig("/mnt/celllinedata/DATA/output/PRC/{}.png".format(name))
+        plt.clf()
 
     
 
     return recall, precision, auc_score
 
-
 # plot the ROC curve for the pytorch model
-def plotROC(model, y_score, y_true, name):
+def plotROC(model, y_score, y_true, name, save):
     """
         Plots the ROC curve for the model
 
@@ -309,21 +316,23 @@ def plotROC(model, y_score, y_true, name):
     """
     # plot the ROC curve
     fpr, tpr, _ = roc_curve( np.concatenate(y_true), np.concatenate(y_score))
-    plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
-    plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
-    # calulate the AUC score
-    auc_score = round(auc(fpr, tpr),5)
-    plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.ylim([0.0, 1.05])
-    plt.xlim([0.0, 1.0])
-    plt.title('ROC Curve')
 
-    # check if the output folder exists
-    os.makedirs("./output/ROC", exist_ok=True)
-    plt.savefig("./output/ROC/{}.png".format(name))
-    plt.clf()
+    auc_score = round(auc(fpr, tpr),5)
+    if save:
+        plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
+        plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
+        # calulate the AUC score
+        plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('ROC Curve')
+
+        # check if the output folder exists
+        os.makedirs("/mnt/celllinedata/DATA/output/ROC", exist_ok=True)
+        plt.savefig("/mnt/celllinedata/DATA/output/ROC/{}.png".format(name))
+        plt.clf()
 
     return fpr, tpr, auc_score
 
@@ -370,8 +379,8 @@ def plotClusters(clusters, particles, name):
     x = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     sns.heatmap(data, cmap="YlGnBu", xticklabels=x, yticklabels=["C"+str(i) for i in range(numClusters)])
     # check if the dir exists and save the heatmap
-    os.makedirs("./output/heatmap", exist_ok=True)
-    plt.savefig("./output/heatmap/{}.png".format(name))
+    os.makedirs("/mnt/celllinedata/DATA/output/heatmap", exist_ok=True)
+    plt.savefig("/mnt/celllinedata/DATA/output/heatmap/{}.png".format(name))
 
     plt.clf()
         

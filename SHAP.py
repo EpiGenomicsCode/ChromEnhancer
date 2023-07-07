@@ -55,30 +55,41 @@ for index in range(len(shap_values)):
     orig_list.append(x_train[index].detach().numpy())
     shap_list.append(shap_values[index])
     model.train()
-    actv_list.append(AO.Attacks.gradient_map(orig_list[0].reshape(1,1,32900), model, (1,1,32900))[0])
+    activation = AO.Attacks.gradient_map(orig_list[0].reshape(1,1,32900), model, (1,1,32900))[0]
+    actv_list.append(activation)
 
     binned_shap = bin_array(shap_values[index])
     binned_data = bin_array(x_train[index].detach().numpy())
+    binned_act = bin_array(activation)
     # stack 50 binned_shap and then 50 binned_data
     stacked_shap = np.stack([binned_shap for _ in range(50)], axis=0)
     stacked_data = np.stack([binned_data for _ in range(50)], axis=0)
+    stacked_act = np.stack([binned_act for _ in range(50)], axis=0)
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     confidence = model(x_train[index].unsqueeze(0).to(torch.float32).to(device)).item()
-    fig, ax = plt.subplots(2, 1)
+    fig, ax = plt.subplots(3, 1)
 
-    #  normalize the data between 0 and 1
-    stacked_shap = (stacked_shap - np.min(stacked_shap)) / (np.max(stacked_shap) - np.min(stacked_shap))
-    stacked_data = (stacked_data - np.min(stacked_data)) / (np.max(stacked_data) - np.min(stacked_data))
+    # #  normalize the data between 0 and 1
+    # stacked_shap = (stacked_shap - np.min(stacked_shap)) / (np.max(stacked_shap) - np.min(stacked_shap))
+    # stacked_data = (stacked_data - np.min(stacked_data)) / (np.max(stacked_data) - np.min(stacked_data))
+    # stacked_act = (stacked_act - np.min(stacked_act)) / (np.max(stacked_act) - np.min(stacked_act))
+
     ax[0].imshow(stacked_shap, cmap="jet")
     ax[0].set_title("SHAP")
     ax[1].imshow(stacked_data, cmap="jet")
     ax[1].set_title("Data: " + str(confidence))
     ax[0].set_yticks([])
     ax[1].set_yticks([])
+    ax[2].imshow(stacked_act, cmap="jet")
+    ax[2].set_title("Activation")
+    ax[2].set_yticks([])
+
 
     # colorbar for both axes scale it to the image
     fig.colorbar(ax[0].imshow(stacked_shap, cmap="jet"), ax=ax[0])
     fig.colorbar(ax[1].imshow(stacked_data, cmap="jet"), ax=ax[1])
+    fig.colorbar(ax[2].imshow(stacked_act, cmap="jet"), ax=ax[2])
 
     plt.savefig(f"shap_{index}.png")
     print("Saved")
