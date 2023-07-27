@@ -32,8 +32,11 @@ def plotAccuracy(accuracy_values, name):
     plt.title("Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
-    os.makedirs("/mnt/celllinedata/DATA/output/accuracy", exist_ok=True)
-    plt.savefig("/mnt/celllinedata/DATA/output/accuracy/" + name + ".png")
+    os.makedirs("./output/accuracy", exist_ok=True)
+    plt.savefig("./output/accuracy/" + name + ".png")
+    # save the data to a csv file
+    df = pd.DataFrame(accuracy_values)
+    df.to_csv("./output/accuracy/" + name + ".csv")
     plt.clf()
 
 def loadModel(modelNumber, name="", input_size=500):
@@ -113,12 +116,17 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
         
         best_accuracy = accuracy
         # check if the output folder exists
-        os.makedirs("/mnt/celllinedata/DATA/output/modelWeights", exist_ok=True)
-        torch.save(model.state_dict(), "/mnt/celllinedata/DATA/output/{}_epoch_{}.pt".format(model.name, epoch))
+        os.makedirs("./output/modelWeights", exist_ok=True)
+        torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epoch))
 
         plotAccuracy(training_accuaracy, "train_"+model.name)
         plt.clf()
         plotAccuracy(testing_accuaracy, "test_"+model.name)
+        # save trainig and testing accuracy as a csv
+        df = pd.DataFrame(training_accuaracy)
+        df.to_csv("./output/accuracy/train_"+model.name+".csv")
+        df = pd.DataFrame(testing_accuaracy)
+        df.to_csv("./output/accuracy/test_"+model.name+".csv")
         plt.clf()
         plt.plot(test_auROC)
         plt.plot(test_auPRC)
@@ -126,18 +134,28 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
         plt.title("auROC and auPRC")
         plt.xlabel("Epoch")
         plt.ylabel("Score")
-        os.makedirs("/mnt/celllinedata/DATA/output/auROC_PRC", exist_ok=True)
-        plt.savefig("/mnt/celllinedata/DATA/output/auROC_PRC/" + model.name + ".png")
+        os.makedirs("./output/auROC_PRC", exist_ok=True)
+        plt.savefig("./output/auROC_PRC/" + model.name + ".png")
         plt.clf()
 
+        # save the aurROC and auPRC as csv
+        df = pd.DataFrame(test_auROC)
+        df.to_csv("./output/auROC_PRC/auROC_"+model.name+".csv")
+        df = pd.DataFrame(test_auPRC)
+        df.to_csv("./output/auROC_PRC/auPRC_"+model.name+".csv")
+        
         # plot loss
         plt.plot(training_loss)
         plt.title("Loss")
         plt.xlabel("Epoch")
         plt.ylabel("Loss")
-        os.makedirs("/mnt/celllinedata/DATA/output/loss", exist_ok=True)
-        plt.savefig("/mnt/celllinedata/DATA/output/loss/" + model.name + ".png")
+        os.makedirs("./output/loss", exist_ok=True)
+        plt.savefig("./output/loss/" + model.name + ".png")
         plt.clf()
+        # save training loss as a csv
+        df = pd.DataFrame(training_loss)
+        df.to_csv("./output/loss/" + model.name + ".csv")
+
         
                 
     # test the model on the validation data
@@ -155,7 +173,7 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     plt.title("auROC and auPRC")
     plt.xlabel("Epoch")
     plt.ylabel("Score")
-    plt.savefig("/mnt/celllinedata/DATA/output/auROC_PRC/" + model.name + ".png")
+    plt.savefig("./output/auROC_PRC/" + model.name + ".png")
     plt.clf()
 
     # return the model, loss values, and accuracy values
@@ -256,9 +274,9 @@ def calcData(model, y_score, y_true, save):
     fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name, save)   
 
     # save the results
-    os.makedirs("/mnt/celllinedata/DATA/output/results", exist_ok=True)
+    os.makedirs("./output/results", exist_ok=True)
     if save:
-        with open("/mnt/celllinedata/DATA/output/results/{}.txt".format(model.name), "w") as f:
+        with open("./output/results/{}.txt".format(model.name), "w") as f:
             f.write("Recall: {}\n".format(recall))
             f.write("Precision: {}\n".format(precision))
             # write fpr and tpr as a string using join to avoid scientific notation
@@ -296,8 +314,8 @@ def plotPRC(model, y_score, y_true, name, save):
         plt.title('Precision-Recall Curve')
 
         # check if the output folder exists
-        os.makedirs("/mnt/celllinedata/DATA/output/PRC/", exist_ok=True)
-        plt.savefig("/mnt/celllinedata/DATA/output/PRC/{}.png".format(name))
+        os.makedirs("./output/PRC/", exist_ok=True)
+        plt.savefig("./output/PRC/{}.png".format(name))
         plt.clf()
 
     
@@ -330,8 +348,8 @@ def plotROC(model, y_score, y_true, name, save):
         plt.title('ROC Curve')
 
         # check if the output folder exists
-        os.makedirs("/mnt/celllinedata/DATA/output/ROC", exist_ok=True)
-        plt.savefig("/mnt/celllinedata/DATA/output/ROC/{}.png".format(name))
+        os.makedirs("./output/ROC", exist_ok=True)
+        plt.savefig("./output/ROC/{}.png".format(name))
         plt.clf()
 
     return fpr, tpr, auc_score
@@ -379,8 +397,8 @@ def plotClusters(clusters, particles, name):
     x = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
     sns.heatmap(data, cmap="YlGnBu", xticklabels=x, yticklabels=["C"+str(i) for i in range(numClusters)])
     # check if the dir exists and save the heatmap
-    os.makedirs("/mnt/celllinedata/DATA/output/heatmap", exist_ok=True)
-    plt.savefig("/mnt/celllinedata/DATA/output/heatmap/{}.png".format(name))
+    os.makedirs("./output/heatmap", exist_ok=True)
+    plt.savefig("./output/heatmap/{}.png".format(name))
 
     plt.clf()
         

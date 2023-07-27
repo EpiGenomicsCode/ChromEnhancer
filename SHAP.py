@@ -1,12 +1,16 @@
-from util.models import ChrNet4
-from util.dataset import Chromatin_Dataset
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4
+from util import dataset
 import shap
+import os
 import matplotlib.pyplot as plt
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import pandas as pd
 import Adversarial_Observation as AO
+import glob
+from tqdm import tqdm
+import pickle
 
 def bin_array(input):
     output = []
@@ -14,91 +18,69 @@ def bin_array(input):
         output.append(np.mean(input[i:i+100]))
     return output
 
+def main():
+    # Step 1:
+    #  1.1 For each model, load the model
+    #  1.2 Get the training data and validation data from the dataset
+    #  1.3 Create the explainer
+    # Step 2:
+    #  2.1 For each model, get the shap values for the training data, save it as a csv
+    #  2.2 For each model, get the shap values for the validation data, save it as a csv
 
-# Load the model
-model = ChrNet4.Chromatin_Network4("", 32900)
-model.load_state_dict(torch.load("/home/exouser/Enhanced_Predictions_For_Enhancers/MOUNT/DATA/output/LargeDataset1_4_epoch_49.pt"))
-model.train()
-# Create the dataset
-dataset = Chromatin_Dataset(cellLine="K562",
-                            chrUse=[],
-                            dataTypes="",
-                            label="chr12-chr8",
-                            fileLocation="./Data/230415_LargeData/TRAIN/",
-                            chunk_size=32,
-                            mode="train")
+    cellLine_Independent_model = glob.glob("./output/modelWeights/CLD*19*")
+    print(cellLine_Independent_model)
+    for model in tqdm(cellLine_Independent_model):
+        model_name = model.split("/")[-1][:-3]
+        print(model_name)
+        if "model1" in model:
+            model = ChrNet1.Chromatin_Network1("", 500)
+        elif "model2" in model:
+            model = ChrNet2.Chromatin_Network2("", 500)
+        elif "model3" in model:
+            model = ChrNet3.Chromatin_Network3("", 500)
+        elif "model4" in model:
+            model = ChrNet4.Chromatin_Network4("", 500)
+        else:
+            continue
+        train, test, vaild =  dataset.getData(cellLineUse=["A549", "MCF7", "HepG2", "K562"], chrUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"])
 
-# Create the dataloader
-dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+        # we are using valid just to make sure the visualizations are correct
+            # x_train, y_train = next(iter(DataLoader(train, batch_size=32, shuffle=True)))
+        x_train, y_train = next(iter(DataLoader(vaild, batch_size=32, shuffle=True)))
+        x_test, y_test = next(iter(DataLoader(test, batch_size=32, shuffle=True))) # Load the entire test set
 
-# Get the data
-x_train, y_train = next(iter(dataloader))
+        background = x_train  # Using the whole training set as background
+        background = background.to(torch.float32)
 
-background = x_train[np.random.choice(x_train.shape[0], 10, replace=False)]
-background = background.to(torch.float32)
+        e = shap.DeepExplainer(model, background)
 
-e = shap.DeepExplainer(model, background)
+        # Get SHAP values for the entire test set
+        # 
+        # TODO: sort the holdout based on highest value from the model predicitons
+        # 
+        shap_values = e.shap_values(x_test[:32].to(torch.float32))
 
-data_index = 300
+        # Save the original images, labels, and SHAP values in a DataFrame
+        data = {
+            "Original Image": x_test[:32].numpy(),
+            "Original Label": y_test[:32].numpy(),
+            "SHAP Values": shap_values[:32]
+        }
 
-orig_list = []
-shap_list = []
-actv_list =[]
+        # pickle the data
+        os.makedirs(f"./output/shap/{model_name}_shap_values", exist_ok=True)
+        with open(f"./output/shap/{model_name}_shap_values/data.pkl", "wb") as f:
+            pickle.dump(data, f)
 
-shap_values = e.shap_values(x_train[:data_index].to(torch.float32))
+        # plot a 3x1 of the original image, the shap values, and the activation map
+        for i in range(32):
+            fig, ax = plt.subplots(3, 1)
+            ax[0].imshow(np.tile(x_test[0].numpy().reshape(1, 500), (30, 1)), cmap="jet")
+            ax[1].imshow(np.tile(shap_values[i].reshape(1, 500), (30, 1)), cmap="jet")
+            ax[2].imshow(np.tile(AO.Attacks.gradient_map(x_test[0].reshape(1,1, 500).to(torch.float32),model.train(), (1,500))[0], (30, 1)), cmap="jet")
+            plt.savefig(f"./output/shap/{model_name}_shap_values/{i}.png")
+            plt.close()
+        
 
-assert len(shap_values) == len(x_train[:data_index])
-for index in range(len(shap_values)):
-    print(f"Plotting {index}")
-    print(shap_values[index].shape)
-    print(x_train[index].shape)
-    orig_list.append(x_train[index].detach().numpy())
-    shap_list.append(shap_values[index])
-    model.train()
-    activation = AO.Attacks.gradient_map(orig_list[0].reshape(1,1,32900), model, (1,1,32900))[0]
-    actv_list.append(activation)
-
-    binned_shap = bin_array(shap_values[index])
-    binned_data = bin_array(x_train[index].detach().numpy())
-    binned_act = bin_array(activation)
-    # stack 50 binned_shap and then 50 binned_data
-    stacked_shap = np.stack([binned_shap for _ in range(50)], axis=0)
-    stacked_data = np.stack([binned_data for _ in range(50)], axis=0)
-    stacked_act = np.stack([binned_act for _ in range(50)], axis=0)
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    confidence = model(x_train[index].unsqueeze(0).to(torch.float32).to(device)).item()
-    fig, ax = plt.subplots(3, 1)
-
-    # #  normalize the data between 0 and 1
-    # stacked_shap = (stacked_shap - np.min(stacked_shap)) / (np.max(stacked_shap) - np.min(stacked_shap))
-    # stacked_data = (stacked_data - np.min(stacked_data)) / (np.max(stacked_data) - np.min(stacked_data))
-    # stacked_act = (stacked_act - np.min(stacked_act)) / (np.max(stacked_act) - np.min(stacked_act))
-
-    ax[0].imshow(stacked_shap, cmap="jet")
-    ax[0].set_title("SHAP")
-    ax[1].imshow(stacked_data, cmap="jet")
-    ax[1].set_title("Data: " + str(confidence))
-    ax[0].set_yticks([])
-    ax[1].set_yticks([])
-    ax[2].imshow(stacked_act, cmap="jet")
-    ax[2].set_title("Activation")
-    ax[2].set_yticks([])
-
-
-    # colorbar for both axes scale it to the image
-    fig.colorbar(ax[0].imshow(stacked_shap, cmap="jet"), ax=ax[0])
-    fig.colorbar(ax[1].imshow(stacked_data, cmap="jet"), ax=ax[1])
-    fig.colorbar(ax[2].imshow(stacked_act, cmap="jet"), ax=ax[2])
-
-    plt.savefig(f"shap_{index}.png")
-    print("Saved")
-    plt.close()
-
-df = pd.DataFrame(shap_list)
-# save as csv with no index and no header   
-df.to_csv("shap.csv", index=False, header=False)
-df = pd.DataFrame(orig_list)
-df.to_csv("orig.csv", index=False, header=False)
-df = pd.DataFrame(actv_list)
-df.to_csv("actv.csv", index=False, header=False)
+if __name__ == "__main__":
+    main()
