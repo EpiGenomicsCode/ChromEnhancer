@@ -1,0 +1,62 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=4
+#PBS -l pmem=48gb
+#PBS -l walltime=20:00:00
+#PBS -A open
+#PBS -o logs/aggregate-enhancer-scores.log.out
+#PBS -e logs/aggregate-enhancer-scores.log.err
+
+CALLBINARY=bin/matrix_values_to_binary.py
+MERGECOL=bin/merge_and_replace_columns.py
+
+
+RESULTS=results/ResortByName
+[ -d $RESULTS ] || mkdir -p $RESULTS
+
+# Resort all the files by tile name
+for FILE in data/*_SORT.bed;
+do
+    BASE=`basename $FILE`
+    sort $FILE > $RESULTS/$BASE
+done
+
+# Aggregate data into a column of scores
+echo "Coordinate" > old
+cut -f4 results/ResortByName/A549_Rep1_EnhancerScore_SORT.bed >> old
+for FILE in results/ResortByName/*.bed;
+do
+    basename $FILE ".bed" > new
+    cut -f 5 $FILE >> new
+    paste old new > temp
+    mv temp old
+done
+rm new
+mv old results/ALL_SCORES.out
+
+# Call enhancers (0/1) at two thresholds
+python $CALLBINARY -i results/ALL_SCORES.out -o results/Enhancers_T-50.out -t 0.5
+python $CALLBINARY -i results/ALL_SCORES.out -o results/Enhancers_T-90.out -t 0.9
+
+# Create "just the enhancer" sets (remove 0 rows)
+cat <(head -1 results/Enhancers_T-50.out) <(grep $'\t1\.0' results/Enhancers_T-50.out) > results/JustEnhancers_T-50.out
+cat <(head -1 results/Enhancers_T-90.out) <(grep $'\t1\.0' results/Enhancers_T-90.out) > results/JustEnhancers_T-90.out
+
+RESULTS=results/MergeReplicates
+[ -d $RESULTS ] || mkdir $RESULTS
+
+# Group replicates (union and intersection)
+for FILE in "Enhancers_T-50.out" "Enhancers_T-90.out" "JustEnhancers_T-50.out" "JustEnhancers_T-90.out";
+do
+	BASE=`basename $FILE ".out"`
+	# Union merge replicates
+	python $MERGECOL -i results/$FILE -o temp1 -a 1 -b 2 --union
+	python $MERGECOL -i temp1 -o temp2 -a 2 -b 3 --union
+	python $MERGECOL -i temp2 -o temp1 -a 3 -b 4 --union
+	python $MERGECOL -i temp1 -o $RESULTS/$BASE\_Union.out -a 4 -b 5 --union
+	# Intersection merge replicates
+	python $MERGECOL -i results/$FILE -o temp1 -a 1 -b 2 --intersect
+	python $MERGECOL -i temp1 -o temp2 -a 2 -b 3 --intersect
+	python $MERGECOL -i temp2 -o temp1 -a 3 -b 4 --intersect
+	python $MERGECOL -i temp1 -o $RESULTS/$BASE\_Intersection.out -a 4 -b 5 --intersect
+done
+rm temp1 temp2
