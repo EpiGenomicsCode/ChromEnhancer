@@ -21,6 +21,9 @@ class Chromatin_Network5(nn.Module):
         if self.input_size == 400:
             self.layerinput = 800
 
+        if self.input_size == 32900:
+            self.layerinput = 526336
+
         
         self.fc1 = nn.Linear(self.layerinput, 64)
         self.fc2 = nn.Linear(64, 1)
