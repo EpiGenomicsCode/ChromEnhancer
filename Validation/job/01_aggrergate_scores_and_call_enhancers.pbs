@@ -6,9 +6,12 @@
 #PBS -o logs/aggregate-enhancer-scores.log.out
 #PBS -e logs/aggregate-enhancer-scores.log.err
 
+module load anaconda3
+source activate everything
+
 CALLBINARY=bin/matrix_values_to_binary.py
 MERGECOL=bin/merge_and_replace_columns.py
-
+FILTERL=bin/filter_BED_by_list_ColumnSelect.pl
 
 RESULTS=results/ResortByName
 [ -d $RESULTS ] || mkdir -p $RESULTS
@@ -17,13 +20,28 @@ RESULTS=results/ResortByName
 for FILE in data/*_SORT.bed;
 do
     BASE=`basename $FILE`
-    sort $FILE > $RESULTS/$BASE
+    sort -k1,1 -nk2,2 $FILE > $RESULTS/$BASE
 done
 
-# Aggregate data into a column of scores
+# Get enhancer file sets
+for FILE in $RESULTS/*SORT.bed;
+do
+    BASE=`basename $FILE ".bed"`
+	# make score threshold-based calls
+    awk '{OFS="\t"}{if($5>0.5) print}' $FILE > $RESULTS/$BASE\_T-50.bed
+    awk '{OFS="\t"}{if($5>0.9) print}' $FILE > $RESULTS/$BASE\_T-90.bed
+	# make rank-based calls (1 percent ~ 30159)
+    echo $'Coordinate\t'$BASE'_Top-1per' > $RESULTS/$BASE\_Top-1per.tab
+    sort -rnk5,5 $FILE | head -n 30159 | awk '{OFS="\t"}{print $4, "1"}' >> $RESULTS/$BASE\_Top-1per.tab
+done
+
+AGGREGATE=results/AggregateEnhancers
+[ -d $AGGREGATE ] || mkdir -p $AGGREGATE
+
+# Aggregate data into a column of scores (ALL_TILES)
 echo "Coordinate" > old
-cut -f4 results/ResortByName/A549_Rep1_EnhancerScore_SORT.bed >> old
-for FILE in results/ResortByName/*.bed;
+cut -f4 $RESULTS/A549_Rep1_EnhancerScore_SORT.bed >> old
+for FILE in $RESULTS/*SORT.bed;
 do
     basename $FILE ".bed" > new
     cut -f 5 $FILE >> new
@@ -31,32 +49,38 @@ do
     mv temp old
 done
 rm new
-mv old results/ALL_SCORES.out
+mv old $AGGREGATE/ALL_TILES.out
 
-# Call enhancers (0/1) at two thresholds
-python $CALLBINARY -i results/ALL_SCORES.out -o results/Enhancers_T-50.out -t 0.5
-python $CALLBINARY -i results/ALL_SCORES.out -o results/Enhancers_T-90.out -t 0.9
+# Subset enhancers
+perl $FILTERL $AGGREGATE/ALL_TILES.out <(cut -f4 $RESULTS/*_T-50.bed |sort |uniq ) 0 keep $AGGREGATE/JustEnhancers_T-50.out
+perl $FILTERL $AGGREGATE/ALL_TILES.out <(cut -f4 $RESULTS/*_T-90.bed |sort |uniq ) 0 keep $AGGREGATE/JustEnhancers_T-90.out
 
-# Create "just the enhancer" sets (remove 0 rows)
-cat <(head -1 results/Enhancers_T-50.out) <(grep $'\t1\.0' results/Enhancers_T-50.out) > results/JustEnhancers_T-50.out
-cat <(head -1 results/Enhancers_T-90.out) <(grep $'\t1\.0' results/Enhancers_T-90.out) > results/JustEnhancers_T-90.out
+# Call enhancers (0/1)
+python $CALLBINARY -i $AGGREGATE/ALL_TILES.out -o $AGGREGATE/Enhancers_T-50.out -t 0.5
+python $CALLBINARY -i $AGGREGATE/ALL_TILES.out -o $AGGREGATE/Enhancers_T-90.out -t 0.9
+cat <(head -1 $AGGREGATE/Enhancers_T-50.out) <(grep $'\t1\.0' $AGGREGATE/Enhancers_T-50.out) > $AGGREGATE/JustEnhancers_T-50_binarize.out
+cat <(head -1 $AGGREGATE/Enhancers_T-90.out) <(grep $'\t1\.0' $AGGREGATE/Enhancers_T-90.out) > $AGGREGATE/JustEnhancers_T-90_binarize.out
 
-RESULTS=results/MergeReplicates
-[ -d $RESULTS ] || mkdir $RESULTS
+MERGEREP=results/MergeReplicates
+[ -d $MERGEREP ] || mkdir $MERGEREP
 
-# Group replicates (union and intersection)
-for FILE in "Enhancers_T-50.out" "Enhancers_T-90.out" "JustEnhancers_T-50.out" "JustEnhancers_T-90.out";
+# Group replicates
+for BASE in "Enhancers_T-50" "Enhancers_T-90" "JustEnhancers_T-50" "JustEnhancers_T-90";
 do
-	BASE=`basename $FILE ".out"`
+	FILE=$AGGREGATE/$BASE.out
 	# Union merge replicates
-	python $MERGECOL -i results/$FILE -o temp1 -a 1 -b 2 --union
+	python $MERGECOL -i $FILE -o temp1 -a 1 -b 2 --union
 	python $MERGECOL -i temp1 -o temp2 -a 2 -b 3 --union
 	python $MERGECOL -i temp2 -o temp1 -a 3 -b 4 --union
-	python $MERGECOL -i temp1 -o $RESULTS/$BASE\_Union.out -a 4 -b 5 --union
+	python $MERGECOL -i temp1 -o temp-unclustered -a 4 -b 5 --union
+	# cluster by enhancer label
+	sort -nk2,2 -nk3,3 -nk4,4 -nk5,5 temp-unclustered > $MERGEREP/$BASE\_Union.out
 	# Intersection merge replicates
-	python $MERGECOL -i results/$FILE -o temp1 -a 1 -b 2 --intersect
+	python $MERGECOL -i $FILE -o temp1 -a 1 -b 2 --intersect
 	python $MERGECOL -i temp1 -o temp2 -a 2 -b 3 --intersect
 	python $MERGECOL -i temp2 -o temp1 -a 3 -b 4 --intersect
-	python $MERGECOL -i temp1 -o $RESULTS/$BASE\_Intersection.out -a 4 -b 5 --intersect
+	python $MERGECOL -i temp1 -o temp-unclustered -a 4 -b 5 --intersect
+	# cluster by enhancer label
+	sort -nk2,2 -nk3,3 -nk4,4 -nk5,5 temp-unclustered > $MERGEREP/$BASE\_Intersection.out
 done
-rm temp1 temp2
+rm temp1 temp2 temp-unclustered
