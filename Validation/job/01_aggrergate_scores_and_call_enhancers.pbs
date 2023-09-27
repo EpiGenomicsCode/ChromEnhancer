@@ -12,6 +12,7 @@ source activate everything
 CALLBINARY=bin/matrix_values_to_binary.py
 MERGECOL=bin/merge_and_replace_columns.py
 FILTERL=bin/filter_BED_by_list_ColumnSelect.pl
+OMERGE=bin/merge_matrices_outer.py
 
 RESULTS=results/ResortByName
 [ -d $RESULTS ] || mkdir -p $RESULTS
@@ -51,6 +52,10 @@ done
 rm new
 mv old $AGGREGATE/ALL_TILES.out
 
+# Aggregate Top-1per enhancers (0/1 and score-based)
+python $OMERGE -i $RESULTS/*_Top-1per.tab -o $AGGREGATE/JustEnhancers_Top-1per.out
+# perl $FILTERL $AGGREGATE/ALL_TILES.out <(cut -f1 $AGGREGATE/JustEnhancers_Top-1per.out |sort |uniq ) 0 keep $AGGREGATE/JustEnhancers_Top-1per_wOriginalScores.out
+
 # Subset enhancers
 perl $FILTERL $AGGREGATE/ALL_TILES.out <(cut -f4 $RESULTS/*_T-50.bed |sort |uniq ) 0 keep $AGGREGATE/JustEnhancers_T-50.out
 perl $FILTERL $AGGREGATE/ALL_TILES.out <(cut -f4 $RESULTS/*_T-90.bed |sort |uniq ) 0 keep $AGGREGATE/JustEnhancers_T-90.out
@@ -65,7 +70,7 @@ MERGEREP=results/MergeReplicates
 [ -d $MERGEREP ] || mkdir $MERGEREP
 
 # Group replicates
-for BASE in "Enhancers_T-50" "Enhancers_T-90" "JustEnhancers_T-50" "JustEnhancers_T-90";
+for BASE in "Enhancers_T-50" "Enhancers_T-90" "JustEnhancers_T-50" "JustEnhancers_T-90" "JustEnhancers_Top-1per";
 do
 	FILE=$AGGREGATE/$BASE.out
 	# Union merge replicates
@@ -84,3 +89,20 @@ do
 	sort -nk2,2 -nk3,3 -nk4,4 -nk5,5 temp-unclustered > $MERGEREP/$BASE\_Intersection.out
 done
 rm temp1 temp2 temp-unclustered
+
+REFPT=results/RefPT
+[ -d $REFPT ] || mkdir $REFPT
+
+# Make RefPT
+# "$AGGREGATE/ALL_TILES.out"
+# "$MERGEREP/JustEnhancers_T-50_Union.out" "$MERGEREP/JustEnhancers_T-50_Intersection.out"
+# "$MERGEREP/JustEnhancers_T-90_Union.out" "$MERGEREP/JustEnhancers_T-90_Intersection.out"
+for FILE in "$MERGEREP/JustEnhancers_Top-1per_Union.out" "$MERGEREP/JustEnhancers_Top-1per_Intersection.out";
+do
+	BASE=`basename $FILE ".out"`
+	paste <(cut -f1 $FILE |cut -d":" -f1) \
+		<(cut -f1 $FILE |cut -d":" -f 2 | cut -d"-" -f 1) \
+		<(cut -f1 $FILE |cut -d":" -f 2 | cut -d"-" -f 2) \
+		<(cut -f1 $FILE ) | sed '1d' | awk '{OFS="\t"}{print $1, $2, $3, $4, ".", "." }' \
+		> $REFPT/$BASE.bed
+done
