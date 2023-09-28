@@ -1,4 +1,3 @@
-*__*
-*out*
+__pycache__
+output/
 Data/
-Model/*_*
