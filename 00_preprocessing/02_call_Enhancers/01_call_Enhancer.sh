@@ -1,8 +1,8 @@
 # ENCODE ATAC seq peak file path
-ATAC=WRK=../data/ATAC_Cellline
+ATAC=../../data/ATAC_Cellline
 
 # STARR-seq peak file path
-STARR=../data/STARR_Cellline
+STARR=../../data/STARR_Cellline
 
 for file in "$ATAC"/*bed.gz; do
 	ID="$(basename $file)"
@@ -34,5 +34,5 @@ done
 
 # Organize data
 gzip *.bed
-mkdir -p Enhancer_Coord
-mv *.bed.gz Enhancer_Coord/
+mkdir -p ../../data/Enhancer_Coord
+mv *.bed.gz ../../data/Enhancer_Coord/

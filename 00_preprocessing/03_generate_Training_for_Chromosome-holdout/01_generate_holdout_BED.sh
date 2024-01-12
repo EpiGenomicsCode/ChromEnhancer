@@ -6,18 +6,18 @@ SORT=../bin/sort_BED.pl
 GENLABEL=../bin/generate_label_from_BED.pl
 
 # Tiling BED file covering the entire genome
-GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
+GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
 
 for CELL in ${CELLLINE[@]}; do
 	# Cell type specific enhancers
-	STRINGENTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
-  LENIENTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_LenientEnhancer_1000bp.bed
+	STRINGENTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed.gz
+	LENIENTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_LenientEnhancer_1000bp.bed.gz
 
 	for CHR in ${CHROM[@]}; do
 		echo -e $CELL"\t"$CHR;
 		# Remove holdout chromosome from enhancer and genome file
-		grep "$CHR" $STRINGENTPEAKS > Speaks.bed
-		grep "$CHR" $LENIENTPEAKS > Lpeaks.bed
+		zgrep "$CHR" $STRINGENTPEAKS > Speaks.bed
+		zgrep "$CHR" $LENIENTPEAKS > Lpeaks.bed
 		zgrep "$CHR" $GENOMEBED > genome.bed
 
 		# Split chromosome into two files, enhancer and non-enhancer
@@ -54,6 +54,6 @@ for file in *bed; do
 done
 
 # Organize files
-mkdir -p HOLDOUT
-mv *.bed HOLDOUT/
-mv *label HOLDOUT/
+mkdir -p ../../data/CHR-HOLDOUT
+mv *.bed ../../data/CHR-HOLDOUT/
+mv *label ../../data/CHR-HOLDOUT/

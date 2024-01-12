@@ -12,10 +12,8 @@ wget -O K562_POLR2A_ENCFF201SIE.bam https://www.encodeproject.org/files/ENCFF201
 wget -O K562_POLR2A_ENCFF267TTN.bam https://www.encodeproject.org/files/ENCFF267TTN/@@download/ENCFF267TTN.bam
 
 # A549
-wget -O A549_H3K4me3_ENCFF973TUQ.bam https://www.encodeproject.org/files/ENCFF973TUQ/@@download/ENCFF973TUQ.bam
 wget -O A549_H3K4me3_ENCFF643FMK.bam https://www.encodeproject.org/files/ENCFF643FMK/@@download/ENCFF643FMK.bam
 wget -O A549_H3K4me3_ENCFF428UWO.bam https://www.encodeproject.org/files/ENCFF428UWO/@@download/ENCFF428UWO.bam
-wget -O A549_H3K27ac_ENCFF393XCS.bam https://www.encodeproject.org/files/ENCFF393XCS/@@download/ENCFF393XCS.bam
 wget -O A549_H3K27ac_ENCFF117TAC.bam https://www.encodeproject.org/files/ENCFF117TAC/@@download/ENCFF117TAC.bam
 wget -O A549_H3K27ac_ENCFF273YZW.bam https://www.encodeproject.org/files/ENCFF273YZW/@@download/ENCFF273YZW.bam
 
@@ -27,8 +25,8 @@ wget -O A549_POLR2A_ENCFF641ZJE.bam https://www.encodeproject.org/files/ENCFF641
 wget -O A549_POLR2A_ENCFF816DKP.bam https://www.encodeproject.org/files/ENCFF816DKP/@@download/ENCFF816DKP.bam
 
 # HepG2
-wget -O HepG2_H3K4me3_ENCFF360OCU.bam https://www.encodeproject.org/files/ENCFF360OCU/@@download/ENCFF360OCU.bam
-wget -O HepG2_H3K4me3_ENCFF060PGB.bam https://www.encodeproject.org/files/ENCFF060PGB/@@download/ENCFF060PGB.bam
+wget -O HepG2_H3K4me3_ENCFF426UGV.bam https://www.encodeproject.org/files/ENCFF426UGV/@@download/ENCFF426UGV.bam
+wget -O HepG2_H3K4me3_ENCFF223DKE.bam https://www.encodeproject.org/files/ENCFF223DKE/@@download/ENCFF223DKE.bam
 wget -O HepG2_H3K27ac_ENCFF805KGN.bam https://www.encodeproject.org/files/ENCFF805KGN/@@download/ENCFF805KGN.bam
 wget -O HepG2_H3K27ac_ENCFF686HFQ.bam https://www.encodeproject.org/files/ENCFF686HFQ/@@download/ENCFF686HFQ.bam
 
@@ -60,5 +58,5 @@ wget -O A549_STARR_ENCFF060IFE.bam https://www.encodeproject.org/files/ENCFF060I
 wget -O Control_STARR_ENCFF807BAQ.bam https://www.encodeproject.org/files/ENCFF807BAQ/@@download/ENCFF807BAQ.bam
 wget -O Control_STARR_ENCFF229JXT.bam https://www.encodeproject.org/files/ENCFF229JXT/@@download/ENCFF229JXT.bam
 
-mkdir -p BAM
-mv *.bam BAM/
+mkdir -p ../../data/BAM
+mv *.bam ../../data/BAM/

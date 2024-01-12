@@ -13,7 +13,7 @@ while($line = <IN>) {
 }
 close IN;
 @TEMP = sort { $$a{'start'} <=> $$b{'start'} } @ARRAY;
-@SORT = sort { $$b{'chr'} cmp $$a{'chr'} } @TEMP;
+@SORT = sort { $$a{'chr'} cmp $$b{'chr'} } @TEMP;
 
 $currentChr = "";
 for($x =0 ; $x <= $#SORT; $x++) {

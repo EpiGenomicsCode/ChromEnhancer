@@ -5,15 +5,5 @@ wget -O K562_ATAC_hg38_ENCFF333TAT.bed.gz https://www.encodeproject.org/files/EN
 wget -O MCF7_ATAC_hg38_ENCFF821OEF.bed.gz https://www.encodeproject.org/files/ENCFF821OEF/@@download/ENCFF821OEF.bed.gz
 
 #Move datasets
-mkdir -p ATAC_Cellline
-mv *.bed.gz ATAC_Cellline/
-
-#STARR-seq peaks
-wget -O A549_STARR_hg38_ENCFF646OQS.bed.gz https://www.encodeproject.org/files/ENCFF646OQS/@@download/ENCFF646OQS.bed.gz
-wget -O HepG2_STARR_hg38_ENCFF047LDJ.bed.gz https://www.encodeproject.org/files/ENCFF047LDJ/@@download/ENCFF047LDJ.bed.gz
-wget -O K562_STARR_hg38_ENCFF045TVA.bed.gz https://www.encodeproject.org/files/ENCFF045TVA/@@download/ENCFF045TVA.bed.gz
-wget -O MCF7_STARR_hg38_ENCFF826BPU.bed.gz https://www.encodeproject.org/files/ENCFF826BPU/@@download/ENCFF826BPU.bed.gz
-
-#Move datasets
-mkdir -p STARR_Cellline
-mv *.bed.gz STARR_Cellline/
+mkdir -p ../../data/ATAC_Cellline
+mv *.bed.gz ../../data/ATAC_Cellline/

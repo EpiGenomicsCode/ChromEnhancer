@@ -9,17 +9,17 @@ SORT=../bin/sort_BED.pl
 GENLABEL=../bin/generate_label_from_BED.pl
 
 # Tiling BED file covering the entire genome
-GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
+GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
 
 for CELL in ${CELLLINE[@]}; do
 	# Cell type specific enhancers
-	TESTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
+	TESTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed.gz
 
 	for (( i=0; i<${#CHR1[@]}; i++ )); do
 		echo -e $CELL"\t"${CHR1[$i]}"\t"${CHR2[$i]}
 		# Remove holdout chromosomes
 		zgrep -v -e "${CHR1[$i]}" -e "${CHR2[$i]}" $GENOMEBED > genome_train.bed
-		grep -v -e "${CHR1[$i]}" -e "${CHR2[$i]}" $TESTPEAKS > peaks.bed
+		zgrep -v -e "${CHR1[$i]}" -e "${CHR2[$i]}" $TESTPEAKS > peaks.bed
 		# Get overlap of enhancers with genomic tiles
 		bedtools intersect -u -a $GENOMEBED -b peaks.bed > peak_train.bed
 		# For each original enhancer coordinate, generate 10 offset windows, 500bp total, 50 bp frameshift
@@ -52,6 +52,6 @@ for file in *bed; do
 done
 
 # Organize files
-mkdir -p TRAIN
-mv *bed TRAIN/
-mv *label TRAIN/
+mkdir -p ../../data/CHR-TRAIN
+mv *bed ../../data/CHR-TRAIN/
+mv *label ../../data/CHR-TRAIN/

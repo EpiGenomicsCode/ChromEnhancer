@@ -11,7 +11,7 @@ while($line = <IN>) {
 	$START = $array[1];
 	$STOP = $array[2];
 	# Frameshift window upstream window size
-	$newSTART = $START - $WINDOW;
+	$newSTART = $START - $WINDOW - $SIZE;
 	$newSTOP = $newSTART + $SIZE;
 
 	if($START >= 0) { print OUT "$array[0]\t$newSTART\t$newSTOP\t$array[3]\t0\t.\n"; }
