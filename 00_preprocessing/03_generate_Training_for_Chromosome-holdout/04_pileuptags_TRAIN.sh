@@ -33,50 +33,30 @@ for file in K562*.bed; do
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
-
-	sampleID=$1\_CTCF-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
 	sampleID=$1\_p300-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
-
-	sampleID=$1\_p300-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
 	sampleID=$1\_PolII-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
-
-	sampleID=$1\_PolII-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
 	sampleID=$1\_H3K4me3-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
-
-	sampleID=$1\_H3K4me3-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
 	sampleID=$1\_H3K27ac-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
-
-	sampleID=$1\_H3K27ac-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
@@ -101,50 +81,30 @@ for file in A549*.bed; do
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
-
-	sampleID=$1\_CTCF-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
 	sampleID=$1\_p300-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
-
-	sampleID=$1\_p300-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=100 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
 	sampleID=$1\_PolII-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
-
-	sampleID=$1\_PolII-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
 	sampleID=$1\_H3K4me3-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
-
-	sampleID=$1\_H3K4me3-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
 	sampleID=$1\_H3K27ac-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
-
-	sampleID=$1\_H3K27ac-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
@@ -155,8 +115,8 @@ P300_1=$FACTORBAM/HepG2_p300_ENCFF352YDX.bam
 P300_2=$FACTORBAM/HepG2_p300_ENCFF953FZD.bam
 POL_1=$FACTORBAM/HepG2_POLR2A_ENCFF835GBL.bam
 POL_2=$FACTORBAM/HepG2_POLR2A_ENCFF845YGC.bam
-H3K4ME3_1=$HISTONEBAM/HepG2_H3K4me3_ENCFF060PGB.bam
-H3K4ME3_2=$HISTONEBAM/HepG2_H3K4me3_ENCFF360OCU.bam
+H3K4ME3_1=$HISTONEBAM/HepG2_H3K4me3_ENCFF223DKE.bam
+H3K4ME3_2=$HISTONEBAM/HepG2_H3K4me3_ENCFF426UGV.bam
 H3K27AC_1=$HISTONEBAM/HepG2_H3K27ac_ENCFF686HFQ.bam
 H3K27AC_2=$HISTONEBAM/HepG2_H3K27ac_ENCFF805KGN.bam
 
@@ -169,50 +129,30 @@ for file in HepG2*.bed; do
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
-
-	sampleID=$1\_CTCF-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
 	sampleID=$1\_p300-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
-
-	sampleID=$1\_p300-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
 	sampleID=$1\_PolII-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
-
-	sampleID=$1\_PolII-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
 	sampleID=$1\_H3K4me3-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=80 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
-
-	sampleID=$1\_H3K4me3-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=80 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
 	sampleID=$1\_H3K27ac-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
-
-	sampleID=$1\_H3K27ac-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
 	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=85 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
@@ -236,57 +176,37 @@ for file in MCF7*.bed; do
 	sampleID=$1\_CTCF-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
-
-	sampleID=$1\_CTCF-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-1 $file $CTCF_1" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=50 --output-matrix=$1\_CTCF-2 $file $CTCF_2" >> $sampleID
 
 	sampleID=$1\_p300-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
-
-	sampleID=$1\_p300-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-1 $file $P300_1" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=40 --output-matrix=$1\_p300-2 $file $P300_2" >> $sampleID
 
 	sampleID=$1\_PolII-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
-
-	sampleID=$1\_PolII-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-1 $file $POL_1" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=75 --output-matrix=$1\_PolII-2 $file $POL_2" >> $sampleID
 
 	sampleID=$1\_H3K4me3-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
-
-	sampleID=$1\_H3K4me3-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-1 $file $H3K4ME3_1" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K4me3-2 $file $H3K4ME3_2" >> $sampleID
 
 	sampleID=$1\_H3K27ac-1\.slurm
 	rm -f $sampleID
 	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
-
-	sampleID=$1\_H3K27ac-2\.slurm
-	rm -f $sampleID
-	echo "$JOBSTATS" >> $sampleID
-	echo "java -jar $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=110 --output-matrix=$1\_H3K27ac-1 $file $H3K27AC_1" >> $sampleID
+	echo "java -jar -Xmx24G $SCRIPTMANAGER read-analysis tag-pileup --cpu=8 --gzip --combined --shift=90 --output-matrix=$1\_H3K27ac-2 $file $H3K27AC_2" >> $sampleID
 
 done
 
 # Submit jobs to cluster
-# for file in A549*.slurm; do sbatch $file; done
-# for file in HepG2*.slurm; do sbatch $file; done
-# for file in K562*.slurm; do sbatch $file; done
-# for file in MCF7*.slurm; do sbatch $file; done
+for file in A549*.slurm; do sbatch $file; done
+for file in HepG2*.slurm; do sbatch $file; done
+for file in K562*.slurm; do sbatch $file; done
+for file in MCF7*.slurm; do sbatch $file; done

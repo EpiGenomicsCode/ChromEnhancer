@@ -1,17 +1,19 @@
+module load bedtools
+
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 
-LABEL=job/label_BED_score.pl
-SORT=job/sort_BED.pl
-GENLABEL=job/generate_label_from_BED.pl
-SPLIT=job/split_BED.pl
+LABEL=../bin/label_BED_score.pl
+SORT=../bin/sort_BED.pl
+GENLABEL=../bin/generate_label_from_BED.pl
+SPLIT=../bin/split_BED.pl
 
 # Tiling BED file covering the entire genome
-GENOMEBED=GRCh38_BED/GRCh38_1000bp.bed.gz
+GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
 
 for CELL in ${CELLLINE[@]}; do
-	# Cell type specific enhancers
-	STRINGENTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed
-	LENIENTPEAKS=../data/Enhancer_Coord/$CELL\_hg38_LenientEnhancer_1000bp.bed
+        # Cell type specific enhancers
+        STRINGENTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_StringentEnhancer_1000bp.bed.gz
+        LENIENTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_LenientEnhancer_1000bp.bed.gz
 	echo -e $CELL;
 	# Split chromosome into two files, enhancer and non-enhancer
 	bedtools intersect -u -a $GENOMEBED -b $STRINGENTPEAKS > test-s.bed
@@ -48,6 +50,6 @@ done
 
 # Organize files
 gzip *.bed
-mkdir -p HOLDOUT
-mv *.bed.gz HOLDOUT/
-mv *label HOLDOUT/
+mkdir -p ../../data/CELL-HOLDOUT
+mv *.bed.gz ../../data/CELL-HOLDOUT/
+mv *label ../../data/CELL-HOLDOUT/

@@ -10,12 +10,13 @@ while($line = <IN>) {
 	@array = split(/\t/, $line);
 	$START = $array[1];
 	$STOP = $array[2];
-	$START -= 250;
-	$STOP -= 250;
-	for($x = 0; $x < 10; $x++) {
+	if($array[3] eq "") { $array[3] = "$array[0]:$START\-$STOP"; }
+	$START -= 100;
+	$STOP -= 100;
+	for($x = 0; $x <= 10; $x++) {
 		if($START >= 0) { print OUT "$array[0]\t$START\t$STOP\t$array[3]\t1\t.\n"; }
-		$START += 50;
-		$STOP += 50;
+		$START += 20;
+		$STOP += 20;
 	}
 }
 close IN;

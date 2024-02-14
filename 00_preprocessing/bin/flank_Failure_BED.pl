@@ -14,13 +14,15 @@ while($line = <IN>) {
 	$newSTART = $START - $WINDOW - $SIZE;
 	$newSTOP = $newSTART + $SIZE;
 
-	if($START >= 0) { print OUT "$array[0]\t$newSTART\t$newSTOP\t$array[3]\t0\t.\n"; }
+	$ID = "$array[0]\:$newSTART\-$newSTOP";
+	if($START >= 0) { print OUT "$array[0]\t$newSTART\t$newSTOP\t$ID\t0\t.\n"; }
 
 	# Frameshift window downstream window size
 	$newSTART = $STOP + $WINDOW;
 	$newSTOP = $newSTART + $SIZE;
 
-	print OUT "$array[0]\t$newSTART\t$newSTOP\t$array[3]\t0\t.\n";
+        $ID = "$array[0]\:$newSTART\-$newSTOP";
+	print OUT "$array[0]\t$newSTART\t$newSTOP\t$ID\t0\t.\n";
 }
 close IN;
 close OUT;

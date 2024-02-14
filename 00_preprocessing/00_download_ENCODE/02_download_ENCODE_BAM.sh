@@ -50,13 +50,13 @@ wget -O MCF7_p300_ENCFF596FSA.bam https://www.encodeproject.org/files/ENCFF596FS
 wget -O MCF7_POLR2A_ENCFF191BDN.bam https://www.encodeproject.org/files/ENCFF191BDN/@@download/ENCFF191BDN.bam
 wget -O MCF7_POLR2A_ENCFF193BNK.bam https://www.encodeproject.org/files/ENCFF193BNK/@@download/ENCFF193BNK.bam
 
-# STARR
-wget -O K562_STARR_ENCFF848IIW.bam https://www.encodeproject.org/files/ENCFF848IIW/@@download/ENCFF848IIW.bam
-wget -O HepG2_STARR_ENCFF427PXM.bam https://www.encodeproject.org/files/ENCFF427PXM/@@download/ENCFF427PXM.bam
-wget -O MCF7_STARR_ENCFF391WAQ.bam https://www.encodeproject.org/files/ENCFF391WAQ/@@download/ENCFF391WAQ.bam
-wget -O A549_STARR_ENCFF060IFE.bam https://www.encodeproject.org/files/ENCFF060IFE/@@download/ENCFF060IFE.bam
-wget -O Control_STARR_ENCFF807BAQ.bam https://www.encodeproject.org/files/ENCFF807BAQ/@@download/ENCFF807BAQ.bam
-wget -O Control_STARR_ENCFF229JXT.bam https://www.encodeproject.org/files/ENCFF229JXT/@@download/ENCFF229JXT.bam
+# # STARR
+# wget -O K562_STARR_ENCFF848IIW.bam https://www.encodeproject.org/files/ENCFF848IIW/@@download/ENCFF848IIW.bam
+# wget -O HepG2_STARR_ENCFF427PXM.bam https://www.encodeproject.org/files/ENCFF427PXM/@@download/ENCFF427PXM.bam
+# wget -O MCF7_STARR_ENCFF391WAQ.bam https://www.encodeproject.org/files/ENCFF391WAQ/@@download/ENCFF391WAQ.bam
+# wget -O A549_STARR_ENCFF060IFE.bam https://www.encodeproject.org/files/ENCFF060IFE/@@download/ENCFF060IFE.bam
+# wget -O Control_STARR_ENCFF807BAQ.bam https://www.encodeproject.org/files/ENCFF807BAQ/@@download/ENCFF807BAQ.bam
+# wget -O Control_STARR_ENCFF229JXT.bam https://www.encodeproject.org/files/ENCFF229JXT/@@download/ENCFF229JXT.bam
 
 mkdir -p ../../data/BAM
 mv *.bam ../../data/BAM/

@@ -47,11 +47,12 @@ for file in *.cdt.gz; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 4 ]]; then
+	if [[ $CPU -eq 12 ]]; then
 		wait
 		CPU=0
 	fi
 done
+wait
 
 for file in *RAW.chromtrack; do
 	fileID="${file/_RAW/}"
@@ -60,11 +61,12 @@ for file in *RAW.chromtrack; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 4 ]]; then
+	if [[ $CPU -eq 12 ]]; then
 		wait
 		CPU=0
 	fi
 done
+wait
 
 rm *RAW.chromtrack
 gzip *.chromtrack

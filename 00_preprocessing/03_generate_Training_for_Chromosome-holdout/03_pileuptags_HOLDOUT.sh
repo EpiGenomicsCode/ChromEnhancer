@@ -141,5 +141,5 @@ for file in MCF7_Stringent*.bed; do
 
 done
 
-# # Submit jobs to cluster
+# Submit jobs to cluster
 for file in *.slurm; do sbatch $file; done
