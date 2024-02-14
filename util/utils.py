@@ -1,7 +1,7 @@
 import numpy as np
 import torch.optim as optim
 import tqdm
-from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5, ChrNet6, ChrNet7
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -54,6 +54,10 @@ def loadModel(modelNumber, name="", input_size=500):
         return ChrNet4.Chromatin_Network4(name, input_size)
     elif modelNumber == 5:
         return ChrNet5.Chromatin_Network5(name, input_size)
+    elif modelNumber == 6:
+        return ChrNet6.Chromatin_Network6(name, input_size)
+    elif modelNumber == 7:
+        return ChrNet7.Chromatin_Network7(name, input_size)
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
 
@@ -116,8 +120,8 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
         
         best_accuracy = accuracy
         # check if the output folder exists
-        os.makedirs("./output/modelWeights", exist_ok=True)
-        torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epoch))
+        #os.makedirs("./output/modelWeights", exist_ok=True)
+        #torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epoch))
 
         plotAccuracy(training_accuaracy, "train_"+model.name)
         plt.clf()
@@ -162,6 +166,10 @@ def runHomoModel(model, train_loader, test_loader, valid_loader, epochs):
     accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, save=True)
     test_auPRC.append(auPRC)
     test_auROC.append(auROC)
+
+    # Output final model weights
+    os.makedirs("./output/modelWeights", exist_ok=True)
+    torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epochs))
 
     plt.clf()
     plt.plot(test_auROC)
