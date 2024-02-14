@@ -35,11 +35,14 @@ class Chromatin_Dataset(Dataset):
         self.mode = mode
         self.chromatin =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
         self.missing = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
+        self.AllcellLines =  ["A549", "MCF7", "HepG2", "K562"]
+        self.holdoutcellLines = [i for i in range(len(self.AllcellLines)) if self.AllcellLines[i] not in self.cellLine]
         self.chunk_size = chunk_size
         self.start_chunk = 0
         self.end_chunk = self.chunk_size
         self.chunk_counter = 0
-        if "220802" in fileLocation:
+        
+        if "CHR_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_labels"
@@ -49,7 +52,7 @@ class Chromatin_Dataset(Dataset):
             else:
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
-        elif "220803" in fileLocation:
+        elif "CELL_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_train"
@@ -158,24 +161,14 @@ class Chromatin_Dataset(Dataset):
             return data, label
 
 
-        
-
-def getData(
-    trainLabel="chr11-chr7",
-    testLabel="chr11",
-    validLabel="chr7",
-    dataTypes="-1",
-    fileLocation="./Data/220802_DATA/",
-    chrUse=None,
-    cellLineUse=None,
-    bin_size=4096
-):
+def getData(trainLabel="chr11-chr7", testLabel="chr11", validLabel="chr7", chrUse=None, cellUse=None, cellHold=None, bin_size=4096, fileLocation="./Data/220802_DATA/", dataTypes="-1"):
     train = []
     test = []
     valid = []
-    bin_size = bin_size // len(cellLineUse)
+    bin_size = bin_size // len(cellUse)
     bin_size = bin_size // 3
-    for cellLine in cellLineUse:
+
+    for cellLine in cellUse:
         train.append(
             Chromatin_Dataset(
                 cellLine,     # A549
@@ -186,6 +179,7 @@ def getData(
                 bin_size,
                 "train")
         )
+    for cellLine in cellHold:
         test.append(
             Chromatin_Dataset(
                 cellLine,     # A549
