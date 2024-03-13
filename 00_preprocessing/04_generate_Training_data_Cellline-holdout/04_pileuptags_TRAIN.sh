@@ -1,4 +1,4 @@
-SCRIPTMANAGER=../../00_preprocessing/bin/ScriptManager-v0.14.jar
+SCRIPTMANAGER=../../bin/ScriptManager-v0.14.jar
 FACTORBAM=../BAM
 HISTONEBAM=../BAM
 

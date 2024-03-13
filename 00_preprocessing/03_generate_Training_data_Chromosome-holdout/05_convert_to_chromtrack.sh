@@ -1,5 +1,5 @@
-CONVERT=../../00_preprocessing/bin/convert_CDT-GZ_to_chromtrack.pl
-NORMALIZE=../../00_preprocessing/bin/normalize_chromtrack.pl
+CONVERT=../../bin/convert_CDT-GZ_to_chromtrack.pl
+NORMALIZE=../../bin/normalize_chromtrack.pl
 
 FACTOR=1
 CPU=0
@@ -15,11 +15,12 @@ for file in *.cdt.gz; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 8 ]]; then
+	if [[ $CPU -eq 4 ]]; then
 		wait
 		CPU=0
 	fi
 done
+wait
 
 for file in *RAW.chromtrack; do
 	fileID="${file/_RAW/}"
@@ -28,11 +29,12 @@ for file in *RAW.chromtrack; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 8 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
 done
+wait
 
 rm *RAW.chromtrack
 gzip *.chromtrack

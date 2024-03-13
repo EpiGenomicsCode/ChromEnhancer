@@ -2,12 +2,11 @@ module load bedtools
 
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 
-TILESUCCESS=../bin/tile_Success_BED.pl
-TILEFAILURE=../bin/flank_Failure_BED.pl
-LABEL=../bin/label_BED_score.pl
-SORT=../bin/sort_BED.pl
-GENLABEL=../bin/generate_label_from_BED.pl
-SPLIT=../bin/split_BED.pl
+TILESUCCESS=../../bin/tile_Success_BED.pl
+TILEFAILURE=../../bin/flank_Failure_BED.pl
+LABEL=../../bin/label_BED_score.pl
+SORT=../../bin/sort_BED.pl
+SPLIT=../../bin/split_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
@@ -46,14 +45,7 @@ done
 # Remove temporary files
 rm peak_train.bed train_peaks-s.bed peak_train-merge.bed train_peaks-f.bed train_peaks-all.bed remaining_peaks.bed train_peaks-neg_raw.bed train_peaks-neg.bed all_train.bed final.bed
 
-# Generate label files
-for file in *bed; do
-        newFile="${file/.bed/.label}"
-        perl $GENLABEL $file $newFile
-done
-
 # Organize files
 gzip *.bed
 mkdir -p ../../data/CELL-TRAIN/
 mv *.bed.gz ../../data/CELL-TRAIN/
-mv *label ../../data/CELL-TRAIN/

@@ -4,8 +4,8 @@ BLACKLIST=input/ENCFF356LFX.bed.gz
 CHRY=input/hg38_chrY.bed
 
 # Script to tile the genome
-TILE=../bin/tile_Genome.pl
-SORT=../bin/sort_BED.pl
+TILE=../../bin/tile_Genome.pl
+SORT=../../bin/sort_BED.pl
 
 # Set size of tiles
 SIZE=1000

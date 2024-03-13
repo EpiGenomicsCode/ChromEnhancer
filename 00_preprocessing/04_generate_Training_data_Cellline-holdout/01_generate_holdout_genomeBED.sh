@@ -2,10 +2,10 @@ module load bedtools
 
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 
-LABEL=../bin/label_BED_score.pl
-SORT=../bin/sort_BED.pl
-GENLABEL=../bin/generate_label_from_BED.pl
-SPLIT=../bin/split_BED.pl
+LABEL=../../bin/label_BED_score.pl
+SORT=../../bin/sort_BED.pl
+GENLABEL=../../bin/generate_label_from_BED.pl
+SPLIT=../../bin/split_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
@@ -42,14 +42,7 @@ for CELL in ${CELLLINE[@]}; do
 	rm test-s.bed test-f.bed test-s_final test-f_final test.bed
 done
 
-# Generate label files
-for file in *Enhancer.bed; do
-	newFile="${file/.bed/.label}"
-	perl $GENLABEL $file $newFile
-done
-
 # Organize files
 gzip *.bed
 mkdir -p ../../data/CELL-HOLDOUT
 mv *.bed.gz ../../data/CELL-HOLDOUT/
-mv *label ../../data/CELL-HOLDOUT/
