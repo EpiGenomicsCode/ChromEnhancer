@@ -1,8 +1,8 @@
 ## Generate training and holdout data internal to a cell line
-Running the scripts in order produces the training and holdout data used for the Large network training.
+Running the scripts in order produces the training and holdout data used for the chromosomal-holdout procedure used to validate the network.
 
 <details>
-<summary> 00_preprocessing/05_generate_Training_data_Large-Network
+<summary> Preprocessing/03_generate_Training_data_CHR-holdout
 </summary>
 
 ```
