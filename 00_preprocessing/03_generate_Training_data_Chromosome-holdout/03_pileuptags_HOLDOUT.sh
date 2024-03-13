@@ -1,4 +1,4 @@
-SCRIPTMANAGER=../../00_preprocessing/bin/ScriptManager-v0.14.jar
+SCRIPTMANAGER=../../bin/ScriptManager-v0.14.jar
 FACTORBAM=../BAM
 HISTONEBAM=../BAM
 
@@ -142,4 +142,4 @@ for file in MCF7_Stringent*.bed; do
 done
 
 # Submit jobs to cluster
-for file in *.slurm; do sbatch $file; done
+#for file in *.slurm; do sbatch $file; done

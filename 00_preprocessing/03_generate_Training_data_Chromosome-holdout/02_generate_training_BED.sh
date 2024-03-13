@@ -4,11 +4,10 @@ CELLLINE=("K562" "HepG2" "MCF7" "A549")
 CHR1=("chr10" "chr11" "chr12" "chr13" "chr14" "chr15")
 CHR2=("chr17" "chr7" "chr8" "chr9" "chrX" "chr16")
 
-TILESUCCESS=../bin/tile_Success_BED.pl
-TILEFAILURE=../bin/flank_Failure_BED.pl
-LABEL=../bin/label_BED_score.pl
-SORT=../bin/sort_BED.pl
-GENLABEL=../bin/generate_label_from_BED.pl
+TILESUCCESS=../../bin/tile_Success_BED.pl
+TILEFAILURE=../../bin/flank_Failure_BED.pl
+LABEL=../../bin/label_BED_score.pl
+SORT=../../bin/sort_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
@@ -26,7 +25,6 @@ for CELL in ${CELLLINE[@]}; do
 		bedtools intersect -u -a $GENOMEBED -b peaks.bed > peak_train.bed
 		# For each original enhancer coordinate, generate 10 offset windows, 200bp total, 20 bp frameshift
 		perl $TILESUCCESS peak_train.bed train_peaks-s.bed
-		#cp train_peaks-s.bed $CELL\_${CHR1[$i]}\-${CHR2[$i]}\_train_peaks-s.TEMP
 		# For each original enhancer coordinate, generate flanking coordinates 5000bp away on each side
 		bedtools merge -i train_peaks-s.bed > peak_train-merge.bed
 		perl $TILEFAILURE peak_train-merge.bed 5000 1000 train_peaks-f.bed
@@ -47,13 +45,6 @@ done
 # Remove temporary files
 rm genome_train.bed peaks.bed peak_train.bed train_peaks-s.bed peak_train-merge.bed train_peaks-f.bed train_peaks-all.bed remaining_peaks.bed train_peaks-neg_raw.bed train_peaks-neg.bed all_train.bed final.bed
 
-# Generate label files
-for file in *bed; do
-	newFile="${file/.bed/.label}"
-	perl $GENLABEL $file $newFile
-done
-
 # Organize files
 mkdir -p ../../data/CHR-TRAIN
 mv *bed ../../data/CHR-TRAIN/
-mv *label ../../data/CHR-TRAIN/

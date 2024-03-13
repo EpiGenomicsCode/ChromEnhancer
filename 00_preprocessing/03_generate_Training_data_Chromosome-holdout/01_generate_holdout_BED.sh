@@ -1,9 +1,8 @@
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 CHROM=("chr16" "chr17" "chr7" "chr8" "chr9" "chr10" "chr11" "chr12" "chr13" "chr14" "chr15" "chrX")
 
-LABEL=../bin/label_BED_score.pl
-SORT=../bin/sort_BED.pl
-GENLABEL=../bin/generate_label_from_BED.pl
+LABEL=../../bin/label_BED_score.pl
+SORT=../../bin/sort_BED.pl
 
 # Tiling BED file covering the entire genome
 GENOMEBED=../../data/GRCh38_BED/GRCh38_1000bp.bed.gz
@@ -47,13 +46,6 @@ for CELL in ${CELLLINE[@]}; do
 	done
 done
 
-# Generate label files
-for file in *bed; do
-	newFile="${file/.bed/.label}"
-	perl $GENLABEL $file $newFile
-done
-
 # Organize files
 mkdir -p ../../data/CHR-HOLDOUT
 mv *.bed ../../data/CHR-HOLDOUT/
-mv *label ../../data/CHR-HOLDOUT/
