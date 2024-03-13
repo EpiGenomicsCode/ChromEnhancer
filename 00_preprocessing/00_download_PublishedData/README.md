@@ -45,3 +45,13 @@ sh 04_download_ENCODE_BAM-extended.sh
 ```
 
 Moves BAM files into `data/BAM`
+
+## Download ENCODE ChIP-seq BAM files for Large Network training
+This downloads 330 ENCODE ChIP-seq BAM files for the K562 cell line
+ - Warning: This downloads over 600 GB worth of data
+
+```
+sh 05_download_ENCODE_BAM-large.sh
+```
+
+Moves BAM files into `data/BAM`
