@@ -8,25 +8,23 @@ import re
 import argparse
 from itertools import combinations
 
-import sys
 # add command line arguments
 parser = argparse.ArgumentParser(description='Run the study')
 parser.add_argument('--fileInput', type=str, help='Location of training and test data', default="./data/CHR_NETWORK/")
-parser.add_argument('--sequence', action='store_false', help='Run the sequence study')
-parser.add_argument('--parameter', action='store_false', help='Run the parameter study')
+parser.add_argument('--fileOutput', type=str, help='Location of training and test data', default="./output/")
+parser.add_argument('--parameterCHR', action='store_false', help='Run the parameter study with chromosome dropout')
 parser.add_argument('--parameterCLD', action='store_false', help='Run the parameter study with cell line dropout')
-parser.add_argument('--parameterCHD', action='store_false', help='Run the parameter study with chromatin droupout')
 parser.add_argument('--parameterLDS', action='store_false', help='Run the parameter study with Large Dataset')
 
-# optional cellLine
+# optional
 parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine', default=["A549", "MCF7", "HepG2", "K562"])
 parser.add_argument('--chromData', nargs='+', help='Run the study using the following chromatin datasets', default=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"])
 parser.add_argument('--chrPair', nargs='+', help='Run the study dropping out chromosome pairs', default=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
-parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6", "7"])
+parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6"])
 parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=2048)
 parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
-parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
+parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=3)
 
 args = parser.parse_args()
 
@@ -36,6 +34,7 @@ ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
 def main():
     clearCache()
     fileInput = args.fileInput
+    fileOutput = args.fileOutput
     cellLine = args.cellLine
     chromData = args.chromData
     chrPair = args.chrPair
@@ -47,32 +46,25 @@ def main():
     print("Running arguments: {}".format(args))
     seedEverything()
 
-    if not args.sequence:
-        print("Running Sequence Study")
-        sequenceStudy(epochs, batch_size)
-
-    if not args.parameter:
-        print("Running Parameter Study")
-        parametersStudy(fileInput, cellLine, chrPair, epochs, batch_size, bin_size)
+    if not args.parameterCHR:
+        print("Running Parameter Study with Chromosome Dropout")
+        parameterCHR(fileInput, fileOutput, cellLine, chrPair, epochs, batch_size, bin_size)
 
     if not args.parameterCLD:
         print("Running Parameter Study with Cell Line Dropout")
-        CellLineDropout(fileInput, cellLine, chromData, epochs, batch_size, bin_size)
-
-    if not args.parameterCHD:
-        print("Running Parameter Study with Chromatin Dropout")
-        ChromatineDropout(cellLine, index, epochs, batch_size, bin_size)
+        parameterCLD(fileInput, fileOutput, cellLine, chromData, epochs, batch_size, bin_size)
 
     if not args.parameterLDS:
         print("Running Parameter Study with Large Dataset")
         LargeDataset()
 
-def parametersStudy(fileInput, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=3, batch_size=64, bin_size=1024):
+def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=3, batch_size=64, bin_size=1024):
     """
-        Generates the parameters for the study and runs the study
-        only A459 all chromatin types
+        Hyperparameter search of different model architectures
+        with chromosome dropout
     """
     fileLocation = fileInput
+    fileOutput = outputPath
 
     #print(cellLines)
     params = []
@@ -87,7 +79,6 @@ def parametersStudy(fileInput, cellLines=["A549", "MCF7", "HepG2", "K562"], chrP
                     valid = data[1]
                     for modelType in args.model:
                         name = f"study_{chromPair}_test_{test}_valid_{valid}_model{modelType}_clkeep_{cellLine}_chkeep_{'-'.join(ALLCHROM)}_type{types}"
-#                        params.append(["", "", "", chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
                         params.append( [
                             chromPair, # chr10-chr17
                             test, # chr10
@@ -101,66 +92,29 @@ def parametersStudy(fileInput, cellLines=["A549", "MCF7", "HepG2", "K562"], chrP
                             batch_size, # 2048
                             bin_size,
                             modelType, # 1
-                            fileLocation # ./Data/220802_DATA/                           
+                            fileLocation, # ./Data/220802_DATA/ 
+                            fileOutput # ./output/
                         ] )
     
     parseParam("param.log", params)
 
-def CellLineDropout(fileInput, cellUse=["A549", "MCF7", "HepG2", "K562"], chromUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"], epochs=3, batch_size=64, bin_size=1024):
+def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"], chromUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"], epochs=3, batch_size=64, bin_size=1024):
     """
-        Generates the parameters for the study and runs the study
-        all cellLines except A549, all chromatin types
+        Hyperparameter search of different model architectures
+        combining cell lines to make cell-type invariant model
     """
     cellHoldout = list(set(ALLCELLS) - set(cellUse))
     fileLocation = fileInput
+    fileOutput = outputPath
+
     params = []
     for types in args.index:
        for modelType in args.model:
            name = f"CLD_study_-_test_-_valid_-_model{modelType}_clkeep_{'-'.join(cellUse)}_chkeep_{'-'.join(chromUse)}_type{types}"
-           params.append(["", "", "", chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
+           params.append(["", "", "", chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation, fileOutput])
 
     # run the study
     parseParam("CLD.log", params)
-
-def ChroneDropout(cellLine, index, epochs=3, batch_size=64, bin_size=1024):
-    """
-        Generates the parameters for the study and runs the study
-        all celllines, all chromatin types except CTCF
-    """    
-    cellLines = ["A549", "MCF7", "HepG2", "K562"]
-    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    fileLocation = "./Data/220802_DATA/"
-    
-    params = []
-    for cellLine in cellLines:
-        for types in ["-1", "-2"]: 
-            # go through each study
-            for study in studys:
-                data1, data2 = study.split("-")
-                # process the data for each model train, test and test, train
-                for data  in [ [data1, data2], [data2, data1]]:
-                    test = data[0]
-                    valid = data[1]
-                    for chromatineUse in combinations(chromatine, len(chromatine)-1):
-                        for modelType in args.model:
-                            name = f"study_{study}_test_{test}_valid_{valid}_model{modelType}_clkeep_{cellLine}_chkeep_{'-'.join(chromatine)}_type{types}"
-                            params.append( [
-                                study, # chr10-chr17
-                                test, # chr10
-                                valid, # chr17
-                                chromatineUse, # chUse
-                                [cellLine], # clUse: ["A549"]
-                                types, # -1
-                                name, # study_chr10-chr17_test_chr10_valid_chr17_model1_clkeep_A549_chkeep_CTCF-H3K4me3-H3K27ac-p300-PolII_type-1
-                                epochs, # 20
-                                batch_size, # 2048  
-                                modelType, # 1
-                                fileLocation # ./Data/220802_DATA/                           
-                            ] )
-    
-
-    parseParam("CHD.log", params)
 
 def LargeDataset():
     #  hard coded for now
@@ -169,24 +123,6 @@ def LargeDataset():
         parseParam("LDS.log", [param1])
         param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
         parseParam("LDS.log", [param1])
-
-def sequenceStudy(epochs=20, batch_size=64):
-    cellLines = ["A549", "MCF7", "HepG2", "K562"]
-    studys = ["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"]
-    chromatine =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
-
-    fileLocation = "./Data/230124_CHR-Data_Sequence/"
-    params = []
-    for cellLine in cellLines:
-        for study in studys:
-            test, valid = study.split("-")
-            for t,v in [[test, valid], [valid, test]]:
-                for modelType in args.model:
-                    name = f"sequence_study_{study}_test_{t}_valid_{v}_model{modelType}_clkeep_{cellLine}_type-1"
-                    # study, test, valid, chrUse, clUse, types, name, epochs, batch_size,modelconfig, fileLocation, bin_size=1024)
-                    params.append([study, t, v, chromatine, [cellLine], "", name, epochs, batch_size, modelType, fileLocation])
-
-    parseParam("sequence.log", params)
 
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
@@ -207,9 +143,9 @@ def parseParam(startedFile, params):
     if not os.path.exists(startedFile):
         with open(startedFile, "w") as f:
             f.write("")
-    # print the params
 
-    # params.append(["", "", "",chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
+    ## print the params
+    #params.append(["", "", "",chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation])
 
     for i in params:
         print(i[7])
@@ -228,15 +164,16 @@ def parseParam(startedFile, params):
         bin_size = i[10]
         modelconfig = i[11]
         fileLocation = i[12]
+        fileOutput = i[13]
         clearCache()
         if simulation_started(startedFile, name):
             print(f"{name} has already been started, skipping.")
             continue
         else:
             mark_simulation_as_started(startedFile, name)
-            runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation)
+            runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation, fileOutput)
 
-def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation):
+def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs, batch_size, bin_size, modelconfig, fileLocation, fileOutput):
     clearCache()
     ds_train, ds_test, ds_valid = DS.getData(   trainLabel=study,
                                                 testLabel=test,
@@ -255,7 +192,7 @@ def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs,
     # load the model
     model = loadModel(modelconfig, name)
     # run the model
-    model = runHomoModel(model, train_loader, test_loader, valid_loader, epochs)
+    model = trainModel(model, train_loader, test_loader, valid_loader, epochs, fileOutput)
 
     del ds_train, ds_test, ds_valid, train_loader, test_loader, valid_loader
     gc.collect()
