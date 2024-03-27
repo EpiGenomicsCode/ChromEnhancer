@@ -24,7 +24,7 @@ parser.add_argument('--index', nargs='+', help='Run the study on the index', def
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6"])
 parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=2048)
 parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
-parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=3)
+parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
 
@@ -96,7 +96,7 @@ def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K56
                             fileOutput # ./output/
                         ] )
     
-    parseParam("param.log", params)
+    parseParam("paramCHR.log", params)
 
 def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"], chromUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"], epochs=3, batch_size=64, bin_size=1024):
     """
@@ -114,15 +114,15 @@ def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"
            params.append(["", "", "", chromUse, cellUse, cellHoldout, types, name, epochs, batch_size, bin_size, modelType, fileLocation, fileOutput])
 
     # run the study
-    parseParam("CLD.log", params)
+    parseParam("paramCLD.log", params)
 
 def LargeDataset():
     #  hard coded for now
     for model in args.model:
         param1 = ["chr12-chr8", "chr12", "chr8", [], ["K562"], "", f"LargeDataset1_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
-        parseParam("LDS.log", [param1])
+        parseParam("paramLDS.log", [param1])
         param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
-        parseParam("LDS.log", [param1])
+        parseParam("paramLDS.log", [param1])
 
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
