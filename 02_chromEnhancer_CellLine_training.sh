@@ -19,171 +19,179 @@ cp -r $DATADIR \$tdir/
 
 TRAIN=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer/train_network.py
 
+LOGS=$WORKINGDIR/logs-cell
+mkdir -p $LOGS
+SLURM=$WORKINGDIR/slurm-cell
+mkdir -p $SLURM
+OUTPUT=$WORKINGDIR/output-cell
+mkdir -p $OUTPUT
+
 # Cleanup in case of prior run
-rm -f parameter_CLD-*
+rm -f $SLURM/parameter_CLD-*
+
 # Set model
 MODEL=1
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
 # Set model
 MODEL=2
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
 # Set model
 MODEL=3
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
 # Set model
 MODEL=4
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
 
 # Set model
 MODEL=5
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
 # Set model
 MODEL=6
 slurmID=parameter_CLD-0_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > CLD-0_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > CLD-0_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 MCF7 > $LOGS/CLD-0_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-1_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > CLD-1_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > CLD-1_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 HepG2 A549 > $LOGS/CLD-1_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-2_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > CLD-2_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > CLD-2_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine K562 MCF7 A549 > $LOGS/CLD-2_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 slurmID=parameter_CLD-3_model$MODEL\.slurm
-echo "$HEADER" > $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > CLD-3_0log_model$MODEL\.out &" >> $slurmID
-echo "sleep 30" >> $slurmID
-echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > CLD-3_1log_model$MODEL\.out" >> $slurmID
-echo "wait" >> $slurmID
+echo "$HEADER" > $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-1\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_0log_model$MODEL\.out &" >> $SLURM/$slurmID
+echo "sleep 30" >> $SLURM/$slurmID
+echo "python $TRAIN --fileInput="\$tdir/data/CELL_NETWORK/" --fileOutput=$OUTPUT --parameterCLD --model=\"$MODEL\" --index=\"-2\" --cellLine HepG2 MCF7 A549 > $LOGS/CLD-3_1log_model$MODEL\.out" >> $SLURM/$slurmID
+echo "wait" >> $SLURM/$slurmID
 
-for file in *CLD*slurm; do
+for file in $SLURM/*slurm; do
 	sbatch $file;
 done

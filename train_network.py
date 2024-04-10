@@ -56,7 +56,7 @@ def main():
 
     if not args.parameterLDS:
         print("Running Parameter Study with Large Dataset")
-        LargeDataset()
+        parameterLDS(fileInput, fileOutput)
 
 def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=3, batch_size=64, bin_size=1024):
     """
@@ -116,13 +116,19 @@ def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"
     # run the study
     parseParam("paramCLD.log", params)
 
-def LargeDataset():
-    #  hard coded for now
-    for model in args.model:
-        param1 = ["chr12-chr8", "chr12", "chr8", [], ["K562"], "", f"LargeDataset1_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
+def parameterLDS(fileInput, outputPath):
+    fileLocation = fileInput
+    fileOutput = outputPath
+
+    chromPair = "chr12-chr8"
+    cellLine = "K562"
+
+    for modelType in args.model:
+        name = f"study_{chromPair}_test_chr12_valid_chr8_model{modelType}_clkeep_{cellLine}"
+        param1 = ["chr12-chr8", "chr12", "chr8", [], [cellLine], [cellLine], "", f"LargeDataset1_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
         parseParam("paramLDS.log", [param1])
-        param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
-        parseParam("paramLDS.log", [param1])
+#        param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
+#        parseParam("paramLDS.log", [param1])
 
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
@@ -190,7 +196,10 @@ def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs,
     valid_loader = DataLoader(ds_valid, batch_size=batch_size )
 
     # load the model
-    model = loadModel(modelconfig, name)
+    if "LARGE" in fileLocation:
+        model = loadModel(modelconfig, name, 33000)
+    else:
+        model = loadModel(modelconfig, name)
     # run the model
     model = trainModel(model, train_loader, test_loader, valid_loader, epochs, fileOutput)
 

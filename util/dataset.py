@@ -55,46 +55,30 @@ class Chromatin_Dataset(Dataset):
         elif "CELL_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.dataTypes}"
-                self.labelName = f"{self.cellLine}_train"
+                self.labelName = f"{self.cellLine}_labels"
             elif self.mode == "test":
                 self.dataName = f"{self.cellLine}_{self.dataTypes}"
-                self.labelName = f"{self.cellLine}_StringentEnhancer"
+                self.labelName = f"{self.cellLine}_StringentEnhancer.bed.gz_labels"
             else:
                 self.dataName = f"{self.cellLine}_{self.dataTypes}"
-                self.labelName = f"{self.cellLine}_LenientEnhancer"
-        elif "Sequence" in fileLocation:
-            if self.mode == "train":
-                self.dataName = f"{self.cellLine}_{self.label}_train"
-                self.labelName = f"{self.cellLine}_{self.label}_train"
-            elif self.mode == "test":
-                self.dataName = f"{self.cellLine}_StringentEnhancer_{self.label}"
-                self.labelName = f"{self.cellLine}_StringentEnhancer_{self.label}"
-            else:
-                self.dataName = f"{self.cellLine}_LenientEnhancer_{self.label}"
-                self.labelName = f"{self.cellLine}_LenientEnhancer_{self.label}"
-        elif "230124" in fileLocation:
-            if self.mode == "train":
-                self.dataName = f"{self.cellLine}_{self.label}_train"
-                self.labelName = f"{self.cellLine}_train"
-            elif self.mode == "test":
-                self.dataName = f"{self.cellLine}_StringentEnhancer_{self.label}"
-                self.labelName = f"{self.cellLine}_StringentEnhancer"
-            else:
-                self.dataName = f"{self.cellLine}_LenientEnhancer_{self.label}"
-                self.labelName = f"{self.cellLine}_LenientEnhancer"
-        elif "230415" in fileLocation:
+                self.labelName = f"{self.cellLine}_LenientEnhancer.bed.gz_labels"
+        elif "LARGE_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.label}"
-                self.labelName = f"{self.cellLine}_{self.label}_train"
+                self.labelName = f"{self.cellLine}_{self.label}_labels"
+                print(self.dataName + "\t" + self.labelName)
             elif self.mode == "test":
                 self.dataName = f"{self.cellLine}_{self.label}"
-                self.labelName = f"{self.cellLine}_StringentEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
+                print(self.dataName + "\t" + self.labelName)
+                #import pdb; pdb.set_trace()
             else:
                 self.dataName = f"{self.cellLine}_{self.label}"
-                self.labelName = f"{self.cellLine}_LenientEnhancer_{self.label}"
+                self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
+                print(self.dataName + "\t" + self.labelName)
+#                import pdb; pdb.set_trace()
         else:
             raise ValueError(f"Invalid file location: {self.fileLocation}")
-
 
 
         self.DataFile, self.LabelFile = self.getFiles()
@@ -161,10 +145,7 @@ class Chromatin_Dataset(Dataset):
 
         self.chunk_counter += 1
 
-        if "Sequence" in self.fileLocation:
-            return self.convertSequence(data[0]).flatten(), label
-        else:
-            return data, label
+        return data, label
 
 
 def getData(trainLabel="chr11-chr7", testLabel="chr11", validLabel="chr7", chrUse=None, cellUse=None, cellHold=None, bin_size=4096, fileLocation="./Data/220802_DATA/", dataTypes="-1"):
