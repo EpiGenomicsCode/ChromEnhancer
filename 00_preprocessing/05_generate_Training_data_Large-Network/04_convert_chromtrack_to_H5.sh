@@ -1,12 +1,12 @@
 module load anaconda
-CONVERT=../bin/convert_CHR-chromtrack_to_h5.py
+CONVERT=../../bin/convert_LARGE-chromtrack_to_h5.py 
 
-HOLDOUT=../../data/CHR-HOLDOUT/
-TRAIN=../../data/CHR-TRAIN/
+HOLDOUT=../../data/LARGE-HOLDOUT/
+TRAIN=../../data/LARGE-TRAIN/
 
-OUTTRAIN=../../data/CHR_NETWORK/TRAIN
+OUTTRAIN=../../data/LARGE_NETWORK/TRAIN
 mkdir -p $OUTTRAIN
-OUTHOLD=../../data/CHR_NETWORK/HOLDOUT
+OUTHOLD=../../data/LARGE_NETWORK/HOLDOUT
 mkdir -p $OUTHOLD
 
 python $CONVERT --holdout_input=$HOLDOUT --holdout_output=$OUTHOLD --train_input=$TRAIN --train_output=$OUTTRAIN

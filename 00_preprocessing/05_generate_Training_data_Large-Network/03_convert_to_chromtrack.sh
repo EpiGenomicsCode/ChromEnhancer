@@ -1,12 +1,12 @@
-CONVERT=../../00_preprocessing/bin/convert_CDT-GZ_to_chromtrack.pl
-NORMALIZE=../../00_preprocessing/bin/normalize_chromtrack.pl
+CONVERT=../../bin/convert_CDT-GZ_to_chromtrack.pl
+NORMALIZE=../../bin/normalize_chromtrack.pl
 
 FACTOR=1
 CPU=0
 
-# HOLDOUT=../../data/CHR-HOLDOUT
-# cd $HOLDOUT
-# 
+HOLDOUT=../../data/LARGE-HOLDOUT
+cd $HOLDOUT
+
 # for file in *.cdt.gz; do
 # 	tempID="${file/_StringentEnhancer/}"
 # 	fileID="${tempID/.cdt.gz/}"
@@ -15,29 +15,33 @@ CPU=0
 # 
 # 	# Multi-thread to 8 cores
 # 	let CPU++
-# 	if [[ $CPU -eq 8 ]]; then
+# 	if [[ $CPU -eq 4 ]]; then
 # 		wait
 # 		CPU=0
 # 	fi
 # done
-# 
-# for file in *RAW.chromtrack; do
-#       			 fileID="${file/_RAW/}"
-#       			 # Normalize chromtrack by setting matrix max to 1 and scaling the rest
-# 	perl $NORMALIZE $file $fileID &
-# 
-#       			 # Multi-thread to 8 cores
-#       			 let CPU++
-#       			 if [[ $CPU -eq 8 ]]; then
-#       							 wait
-#       							 CPU=0
-#       			 fi
-# done
-# 
-# rm *RAW.chromtrack
-# gzip *.chromtrack
+# wait
 
-TRAIN=../../data/CHR-TRAIN
+for file in *RAW.chromtrack; do
+	fileID="${file/_RAW/}"
+	# Normalize chromtrack by setting matrix max to 1 and scaling the rest
+	perl $NORMALIZE $file $fileID &
+
+	# Multi-thread to 8 cores
+	let CPU++
+	if [[ $CPU -eq 4 ]]; then
+		wait
+		CPU=0
+	fi
+done
+wait
+
+rm *RAW.chromtrack
+gzip *.chromtrack
+
+exit
+
+TRAIN=../../data/LARGE-TRAIN
 cd $TRAIN
 
 for file in *.cdt.gz; do
@@ -47,7 +51,7 @@ for file in *.cdt.gz; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
@@ -61,7 +65,7 @@ for file in *RAW.chromtrack; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi

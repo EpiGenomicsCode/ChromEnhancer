@@ -12,7 +12,7 @@ JOBSTATS="#!/bin/bash
 #SBATCH --partition=open
 cd $HOLDOUT"
 
-for file in K562_Stringent*chr12*.bed; do
+for file in K562_Stringent*chr8*.bed; do
 	var=$(echo $file | awk -F"." '{print $1}')
 	set -- $var
 	echo $1
@@ -44,4 +44,4 @@ for file in K562_Stringent*chr12*.bed; do
 done
 
 # Submit jobs to cluster
-#for file in *.slurm; do sbatch $file; done
+for file in *.slurm; do sbatch $file; done
