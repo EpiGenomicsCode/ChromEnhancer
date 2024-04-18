@@ -1,5 +1,4 @@
 from util import dataset as DS
-from util import seq_dataset as SeqDS
 from util.utils import *
 from torch.utils.data import DataLoader
 import glob
@@ -22,7 +21,7 @@ parser.add_argument('--chromData', nargs='+', help='Run the study using the foll
 parser.add_argument('--chrPair', nargs='+', help='Run the study dropping out chromosome pairs', default=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6"])
-parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=2048)
+parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=1024)
 parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
 parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
@@ -127,8 +126,8 @@ def parameterLDS(fileInput, outputPath):
         name = f"study_{chromPair}_test_chr12_valid_chr8_model{modelType}_clkeep_{cellLine}"
         param1 = ["chr12-chr8", "chr12", "chr8", [], [cellLine], [cellLine], "", f"LargeDataset1_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
         parseParam("paramLDS.log", [param1])
-#        param1 = ["chr12-chr8", "chr8", "chr12", [], ["K562"], "", f"LargeDataset2_{model}", args.epochs, args.batch_size, model, "./Data/230415_LargeData/", args.bin_size]
-#        parseParam("paramLDS.log", [param1])
+#        param2 = ["chr12-chr8", "chr8", "chr12", [], [cellLine], [cellLine], "", f"LargeDataset2_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
+#        parseParam("paramLDS.log", [param2])
 
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")

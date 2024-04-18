@@ -15,25 +15,24 @@ class Chromatin_Network2(nn.Module):
         self.cnn_hidden_size = cnn_hidden_size
         self.dnn_hidden_size = dnn_hidden_size
 
-        # Define the 1D CNN layers
+        # sequential model names C1D of three Conv1d layers with max pooling
         self.cnn = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=cnn_hidden_size, kernel_size=kernel_size, padding='same', stride=1),
+            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding='same', stride=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2)
         )
 
         self.inputDNN = 0
         if self.input_size == 500:
-            self.inputDNN = 8000
-            
-        if self.input_size==4000:
-            self.inputDNN = 64000
-
-        if self.input_size == 400:
-            self.inputDNN = 6400
-        
-        if self.input_size == 32900:
-            self.inputDNN = 526400
+            self.inputDNN = 3968
+        if self.input_size == 33000:
+            self.inputDNN = 264000
 
         # Define the fully-connected layers
         self.dnn = nn.Sequential(

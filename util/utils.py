@@ -251,6 +251,7 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
     for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
         inputs = inputs.to(torch.float32).to(device)
         labels = labels.to(torch.float32).to(device)
+#        import pdb; pdb.set_trace()
 
         # forward
         outputs = model(inputs)

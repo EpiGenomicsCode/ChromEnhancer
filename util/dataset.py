@@ -41,7 +41,7 @@ class Chromatin_Dataset(Dataset):
         self.start_chunk = 0
         self.end_chunk = self.chunk_size
         self.chunk_counter = 0
-        
+
         if "CHR_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
@@ -79,7 +79,6 @@ class Chromatin_Dataset(Dataset):
 #                import pdb; pdb.set_trace()
         else:
             raise ValueError(f"Invalid file location: {self.fileLocation}")
-
 
         self.DataFile, self.LabelFile = self.getFiles()
         self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]

@@ -15,35 +15,25 @@ class Chromatin_Network4(nn.Module):
         self.input_size = input_size
         
         # sequential model names C1D of three Conv1d layers with max pooling
-
         self.C1D = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=32, kernel_size=3, padding='same', stride=1),
+            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding='same', stride=1),
+            nn.ReLU(),
+            nn.MaxPool1d(kernel_size=2),
+            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding='same', stride=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2),
             nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding='same', stride=1),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2),
-            nn.Conv1d(in_channels=64, out_channels=128, kernel_size=3, padding='same', stride=1),
-            nn.ReLU(),
             nn.MaxPool1d(kernel_size=2)
         )
 
-        if input_size == 400:
-            lstmIn = 6400
-            
         if input_size == 500:
-            lstmIn = 7936
-
-        if input_size == 4000:
-            lstmIn = 64000
-
-        if input_size == 32900:
-            lstmIn = 526336
-
+            lstmIn = 3968
+        if input_size == 33000:
+            lstmIn = 264000
 
         # LSTM layer that takes in self.C1D output and hidden state size
         self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
-
         
         # Define the fully-connected layers
         self.dnn = nn.Sequential(

@@ -14,11 +14,8 @@ class Chromatin_Network3(nn.Module):
         self.hidden_size = hidden_size
         self.input_size = input_size
         
-       
-
-        # LSTM layer that takes in self.C1D output and hidden state size
+        # LSTM layer 
         self.lstm = nn.LSTM(input_size=input_size, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
-
         
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
@@ -36,7 +33,6 @@ class Chromatin_Network3(nn.Module):
             nn.Dropout(0.5),
             nn.Linear(dnn_hidden_size, 1)
         )
-
 
         self.hidden = None
 

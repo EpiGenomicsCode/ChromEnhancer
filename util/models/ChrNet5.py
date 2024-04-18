@@ -12,31 +12,19 @@ class Chromatin_Network5(nn.Module):
         self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
         self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
         
-        if self.input_size==500:
+        if self.input_size == 500:
             self.layerinput = 800
+        if self.input_size == 33000:
+             self.layerinput = 65600
 
-        if self.input_size==4000:
-            self.layerinput = 8000
-
-        if self.input_size == 400:
-            self.layerinput = 800
-
-        if self.input_size == 32900:
-            self.layerinput = 526336
-
-        
         self.fc1 = nn.Linear(self.layerinput, 64)
         self.fc2 = nn.Linear(64, 1)
         
     def forward(self, x):
-        if self.input_size==400:
-            x = x.view(-1, 1, 100, 4)
-
-        if self.input_size==500:
+        if self.input_size == 500:
             x = x.view(-1, 1, 100, 5)
-
-        if self.input_size==4000:
-            x = x.view(-1, 1, 1000, 4)
+        if self.input_size == 33000:
+            x = x.view(-1, 1, 100, 330)
 
         x = F.relu(self.conv1(x))
         x = self.pool(x)

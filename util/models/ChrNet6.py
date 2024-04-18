@@ -21,15 +21,8 @@ class Chromatin_Network6(nn.Module):
 
         if input_size == 500:
             lstmIn = 800
-
-        if input_size == 4000:
-            lstmIn = 8000
-
-        if input_size == 400:
-            lstmIn = 800
-
-        if lstmIn == 32900:
-            lstmIn = 526336
+        if input_size == 33000:
+            lstmIn = 65600
 
         # LSTM layer that takes in self.C1D output and hidden state size
         self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
@@ -55,14 +48,10 @@ class Chromatin_Network6(nn.Module):
 
         
     def forward(self, x):
-        if self.input_size==400:
-            x = x.view(-1, 1, 100, 4)
-
-        if self.input_size==500:
+        if self.input_size == 500:
             x = x.view(-1, 1, 100, 5)
-
-        if self.input_size==4000:
-            x = x.view(-1, 1, 1000, 4)
+        if self.input_size == 33000:
+            x = x.view(-1, 1, 100, 330)
 
         x = F.relu(self.conv1(x))
         x = self.pool(x)
