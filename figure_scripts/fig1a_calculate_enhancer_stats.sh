@@ -23,7 +23,7 @@ for file in $STARR/*.bed.gz; do
 done
 
 ENH=../../../data/Enhancer_Coord
-for file in $ENH/*.bed.gz; do
+for file in $ENH/*Enhancer.bed.gz; do
 	echo $file >> Enhancer_stats.tab
 	gunzip -c $file | wc -l >> Enhancer_stats.tab
 done
