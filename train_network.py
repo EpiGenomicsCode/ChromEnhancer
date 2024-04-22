@@ -21,9 +21,9 @@ parser.add_argument('--chromData', nargs='+', help='Run the study using the foll
 parser.add_argument('--chrPair', nargs='+', help='Run the study dropping out chromosome pairs', default=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6"])
-parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=1024)
+parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=8196)
 parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
-parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
+parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=100)
 
 args = parser.parse_args()
 

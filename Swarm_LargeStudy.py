@@ -3,18 +3,15 @@ import os
 import glob
 import numpy as np
 import tqdm
-from Swarm_Observer.Swarm import PSO
-from Adversarial_Observation.utils import seedEverything
-from Adversarial_Observation.Attacks import *
+from util.Adversarial_Observation.Swarm_Observer.Swarm import PSO
+from util.Adversarial_Observation.Adversarial_Observation.utils import seedEverything
+from util.Adversarial_Observation.Adversarial_Observation.Attacks import *
 from util.models.ChrNet1 import Chromatin_Network1
 from util.models.ChrNet4 import Chromatin_Network4
 import matplotlib.pyplot as plt
 
 def costFunc(model, input):
     """
-    This function takes a model and a tensor input, reshapes the tensor to be a 28 x 28 image of batch size 1 and passes that through
-    the model. Then, it returns the output of the column of interest (endValue) as a numpy array.
-    
     Args:
         model (torch.nn.Module): Pre-trained PyTorch model.
         input (numpy.ndarray): Input tensor.
@@ -39,34 +36,10 @@ def getPositions(APSO):
     for particle in APSO.swarm:
         pos = particle.position_i
         # Normalize the position to be between 0 and 1
-        pos = (pos - np.min(pos)) / (np.max(pos) - np.min(pos))
+        pos = (pos - torch.min(pos)) / (torch.max(pos) - torch.min(pos))
         particle.position_i = pos
         positions.append(pos)
     return positions
-
-def main():
-    points = 250
-    initialPoints = []
-    epochs = 20
-    sparcity = 0.8
-    for _ in range(points):
-        p = np.random.rand(1, 32900)
-        # Set 80% of the points to 0 randomly
-        p[0, np.random.choice(32900, int(32900 * sparcity), replace=False)] = 0
-        initialPoints.append(p)
-
-    files = glob.glob("output/m*/*pt")
-    for file in reversed(files):
-        name = os.path.splitext(os.path.basename(file))[0]
-        os.makedirs(name, exist_ok=True)
-        modelType = file.split("_")[1]
-        model = Chromatin_Network1("", 32900) if modelType == '1' else Chromatin_Network4("", 32900)
-        model.load_state_dict(torch.load(file))
-        model.eval()
-        APSO = PSO(torch.tensor(initialPoints).reshape(-1, 32900), costFunc, model, w=0.8, c1=0.5, c2=0.5)
-        for epoch in tqdm.tqdm(range(1, epochs + 1)):
-            APSO.step()
-            visualize(getPositions(APSO), epoch, name, model)
 
 def visualize(positions, epoch, name, model):
     """
@@ -80,17 +53,19 @@ def visualize(positions, epoch, name, model):
     """
     # Get the cost of each position
     cost = np.array([costFunc(model, i) for i in positions])
-
+    print(cost)
+    import pdb; pdb.set_trace()
     # Sort the positions by cost
     sorted_indices = np.argsort(cost)
-    positions = np.array(positions)[sorted_indices]
-
+    # Convert tensory to numpy
+    tensor_arrays = [pos.numpy() for pos in positions]
+    # Resort numpy array by cost sort
+    positions = [array for _, array in sorted(zip(sorted_indices, tensor_arrays))]
     # Get the activations
     activations = []
     for i in range(len(positions)):
-        activations.append(activation_map(torch.tensor(positions[i], dtype=torch.float32), model))
-
-    activations = np.array(activations)
+        activations.append(saliency_map(torch.tensor(positions[i], dtype=torch.float32), model))
+    activations = [act.numpy() for act in activations]
     
     # Set figure size to 12, 6
     plt.figure(figsize=(12, 6))
@@ -130,8 +105,35 @@ def visualize(positions, epoch, name, model):
     plt.savefig(f"{name}/{epoch}_compressed.png")
     plt.close()
 
+def main():
+    points = 250
+    initialPoints = []
+    epochs = 20
+    sparcity = 0.8
+    for i in range(points):
+        arr = np.random.rand(1, 33000)
+        mask = np.random.choice([0, 1], size=arr.shape, p=[0.8, 0.2])
+        arr = arr * mask
+        initialPoints.append(arr)
 
+#        p = np.random.rand(1, 33000)
+#        # Set 80% of the points to 0 randomly
+#        p[0, np.random.choice(33000, int(33000 * sparcity), replace=False)] = 0
+#        import pdb; pdb.set_trace()
+#        initialPoints.append(p)
 
+    files = glob.glob("output-large/modelWeights/*_1_*pt")
+    for file in reversed(files):
+        name = os.path.splitext(os.path.basename(file))[0]
+        os.makedirs(name, exist_ok=True)
+        modelType = file.split("_")[1]
+        model = Chromatin_Network1("", 33000) if modelType == '1' else Chromatin_Network4("", 33000)
+        model.load_state_dict(torch.load(file, map_location=torch.device('cpu')))
+        model.eval()
+        APSO = PSO(torch.tensor(initialPoints).reshape(-1, 33000), costFunc, model, w=0.8, c1=0.5, c2=0.5)
+        for epoch in tqdm.tqdm(range(1, epochs + 1)):
+            visualize(getPositions(APSO), epoch, name, model)
+            APSO.step()
 
 if __name__ == "__main__":
     main()
