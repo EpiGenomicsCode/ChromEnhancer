@@ -27,11 +27,9 @@ def seedEverything(seed=42):
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
 
-# clear the cache and gpu memory
 def clearCache():
     torch.cuda.empty_cache()
     gc.collect()
-
 
 def loadModel(modelNumber, name="", input_size=500):
     """
@@ -52,7 +50,6 @@ def loadModel(modelNumber, name="", input_size=500):
         return model_classes[modelNumber](name, input_size)
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
-
 
 def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPath):
     """
@@ -122,128 +119,74 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
 
     return model.to("cpu")
 
-def getPredictions(model, data_loader, outputPath):
+def runEpoch(model, data_loader, criterion, optimizer=None):
     """
-        Gets the predictions of the model and save the data and the label and prediction as a csv file
+    Runs the model for one epoch
 
-        Args:
-            model: The model to get the predictions from
-            data_loader: The data loader
-        
-        returns:
-            predictions: The predictions
+    Args:
+        model: The model to run
+        data_loader: The data loader
+        criterion: The loss function
+        optimizer: The optimizer (optional)
+
+    Returns:
+        model: The model
+        accuracy: The accuracy
+        auROC: The Area under the Receiver Operating Characteristic curve
+        auPRC: The Area under the Precision-Recall curve
+        loss: The average loss
     """
+    loss = 0
+    accuracy = 0
+    y_score = []
+    y_true = []
+
     device = next(model.parameters()).device
-    model.eval()
-    predictions = []
-    with torch.no_grad():
+    is_training = optimizer is not None
+    model.train(is_training)
+
+    with torch.set_grad_enabled(is_training):
         for inputs, labels in tqdm.tqdm(data_loader, desc="processing batches", leave=False):
             inputs, labels = inputs.to(device), labels.to(device)
-            outputs = model(inputs)
-            predictions.append(outputs.detach().cpu().numpy())
-    
-    # turn the data into a dataframe
-    predictions = np.concatenate(predictions)
-    
-    predictions = pd.DataFrame(predictions)
-    predictions.to_csv(outputPath+"/predictions.csv")
-    return predictions
 
+            if is_training:
+                optimizer.zero_grad()
 
-
-
-def plotAccuracy(accuracy_data, name, outputPath):
-    """
-        Plots the accuracy data
-
-        Args:
-            accuracy_data: The accuracy data
-            name: The name of the model
-            outputPath: The output path
-    """
-    plt.plot(accuracy_data)
-    plt.title("Accuracy")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.savefig(outputPath+"/accuracy/"+name+".png")
-    plt.savefig(outputPath+"/accuracy/"+name+".svg")
-    plt.close()
-
-# run the model for one epoch
-def runEpoch(model, train_loader, criterion, optimizer):
-    """
-        Runs the model for one epoch
-
-        Args:
-            model: The model to run
-            train_loader: The training data
-            criterion: The loss function
-            optimizer: The optimizer
-        
-        returns:
-            model: The model
-            accuracy: The accuracy
-    """
-    loss = 0
-    accuracy = 0
-    y_score = []
-    y_true = []
-
-    device = next(model.parameters()).device
-
-    for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
-        inputs, labels = inputs.to(device), labels.to(device)
-
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        batch_loss = criterion(outputs, labels)
-        batch_loss.backward()
-        optimizer.step()
-
-        loss += batch_loss.item() * inputs.size(0)
-        y_score.append(outputs.detach().cpu().numpy())
-        y_true.append(labels.detach().cpu().numpy())
-
-    loss /= len(train_loader.dataset)
-    accuracy = accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
-
-    return model, accuracy, loss
-
-# test the model
-def testModel(model, test_loader, criterion, device, save=False):
-    """
-        Tests the model
-
-        Args:
-            model: The model to test
-            test_loader: The testing data
-            criterion: The loss function
-        
-        returns:
-            accuracy: The accuracy
-    """
-    loss = 0
-    accuracy = 0
-    y_score = []
-    y_true = []
-
-    model.eval()
-    with torch.no_grad():
-        for inputs, labels in tqdm.tqdm(test_loader, desc="processing testing batches", leave=False):
-            inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
             batch_loss = criterion(outputs, labels)
+
+            if is_training:
+                batch_loss.backward()
+                optimizer.step()
 
             loss += batch_loss.item() * inputs.size(0)
             y_score.append(outputs.detach().cpu().numpy())
             y_true.append(labels.detach().cpu().numpy())
 
-    loss /= len(test_loader.dataset)
+    loss /= len(data_loader.dataset)
     accuracy = accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
     auROC = roc_auc_score(np.concatenate(y_true), np.concatenate(y_score))
     auPRC = average_precision_score(np.concatenate(y_true), np.concatenate(y_score))
 
-    return accuracy, auROC, auPRC, loss
+    return model, accuracy, auROC, auPRC, loss
+
+def testModel(model, test_loader, criterion, device):
+    """
+    Tests the model
+
+    Args:
+        model: The model to test
+        test_loader: The testing data
+        criterion: The loss function
+        device: The device to run the model on
+
+    Returns:
+        accuracy: The accuracy
+        auROC: The Area under the Receiver Operating Characteristic curve
+        auPRC: The Area under the Precision-Recall curve
+        loss: The average loss
+    """
+    return runEpoch(model, test_loader, criterion)
 
 def saveAccuracyCSV(accuracy_data, path):
     df = pd.DataFrame(accuracy_data)
@@ -280,4 +223,48 @@ def saveAUCurve(auROC_data, auPRC_data, path):
     plt.xlabel("Epoch")
     plt.ylabel("Score")
     plt.savefig(path)
+    plt.close()
+
+def getPredictions(model, data_loader, outputPath):
+    """
+        Gets the predictions of the model and save the data and the label and prediction as a csv file
+
+        Args:
+            model: The model to get the predictions from
+            data_loader: The data loader
+        
+        returns:
+            predictions: The predictions
+    """
+    device = next(model.parameters()).device
+    model.eval()
+    predictions = []
+    with torch.no_grad():
+        for inputs, labels in tqdm.tqdm(data_loader, desc="processing batches", leave=False):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            predictions.append(outputs.detach().cpu().numpy())
+    
+    # turn the data into a dataframe
+    predictions = np.concatenate(predictions)
+    
+    predictions = pd.DataFrame(predictions)
+    predictions.to_csv(outputPath+"/predictions.csv")
+    return predictions
+
+def plotAccuracy(accuracy_data, name, outputPath):
+    """
+        Plots the accuracy data
+
+        Args:
+            accuracy_data: The accuracy data
+            name: The name of the model
+            outputPath: The output path
+    """
+    plt.plot(accuracy_data)
+    plt.title("Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.savefig(outputPath+"/accuracy/"+name+".png")
+    plt.savefig(outputPath+"/accuracy/"+name+".svg")
     plt.close()
