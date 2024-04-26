@@ -6,7 +6,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.metrics import roc_curve, auc, accuracy_score, precision_recall_curve
+from sklearn.metrics import accuracy_score, roc_auc_score, average_precision_score
 import gc 
 import seaborn as sns
 import torch
@@ -32,25 +32,27 @@ def clearCache():
     torch.cuda.empty_cache()
     gc.collect()
 
+
 def loadModel(modelNumber, name="", input_size=500):
     """
-        Loads the model based on the model number   
+    Loads the model based on the model number   
     """
     modelNumber = int(modelNumber)
-    if modelNumber == 1:
-        return ChrNet1.Chromatin_Network1(name, input_size)
-    elif modelNumber == 2:
-        return ChrNet2.Chromatin_Network2(name, input_size)
-    elif modelNumber == 3:
-        return ChrNet3.Chromatin_Network3(name, input_size)
-    elif modelNumber == 4:
-        return ChrNet4.Chromatin_Network4(name, input_size)
-    elif modelNumber == 5:
-        return ChrNet5.Chromatin_Network5(name, input_size)
-    elif modelNumber == 6:
-        return ChrNet6.Chromatin_Network6(name, input_size)
+    
+    model_classes = {
+        1: ChrNet1.Chromatin_Network1,
+        2: ChrNet2.Chromatin_Network2,
+        3: ChrNet3.Chromatin_Network3,
+        4: ChrNet4.Chromatin_Network4,
+        5: ChrNet5.Chromatin_Network5,
+        6: ChrNet6.Chromatin_Network6
+    }
+
+    if modelNumber in model_classes:
+        return model_classes[modelNumber](name, input_size)
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
+
 
 def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPath):
     """
@@ -72,105 +74,49 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
         
     """
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
-    # send the model to the gpu if available
+    optimizer = optim.Adam(model.parameters(), lr=0.0001)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Name: {model.name}\t Device: {device}")
-    # print("\n\n============Training on: {}===========\n".format(device))
     model = model.to(device)
 
-    # initialize the values
     best_accuracy = 0
-
-    # run the model for the specified number of epochs
-    epoch = 0 
     training_accuaracy = []
     training_loss = []
     testing_accuaracy = []
     test_auROC = []
     test_auPRC = []
-    for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
-        # run the model for one epoch
-        model.train()
-        model, accuracy, loss = runEpoch(model, train_loader, criterion, optimizer)
-        training_accuaracy.append(accuracy)
-        training_loss.append(loss)
 
-        # test the model
+    for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
+        model.train()
+        model, train_accuracy, train_loss = runEpoch(model, train_loader, criterion, optimizer)
+        training_accuaracy.append(train_accuracy)
+        training_loss.append(train_loss)
+
         model.eval()
-        accuracy, auROC, auPRC = testModel(model, test_loader, criterion, outputPath, save=False)
+        accuracy, auROC, auPRC, test_acc, test_loss = testModel(model, test_loader, criterion, device)
         testing_accuaracy.append(accuracy)
         test_auROC.append(auROC)
         test_auPRC.append(auPRC)
 
-        
-        best_accuracy = accuracy
-        # check if the output folder exists
-        #os.makedirs("./output/modelWeights", exist_ok=True)
-        #torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epoch))
-
         plotAccuracy(training_accuaracy, "train_"+model.name, outputPath)
-        plt.clf()
         plotAccuracy(testing_accuaracy, "test_"+model.name, outputPath)
-        # save trainig and testing accuracy as a csv
-        df = pd.DataFrame(training_accuaracy)
-        df.to_csv(outputPath+"/accuracy/train_"+model.name+".csv")
-        df = pd.DataFrame(testing_accuaracy)
-        df.to_csv(outputPath+"/accuracy/test_"+model.name+".csv")
-        plt.clf()
-        plt.plot(test_auROC)
-        plt.plot(test_auPRC)
-        plt.legend(["auROC", "auPRC"])
-        plt.title("auROC and auPRC")
-        plt.xlabel("Epoch")
-        plt.ylabel("Score")
-        os.makedirs(outputPath+"/auROC_PRC", exist_ok=True)
-        plt.savefig(outputPath+"/auROC_PRC/" + model.name + ".png")
-        plt.clf()
 
-        # save the aurROC and auPRC as csv
-        df = pd.DataFrame(test_auROC)
-        df.to_csv(outputPath+"/auROC_PRC/auROC_"+model.name+".csv")
-        df = pd.DataFrame(test_auPRC)
-        df.to_csv(outputPath+"/auROC_PRC/auPRC_"+model.name+".csv")
-        
-        # plot loss
-        plt.plot(training_loss)
-        plt.title("Loss")
-        plt.xlabel("Epoch")
-        plt.ylabel("Loss")
-        os.makedirs(outputPath+"/loss", exist_ok=True)
-        plt.savefig(outputPath+"/loss/" + model.name + ".png")
-        plt.clf()
-        # save training loss as a csv
-        df = pd.DataFrame(training_loss)
-        df.to_csv(outputPath+"/loss/" + model.name + ".csv")
+        saveAccuracyCSV(training_accuaracy, outputPath+"/accuracy/train_"+model.name+".csv")
+        saveAccuracyCSV(testing_accuaracy, outputPath+"/accuracy/test_"+model.name+".csv")
 
-        
-                
-    # test the model on the validation data
-    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, outputPath, save=True)
+        saveAUCSV(test_auROC, outputPath+"/auROC_PRC/auROC_"+model.name+".csv")
+        saveAUCSV(test_auPRC, outputPath+"/auROC_PRC/auPRC_"+model.name+".csv")
+
+        saveLossPlot(training_loss, outputPath+"/loss/" + model.name + ".png")
+        saveLossCSV(training_loss, outputPath+"/loss/" + model.name + ".csv")
+
+    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, device, save=True)
     test_auPRC.append(auPRC)
     test_auROC.append(auROC)
 
-    # Output final model weights
-    os.makedirs(outputPath+"/modelWeights", exist_ok=True)
-    torch.save(model.state_dict(), "{}/modelWeights/{}_epoch_{}.pt".format(outputPath, model.name, epochs))
+    saveModelWeights(model, outputPath, model.name, epochs)
+    saveAUCurve(test_auROC, test_auPRC, outputPath+"/auROC_PRC/" + model.name + ".png")
 
-    plt.clf()
-    plt.plot(test_auROC)
-    plt.plot(test_auPRC)
-    #  plot the validation auROC and auPRC  as black dots
-    plt.scatter([len(test_auROC)-1], [test_auROC[-1]], c="black")
-    plt.scatter([len(test_auPRC)-1], [test_auPRC[-1]], c="black")    
-    plt.legend(["auROC", "auPRC"])
-    plt.title("auROC and auPRC")
-    plt.xlabel("Epoch")
-    plt.ylabel("Score")
-    plt.savefig(outputPath+"/auROC_PRC/" + model.name + ".png")
-    plt.clf()
-
-    # return the model, loss values, and accuracy values
     return model.to("cpu")
 
 # run the model for one epoch
@@ -188,46 +134,33 @@ def runEpoch(model, train_loader, criterion, optimizer):
             model: The model
             accuracy: The accuracy
     """
-   
-   
-    # initialize the values
     loss = 0
     accuracy = 0
-    count = 0
     y_score = []
     y_true = []
 
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = next(model.parameters()).device
 
-    epochloss = 0
-    # run the model for one epoch with tqdm
     for inputs, labels in tqdm.tqdm(train_loader, desc="processing training batches", leave=False):
-        inputs = inputs.to(torch.float32).to(device)
-        labels = labels.to(torch.float32).to(device)
-        # zero the parameter gradients
+        inputs, labels = inputs.to(device), labels.to(device)
+
         optimizer.zero_grad()
-
-#        import pdb; pdb.set_trace()
-
-        # forward + backward + optimize
         outputs = model(inputs)
-        loss = criterion(outputs, labels)
-
-        loss.backward()
+        batch_loss = criterion(outputs, labels)
+        batch_loss.backward()
         optimizer.step()
-        epochloss += loss.item()
-        # save the output and label
-        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
-        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
+        loss += batch_loss.item() * inputs.size(0)
+        y_score.append(outputs.detach().cpu().numpy())
+        y_true.append(labels.detach().cpu().numpy())
 
-        # clear the memory
-        clearCache()
+    loss /= len(train_loader.dataset)
+    accuracy = accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
 
-    return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), epochloss/len(train_loader)
+    return model, accuracy, loss
 
 # test the model
-def testModel(model, test_loader, criterion, outputPath, save=False):
+def testModel(model, test_loader, criterion, device, save=False):
     """
         Tests the model
 
@@ -239,128 +172,61 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
         returns:
             accuracy: The accuracy
     """
-    # initialize the values
     loss = 0
     accuracy = 0
-    count = 0
     y_score = []
     y_true = []
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    # validate the model
-    for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
-        inputs = inputs.to(torch.float32).to(device)
-        labels = labels.to(torch.float32).to(device)
-#        import pdb; pdb.set_trace()
+    model.eval()
+    with torch.no_grad():
+        for inputs, labels in tqdm.tqdm(test_loader, desc="processing testing batches", leave=False):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            batch_loss = criterion(outputs, labels)
 
-        # forward
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
+            loss += batch_loss.item() * inputs.size(0)
+            y_score.append(outputs.detach().cpu().numpy())
+            y_true.append(labels.detach().cpu().numpy())
 
-        # save the output and label
-        y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
-        y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
+    loss /= len(test_loader.dataset)
+    accuracy = accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round())
+    auROC = roc_auc_score(np.concatenate(y_true), np.concatenate(y_score))
+    auPRC = average_precision_score(np.concatenate(y_true), np.concatenate(y_score))
 
-    acc, auROC, auPRC = calcData(model, y_score, y_true, save, outputPath)
+    return accuracy, auROC, auPRC, loss
 
-    return acc, auROC, auPRC
+def saveAccuracyCSV(accuracy_data, path):
+    df = pd.DataFrame(accuracy_data)
+    df.to_csv(path)
 
-def calcData(model, y_score, y_true, save, outputPath):
-    recall, precision, auPRC =   plotPRC(model, y_score, y_true, model.name, save, outputPath)
-    fpr   , tpr      , auROC =   plotROC(model, y_score, y_true, model.name, save, outputPath)
+def saveAUCSV(auc_data, path):
+    df = pd.DataFrame(auc_data)
+    df.to_csv(path)
 
-    # save the results
-    os.makedirs(outputPath+"/results", exist_ok=True)
-    if save:
-        with open("{}/results/{}.txt".format(outputPath, model.name), "w") as f:
-            f.write("Recall: {}\n".format(recall))
-            f.write("Precision: {}\n".format(precision))
-            # write fpr and tpr as a string using join to avoid scientific notation
-            f.write("FPR: {}\n".format(','.join(map(str, fpr))))
-            f.write("TPR: {}\n".format(','.join(map(str, tpr))))
-            f.write("auPRC: {}\n".format(auPRC))
-            f.write("auROC: {}\n".format(auROC))
-
-    return accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), auROC, auPRC
-
-# plot the PRC curve for the pytorch model
-def plotPRC(model, y_score, y_true, name, save, outputPath):
-    """
-        Plots the PRC curve for the model
-
-        Args:
-            model: The model to plot
-            test_loader: The testing data
-            name: The name of the model
-    """
-    # plot the PRC curve
-    precision, recall, _ = precision_recall_curve(np.concatenate(y_true), np.concatenate(y_score))
-
-    auc_score = round(auc(recall, precision),5)
-    
-    if save:
-        plt.step(recall, precision, color='b', alpha=0.2, where='post')
-        plt.fill_between(recall, precision, step='post', alpha=0.2, color='b')
-        # calulate the AUC score
-        plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
-        plt.xlabel('Recall')
-        plt.ylabel('Precision')
-        plt.ylim([0.0, 1.05])
-        plt.xlim([0.0, 1.0])
-        plt.title('Precision-Recall Curve')
-
-        # check if the output folder exists
-        os.makedirs(outputPath+"/PRC/", exist_ok=True)
-        plt.savefig("{}/PRC/{}.png".format(outputPath, name))
-        plt.clf()
-
-    
-
-    return recall, precision, auc_score
-
-# plot the ROC curve for the pytorch model
-def plotROC(model, y_score, y_true, name, save, outputPath):
-    """
-        Plots the ROC curve for the model
-
-        Args:
-            model: The model to plot
-            test_loader: The testing data
-            name: The name of the model
-    """
-    # plot the ROC curve
-    fpr, tpr, _ = roc_curve( np.concatenate(y_true), np.concatenate(y_score))
-
-    auc_score = round(auc(fpr, tpr),5)
-    if save:
-        plt.step(fpr, tpr, color='b', alpha=0.2, where='post')
-        plt.fill_between(fpr, tpr, step='post', alpha=0.2, color='b')
-        # calulate the AUC score
-        plt.text(0.5, 0.5, "AUC: {}".format(auc_score))
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.ylim([0.0, 1.05])
-        plt.xlim([0.0, 1.0])
-        plt.title('ROC Curve')
-
-        # check if the output folder exists
-        os.makedirs(outputPath+"/ROC", exist_ok=True)
-        plt.savefig("{}/ROC/{}.png".format(outputPath, name))
-        plt.clf()
-
-    return fpr, tpr, auc_score
-
-def plotAccuracy(accuracy_values, name, outputPath):
-    """
-        Plots the accuracy values
-    """
-    plt.plot(accuracy_values)
-    plt.title("Accuracy")
+def saveLossPlot(loss_data, path):
+    import matplotlib.pyplot as plt
+    plt.plot(loss_data)
+    plt.title("Loss")
     plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    os.makedirs(outputPath+"/accuracy", exist_ok=True)
-    plt.savefig(outputPath+"/accuracy/" + name + ".png")
-    # save the data to a csv file
-    df = pd.DataFrame(accuracy_values)
-    df.to_csv(outputPath+"/accuracy/" + name + ".csv")
-    plt.clf()
+    plt.ylabel("Loss")
+    plt.savefig(path)
+    plt.close()
+
+def saveLossCSV(loss_data, path):
+    df = pd.DataFrame(loss_data)
+    df.to_csv(path)
+
+def saveModelWeights(model, outputPath, name, epoch):
+    os.makedirs(outputPath+"/modelWeights", exist_ok=True)
+    torch.save(model.state_dict(), f"{outputPath}/modelWeights/{name}_epoch_{epoch}.pt")
+
+def saveAUCurve(auROC_data, auPRC_data, path):
+    import matplotlib.pyplot as plt
+    plt.plot(auROC_data)
+    plt.plot(auPRC_data)
+    plt.legend(["auROC", "auPRC"])
+    plt.title("auROC and auPRC")
+    plt.xlabel("Epoch")
+    plt.ylabel("Score")
+    plt.savefig(path)
+    plt.close()
