@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from util.models import ChrNet1
 
 class Chromatin_Network2(nn.Module):
     """
@@ -35,21 +36,8 @@ class Chromatin_Network2(nn.Module):
             self.inputDNN = 264000
 
         # Define the fully-connected layers
-        self.dnn = nn.Sequential(
-            nn.Linear(self.inputDNN, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, output_size)
-        )
+        self.dnn = ChrNet1.Chromatin_Network1(name, self.inputDNN, output_size, dnn_hidden_size)
+
 
     def forward(self, x):
         # Reshape the input to have a channel dimension

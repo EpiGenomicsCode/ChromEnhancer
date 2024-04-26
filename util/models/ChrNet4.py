@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
+from util.models import ChrNet1
 
 # CNN1 -> LSTM -> DNN
 class Chromatin_Network4(nn.Module):
@@ -14,71 +14,53 @@ class Chromatin_Network4(nn.Module):
         self.hidden_size = hidden_size
         self.input_size = input_size
         
-        # sequential model names C1D of three Conv1d layers with max pooling
+        # Sequential model comprising three Conv1d layers with max pooling
         self.C1D = nn.Sequential(
-            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding='same', stride=1),
+            nn.Conv1d(in_channels=1, out_channels=16, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2),
-            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding='same', stride=1),
+            nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2),
-            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding='same', stride=1),
+            nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2)
         )
 
+        # Determine input size for LSTM based on input_size
         if input_size == 500:
-            lstmIn = 3968
-        if input_size == 33000:
-            lstmIn = 264000
+            lstm_in = 64 * (input_size // 8)  # Calculating output size from CNN
+        elif input_size == 33000:
+            lstm_in = 64 * (input_size // 8 // 8 // 8)  # Calculating output size from CNN
+        else:
+            raise ValueError("Invalid input_size. Supported values: 500, 33000")
 
-        # LSTM layer that takes in self.C1D output and hidden state size
-        self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
+        # LSTM layer taking in output of self.C1D and hidden state size
+        self.lstm = nn.LSTM(input_size=lstm_in, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
         
-        # Define the fully-connected layers
-        self.dnn = nn.Sequential(
-            nn.Linear(self.hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, dnn_hidden_size),
-            nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(dnn_hidden_size, 1)
-        )
-
+        # Fully connected layers
+        self.dnn = ChrNet1.Chromatin_Network1(name, hidden_size, 1, dnn_hidden_size)
 
         self.hidden = None
 
-        
     def forward(self, x):
-        
-        if self.hidden == None:    
-            h_0 = torch.zeros(self.num_layers, self.hidden_size) #hidden state
-            c_0 = torch.zeros(self.num_layers, self.hidden_size) #internal state
+        if self.hidden is None:    
+            h_0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Hidden state
+            c_0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)  # Internal state
             self.hidden = (h_0, c_0)
 
-        
-        # Reshape the input to have a channel dimension
-        x = x.view(-1, 1, self.input_size)
         # Pass input through 1D CNN layers
-        x = self.C1D(x)
-
+        x = self.C1D(x.unsqueeze(1))  # Add channel dimension
+        
         # Flatten the output of the 1D CNN
         x = x.view(x.size(0), -1)
 
         # Pass through the LSTM
-        self.hidden = (self.hidden[0].to(x.device), self.hidden[1].to(x.device))
-        output, self.hidden = self.lstm(x, self.hidden) #lstm with input, hidden, and internal state
+        output, self.hidden = self.lstm(x.unsqueeze(1), self.hidden)  # Add time step dimension
         self.hidden = (self.hidden[0].detach(), self.hidden[1].detach())
+
         # Pass through the DNN
         out = self.dnn(output)
         out = torch.sigmoid(out)
 
         return out
-  
