@@ -85,6 +85,7 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
     testing_accuaracy = []
     test_auROC = []
     test_auPRC = []
+    
 
     for epoch in tqdm.tqdm(range(epochs), leave=False, desc="Epoch", total=epochs):
         model.train()
@@ -107,8 +108,10 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
         saveAUCSV(test_auROC, outputPath+"/auROC_PRC/auROC_"+model.name+".csv")
         saveAUCSV(test_auPRC, outputPath+"/auROC_PRC/auPRC_"+model.name+".csv")
 
-        saveLossPlot(training_loss, outputPath+"/loss/" + model.name + ".png")
+        saveLossPlot(training_loss, outputPath+"/loss/" + model.name)
         saveLossCSV(training_loss, outputPath+"/loss/" + model.name + ".csv")
+
+
 
     accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, device, save=True)
     test_auPRC.append(auPRC)
@@ -118,6 +121,53 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
     saveAUCurve(test_auROC, test_auPRC, outputPath+"/auROC_PRC/" + model.name + ".png")
 
     return model.to("cpu")
+
+def getPredictions(model, data_loader, outputPath):
+    """
+        Gets the predictions of the model and save the data and the label and prediction as a csv file
+
+        Args:
+            model: The model to get the predictions from
+            data_loader: The data loader
+        
+        returns:
+            predictions: The predictions
+    """
+    device = next(model.parameters()).device
+    model.eval()
+    predictions = []
+    with torch.no_grad():
+        for inputs, labels in tqdm.tqdm(data_loader, desc="processing batches", leave=False):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            predictions.append(outputs.detach().cpu().numpy())
+    
+    # turn the data into a dataframe
+    predictions = np.concatenate(predictions)
+    
+    predictions = pd.DataFrame(predictions)
+    predictions.to_csv(outputPath+"/predictions.csv")
+    return predictions
+
+
+
+
+def plotAccuracy(accuracy_data, name, outputPath):
+    """
+        Plots the accuracy data
+
+        Args:
+            accuracy_data: The accuracy data
+            name: The name of the model
+            outputPath: The output path
+    """
+    plt.plot(accuracy_data)
+    plt.title("Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.savefig(outputPath+"/accuracy/"+name+".png")
+    plt.savefig(outputPath+"/accuracy/"+name+".svg")
+    plt.close()
 
 # run the model for one epoch
 def runEpoch(model, train_loader, criterion, optimizer):
@@ -209,7 +259,8 @@ def saveLossPlot(loss_data, path):
     plt.title("Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.savefig(path)
+    plt.savefig(path+".png")
+    plt.savefig(path+".svg")
     plt.close()
 
 def saveLossCSV(loss_data, path):
