@@ -25,7 +25,7 @@ def generate_output(data):
     TARGET = ["H3K27ac", "H3K27me3", "H3K36me3", "H3K4me1", "H3K4me3", "H3K9me3", "CTCF", "p300", "POLR2A", "RNA"]
     LABEL = ["Stringent", "Lenient", "Random"]
 
-    output = "\t" + CELL[0] + "\t" + CELL[0] + "\t" + CELL[0] + "\t" + CELL[1] + "\t" + CELL[1] + "\t" + CELL[1] +"\t" + CELL[2] + "\t" + CELL[2] + "\t" + CELL[2] +"\t" + CELL[3] + "\t" + CELL[3] + "\t" + CELL[3] + "\n"
+    output = "TARGET\t" + CELL[0] + "\t" + CELL[0] + "\t" + CELL[0] + "\t" + CELL[1] + "\t" + CELL[1] + "\t" + CELL[1] +"\t" + CELL[2] + "\t" + CELL[2] + "\t" + CELL[2] +"\t" + CELL[3] + "\t" + CELL[3] + "\t" + CELL[3] + "\n"
     for mark in TARGET:
         output += mark
         for cell in CELL:

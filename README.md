@@ -8,21 +8,40 @@ Multi-cellular organisms exhibit diverse cellular phenotypes, largely due to the
 
 * Navigate to the Preprocessing folder and follow the instructions
 
-## 2. Building the environment (From .devconatiner)
+## 2. Building the environment
 
-* Install Docker Desktop
-* Install VSCode
-* Install Python extension with VSCode
-* Install DevContainer extension with VSCode
-* "Shift - CMD - P" > Open Folder in Container
+```
+conda create --prefix ~/work/ChromEnh python=3.9
+```
+
+```
+conda activate ~/work/ChromEnh
+```
+
+```
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+```
+
+Validate pytorch is able to see GPU:
+```
+python
+import torch
+torch.cuda.is_available()
+
+```
+
+```
+pip install h5py tqdm matplotlib scikit-learn seaborn
+
+```
 
 ## 3. Running different studies
 
 There are currently three different studies that can be performed:
 
-1. Sequence: This study ...
-2. Parameter: This study ...
-3. Cell Line Dropout: This study ...
+1. Chromosome dropout (Cellline-dependent) traininig
+2. Cellline independent training
+3. Large model training
 
 ### FAQ
 
