@@ -70,7 +70,7 @@ def saveDict(data, directory, output):
         for chrom in data[cell]:
             for file_type in data[cell][chrom]:
                 files = data[cell][chrom][file_type]
-                types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K27me3", "H3K36me3", "H3K4me1"]
+                types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
                 sortedData = []
                 for t in types:
                     for f in files:
@@ -98,7 +98,7 @@ def saveDict(data, directory, output):
 
 def compressTrainData(input_directory, output_directory):
     directory = f"{input_directory}*"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
+    cellLines = ["K562"]
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files if not ".bed" in i and not "labels" in i and i.endswith('.chromtrack.gz')]
     chromList = np.unique([i.split("_")[1] for i in files if i.endswith('.chromtrack.gz')])
@@ -108,7 +108,7 @@ def compressTrainData(input_directory, output_directory):
 
 def compressHoldoutData(input_directory, output_directory):
     directory = f"{input_directory}/*"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
+    cellLines = ["K562"]
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files if not ".bed" in i and not "labels" in i and i.endswith('.chromtrack.gz')]
     chromList = np.unique([i.split("_")[1] for i in files if i.endswith('.chromtrack.gz')])
@@ -118,7 +118,7 @@ def compressHoldoutData(input_directory, output_directory):
 
 def compressTrainLabels(input_directory, output_directory):
     directory = f"{input_directory}/*bed"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
+    cellLines = ["K562"]
     files = glob.glob(directory)
 
     files = [i.split("/")[-1] for i in files]
@@ -168,7 +168,7 @@ def compressTrainLabels(input_directory, output_directory):
 
 def compressHoldoutLabels(input_directory, output_directory):
     directory = f"{input_directory}/*bed"
-    cellLines = ["A549","HepG2", "K562", "MCF7"]
+    cellLines = ["K562"]
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files]
     studies = np.unique([i.split("_")[1] for i in files])

@@ -14,7 +14,7 @@ import sys
 def compressTrainData(input_directory, output_directory):
     directory = f"{input_directory}*"
     cellLines = ["A549","HepG2", "K562", "MCF7"]
-    types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K27me3", "H3K36me3", "H3K4me1"]
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files if not ".bed" in i and not "labels" in i and i.endswith('.chromtrack.gz')]
     output = f"{output_directory}/trainData.h5"
@@ -103,7 +103,7 @@ def compressTrainLabels(input_directory, output_directory):
 def compressHoldoutData(input_directory, output_directory):
     directory = f"{input_directory}*"
     cellLines = ["A549","HepG2", "K562", "MCF7"]
-    types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+    types = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K27me3", "H3K36me3", "H3K4me1"]
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files if not ".bed" in i and not "labels" in i and i.endswith('.chromtrack.gz')]
     output = f"{output_directory}/holdoutData.h5"
@@ -207,11 +207,11 @@ def main():
     args = parser.parse_args()
 
     # Compressing training data and labels
-#    nested_train = compressTrainData(args.train_input, args.train_output)
-#    nested_labels = compressTrainLabels(args.train_input, args.train_output)
+    nested_train = compressTrainData(args.train_input, args.train_output)
+    nested_labels = compressTrainLabels(args.train_input, args.train_output)
 
     # Compressing holdout data and labels
-#    nested_test = compressHoldoutData(args.holdout_input, args.holdout_output)
+    nested_test = compressHoldoutData(args.holdout_input, args.holdout_output)
     nested_test_labels = compressHoldoutLabels(args.holdout_input, args.holdout_output)
 
 if __name__ == '__main__':

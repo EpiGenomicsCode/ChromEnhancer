@@ -22,12 +22,12 @@ for CELL in ${CELLLINE[@]}; do
 		zgrep -v -e "${CHR1[$i]}" -e "${CHR2[$i]}" $GENOMEBED > genome_train.bed
 		zgrep -v -e "${CHR1[$i]}" -e "${CHR2[$i]}" $TESTPEAKS > peaks.bed
 		# Get overlap of enhancers with genomic tiles
-		bedtools intersect -u -a $GENOMEBED -b peaks.bed > peak_train.bed
+		bedtools intersect -u -f 0.25 -a $GENOMEBED -b peaks.bed > peak_train.bed
 		# For each original enhancer coordinate, generate 10 offset windows, 200bp total, 20 bp frameshift
 		perl $TILESUCCESS peak_train.bed train_peaks-s.bed
-		# For each original enhancer coordinate, generate flanking coordinates 5000bp away on each side
+		# For each original enhancer coordinate, generate flanking coordinates 10000bp away on each side
 		bedtools merge -i train_peaks-s.bed > peak_train-merge.bed
-		perl $TILEFAILURE peak_train-merge.bed 5000 1000 train_peaks-f.bed
+		perl $TILEFAILURE peak_train-merge.bed 10000 1000 train_peaks-f.bed
 		cat train_peaks-s.bed train_peaks-f.bed > train_peaks-all.bed
 		#Generate random peaks from genome that are not peaks
 		bedtools intersect -v -a genome_train.bed -b train_peaks-all.bed > remaining_peaks.bed

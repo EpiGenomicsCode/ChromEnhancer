@@ -12,7 +12,7 @@ Moves peak BED files into `data/ATAC_Cellline`
 
 
 ## Download ENCODE ChIP-seq BAM files
-This downloads ENCODE BAM files for H3K4me3, H3K27ac, CTCF, p300, and POL2RA in the A549, MCF7, K562, and HepG2 cell lines
+This downloads ENCODE BAM files for H3K4me3, H3K27ac, H3K36me3, H3K27me3, H3K9me3, H3K4me1, CTCF, p300, and POL2RA in the A549, MCF7, K562, and HepG2 cell lines
 
 ```
 sh 02_download_ENCODE_BAM.sh
@@ -37,15 +37,6 @@ sh 03_download_chromHMM.sh
 
 Moves BAM files into `data/chromHMM_hg38`
 
-## Download ENCODE ChIP-seq BAM files (extended set for figure generation)
-This downloads ENCODE BAM files for H3K36me3, H3K27me3, H3K9me3, and H3K4me1 in the A549, MCF7, K562, and HepG2 cell lines
-
-```
-sh 04_download_ENCODE_BAM-extended.sh
-```
-
-Moves BAM files into `data/BAM`
-
 ## Download ENCODE ChIP-seq BAM files for Large Network training
 This downloads 330 ENCODE ChIP-seq BAM files for the K562 cell line
  - Warning: This downloads over 600 GB worth of data
@@ -54,4 +45,4 @@ This downloads 330 ENCODE ChIP-seq BAM files for the K562 cell line
 sh 05_download_ENCODE_BAM-large.sh
 ```
 
-Moves BAM files into `data/BAM`
+Moves BAM files into `data/LARGE-BAM`

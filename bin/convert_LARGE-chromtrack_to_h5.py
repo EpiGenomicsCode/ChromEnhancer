@@ -195,12 +195,12 @@ def main():
     args = parser.parse_args()
 
     # Compressing training data and labels
-#    nested_train = compressTrainData(args.train_input, args.train_output)
+    nested_train = compressTrainData(args.train_input, args.train_output)
 #    nested_labels = compressTrainLabels(args.train_input, args.train_output)
 
     # Compressing holdout data and labels
-    nested_test = compressHoldoutData(args.holdout_input, args.holdout_output)
-    nested_test_labels = compressHoldoutLabels(args.holdout_input, args.holdout_output)
+#    nested_test = compressHoldoutData(args.holdout_input, args.holdout_output)
+#    nested_test_labels = compressHoldoutLabels(args.holdout_input, args.holdout_output)
 
 if __name__ == '__main__':
     main()

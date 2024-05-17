@@ -1,5 +1,6 @@
 # Download ChIP-seq data related to K562
 ## Warning: total download is >600 GB
+
 wget -O K562_AFF1_ENCFF221QNV.bam https://www.encodeproject.org/files/ENCFF221QNV/@@download/ENCFF221QNV.bam
 wget -O K562_AGO1_ENCFF184DGL.bam https://www.encodeproject.org/files/ENCFF184DGL/@@download/ENCFF184DGL.bam
 wget -O K562_ARHGAP35_ENCFF774BLA.bam https://www.encodeproject.org/files/ENCFF774BLA/@@download/ENCFF774BLA.bam

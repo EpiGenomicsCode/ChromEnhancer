@@ -16,8 +16,8 @@ for CELL in ${CELLLINE[@]}; do
         LENIENTPEAKS=../../data/Enhancer_Coord/$CELL\_hg38_LenientEnhancer_1000bp.bed.gz
 	echo -e $CELL;
 	# Split chromosome into two files, enhancer and non-enhancer
-	bedtools intersect -u -a $GENOMEBED -b $STRINGENTPEAKS > test-s.bed
-	bedtools intersect -v -a $GENOMEBED -b $STRINGENTPEAKS > test-f.bed
+	bedtools intersect -u -f 0.25 -a $GENOMEBED -b $STRINGENTPEAKS > test-s.bed
+	bedtools intersect -v -a $GENOMEBED -b test-s.bed > test-f.bed
 	# Label split files as 0/1 depending on statust
 	perl $LABEL test-s.bed 1 test-s_final
 	perl $LABEL test-f.bed 0 test-f_final
@@ -28,8 +28,8 @@ for CELL in ${CELLLINE[@]}; do
 	perl $SPLIT $CELL\_StringentEnhancer.bed $CELL\_enhancer
 
 	# Split chromosome into two files, enhancer and non-enhancer
-	bedtools intersect -u -a $GENOMEBED -b $LENIENTPEAKS > test-s.bed
-	bedtools intersect -v -a $GENOMEBED -b $LENIENTPEAKS > test-f.bed
+	bedtools intersect -u -f 0.25 -a $GENOMEBED -b $LENIENTPEAKS > test-s.bed
+	bedtools intersect -v -a $GENOMEBED -b test-s.bed > test-f.bed
 	# Label split files as 0/1 depending on statust
 	perl $LABEL test-s.bed 1 test-s_final
 	perl $LABEL test-f.bed 0 test-f_final

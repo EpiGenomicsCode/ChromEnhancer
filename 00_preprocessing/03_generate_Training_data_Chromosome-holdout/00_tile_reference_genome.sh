@@ -1,3 +1,5 @@
+module load bedtools
+
 # Reference data
 GRCH38=input/GRCh38.chrom.sizes
 BLACKLIST=input/ENCFF356LFX.bed.gz

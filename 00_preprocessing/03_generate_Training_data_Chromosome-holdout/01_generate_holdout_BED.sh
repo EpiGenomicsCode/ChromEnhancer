@@ -1,3 +1,5 @@
+module load bedtools
+
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
 CHROM=("chr16" "chr17" "chr7" "chr8" "chr9" "chr10" "chr11" "chr12" "chr13" "chr14" "chr15" "chrX")
 
@@ -20,8 +22,8 @@ for CELL in ${CELLLINE[@]}; do
 		zgrep "$CHR" $GENOMEBED > genome.bed
 
 		# Split chromosome into two files, enhancer and non-enhancer
-		bedtools intersect -u -a genome.bed -b Speaks.bed > test-s.bed
-		bedtools intersect -v -a genome.bed -b Speaks.bed > test-f.bed
+		bedtools intersect -u -f 0.25 -a genome.bed -b Speaks.bed > test-s.bed
+		bedtools intersect -v -a genome.bed -b test-s.bed > test-f.bed
 		# Label split files as 0/1 depending on statust
 		perl $LABEL test-s.bed 1 test-s_final
 		perl $LABEL test-f.bed 0 test-f_final
@@ -31,8 +33,8 @@ for CELL in ${CELLLINE[@]}; do
 		perl $SORT test.bed $CELL\_StringentEnhancer_$CHR\.bed
 
 		# Split chromosome into two files, enhancer and non-enhancer
-		bedtools intersect -u -a genome.bed -b Lpeaks.bed > test-s.bed
-		bedtools intersect -v -a genome.bed -b Lpeaks.bed > test-f.bed
+		bedtools intersect -u -f 0.25 -a genome.bed -b Lpeaks.bed > test-s.bed
+		bedtools intersect -v -a genome.bed -b test-s.bed > test-f.bed
 		# Label split files as 0/1 depending on statust
 		perl $LABEL test-s.bed 1 test-s_final
 		perl $LABEL test-f.bed 0 test-f_final

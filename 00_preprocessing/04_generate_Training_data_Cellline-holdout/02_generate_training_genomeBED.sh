@@ -18,12 +18,12 @@ for CELL in ${CELLLINE[@]}; do
 
 	echo -e $CELL
 	# Get overlap of enhancers with genomic tiles
-	bedtools intersect -u -a $GENOMEBED -b $TESTPEAKS > peak_train.bed
+	bedtools intersect -u -f 0.25 -a $GENOMEBED -b $TESTPEAKS > peak_train.bed
         # For each original enhancer coordinate, generate 10 offset windows, 200bp total, 20 bp frameshift
 	perl $TILESUCCESS peak_train.bed train_peaks-s.bed
 	# For each original enhancer coordinate, generate flanking coordinates 5000bp away on each side
 	bedtools merge -i peak_train.bed > peak_train-merge.bed
-	perl $TILEFAILURE peak_train-merge.bed 5000 1000 train_peaks-f.bed
+	perl $TILEFAILURE peak_train-merge.bed 10000 1000 train_peaks-f.bed
 	cat train_peaks-s.bed train_peaks-f.bed > train_peaks-all.bed
 	#Generate random peaks from genome that are not peaks
 	bedtools intersect -v -a $GENOMEBED -b train_peaks-all.bed > remaining_peaks.bed

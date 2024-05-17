@@ -1,5 +1,5 @@
 module load anaconda
-CONVERT=../bin/convert_CHR-chromtrack_to_h5.py
+CONVERT=../../bin/convert_CHR-chromtrack_to_h5.py
 
 HOLDOUT=../../data/CHR-HOLDOUT/
 TRAIN=../../data/CHR-TRAIN/

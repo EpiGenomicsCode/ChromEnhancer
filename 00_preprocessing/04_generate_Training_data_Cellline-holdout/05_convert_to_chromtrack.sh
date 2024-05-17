@@ -9,12 +9,13 @@ cd $HOLDOUT
 
 for file in *.cdt.gz; do
 	fileID="${file/.cdt.gz/}"
+	echo $fileID
 	# Convert CDT to chromtrack
 	perl $CONVERT $file $FACTOR $fileID\_RAW.chromtrack &
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
@@ -35,12 +36,13 @@ done
 
 for file in *RAW.chromtrack; do
 	fileID="${file/_RAW/}"
+	echo $fileID
 	# Normalize chromtrack by setting matrix max to 1 and scaling the rest
 	perl $NORMALIZE $file $fileID &
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
@@ -61,7 +63,7 @@ for file in *.cdt.gz; do
 
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
@@ -83,7 +85,7 @@ for file in *RAW.chromtrack; do
 	perl $NORMALIZE $file $fileID &
 	# Multi-thread to 8 cores
 	let CPU++
-	if [[ $CPU -eq 12 ]]; then
+	if [[ $CPU -eq 16 ]]; then
 		wait
 		CPU=0
 	fi
