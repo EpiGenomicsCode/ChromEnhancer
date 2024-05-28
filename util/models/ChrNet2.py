@@ -31,6 +31,8 @@ class Chromatin_Network2(nn.Module):
         self.inputDNN = 0
         if self.input_size == 500:
             self.inputDNN = 3968
+        if self.input_size == 800:
+            self.inputDNN = 6400
         if self.input_size == 33000:
             self.inputDNN = 264000
 

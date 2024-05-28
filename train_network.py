@@ -17,18 +17,19 @@ parser.add_argument('--parameterLDS', action='store_false', help='Run the parame
 
 # optional
 parser.add_argument('--cellLine', nargs='+', help='Run the study on the cellLine', default=["A549", "MCF7", "HepG2", "K562"])
-parser.add_argument('--chromData', nargs='+', help='Run the study using the following chromatin datasets', default=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"])
+parser.add_argument('--chromData', nargs='+', help='Run the study using the following chromatin datasets', default=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"])
 parser.add_argument('--chrPair', nargs='+', help='Run the study dropping out chromosome pairs', default=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"])
 parser.add_argument('--index', nargs='+', help='Run the study on the index', default=["-1","-2"])
 parser.add_argument('--model', nargs='+', help='Run the study on the model', default=["1", "2", "3", "4", "5", "6"])
-parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=8196)
+parser.add_argument('--batch_size', type=int, help='Run the study on the batch size', default=1024)
 parser.add_argument('--bin_size', type=int, help='How many bins to use when loading the data', default=65536)
-parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=100)
+parser.add_argument('--epochs', type=int, help='Run the study on the epochs', default=20)
 
 args = parser.parse_args()
 
 ALLCELLS = ["A549", "MCF7", "HepG2", "K562"]
-ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"]
+#ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
  
 def main():
     clearCache()
@@ -57,7 +58,7 @@ def main():
         print("Running Parameter Study with Large Dataset")
         parameterLDS(fileInput, fileOutput)
 
-def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=3, batch_size=64, bin_size=1024):
+def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=20, batch_size=1024, bin_size=4096):
     """
         Hyperparameter search of different model architectures
         with chromosome dropout
@@ -97,7 +98,7 @@ def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K56
     
     parseParam("paramCHR.log", params)
 
-def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"], chromUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"], epochs=3, batch_size=64, bin_size=1024):
+def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"], chromUse=["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"], epochs=20, batch_size=1024, bin_size=4096):
     """
         Hyperparameter search of different model architectures
         combining cell lines to make cell-type invariant model
@@ -198,7 +199,7 @@ def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs,
     if "LARGE" in fileLocation:
         model = loadModel(modelconfig, name, 33000)
     else:
-        model = loadModel(modelconfig, name)
+        model = loadModel(modelconfig, name, 800)
     # run the model
     model = trainModel(model, train_loader, test_loader, valid_loader, epochs, fileOutput)
 

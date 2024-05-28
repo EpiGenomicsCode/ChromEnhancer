@@ -33,7 +33,7 @@ class Chromatin_Dataset(Dataset):
         self.label = label
         self.fileLocation = fileLocation
         self.mode = mode
-        self.chromatin =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
+        self.chromatin =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"]
         self.missing = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
         self.AllcellLines =  ["A549", "MCF7", "HepG2", "K562"]
         self.holdoutcellLines = [i for i in range(len(self.AllcellLines)) if self.AllcellLines[i] not in self.cellLine]
@@ -49,6 +49,7 @@ class Chromatin_Dataset(Dataset):
             elif self.mode == "test":
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
+#                import pdb; pdb.set_trace()
             else:
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
@@ -77,12 +78,22 @@ class Chromatin_Dataset(Dataset):
                 self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
                 print(self.dataName + "\t" + self.labelName)
 #                import pdb; pdb.set_trace()
+        elif "TOY_NETWORK" in fileLocation:
+            if self.mode == "train":
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_labels"
+            elif self.mode == "test":
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
+            else:
+                self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
+                self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
         else:
             raise ValueError(f"Invalid file location: {self.fileLocation}")
 
         self.DataFile, self.LabelFile = self.getFiles()
         self.Dataset = h5py.File(self.DataFile, 'r')[self.dataName]
-#        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         self.Labelset = h5py.File(self.LabelFile, 'r')[self.labelName]
         # assert len(self.Dataset) == len(self.Labelset), f"Data and label lengths do not match: {len(self.Dataset)} != {len(self.Labelset)}\n\t{self.mode}\n\tDatafile:{self.DataFile}\n\tLabelFile{self.LabelFile}\n\t\tDataName:{self.dataName}\n\t\tLabelName:{self.labelName}"

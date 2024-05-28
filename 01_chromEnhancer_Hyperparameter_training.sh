@@ -1,26 +1,47 @@
-WORKINGDIR=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer
-DATADIR=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer/data/CHR_NETWORK
-HEADER="#!/bin/bash
-#SBATCH -A bbse-delta-gpu
-#SBATCH --partition=gpuA100x4
-#SBATCH --gpus=1
-#SBATCH --nodes=1
-#SBATCH --tasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=48g
-#SBATCH --time=12:00:00
+WORKINGDIR=/storage/group/bfp2/default/wkl2-WillLai/Enhancer-NN_Project/240308_Fig1-Gen
+DATADIR=$WORKINGDIR/data/CHR_NETWORK
+# HEADER="#!/bin/bash
+# #SBATCH -A bbse-delta-gpu
+# #SBATCH --partition=gpuA100x4
+# #SBATCH --gpus=1
+# #SBATCH --nodes=1
+# #SBATCH --tasks=1
+# #SBATCH --cpus-per-task=8
+# #SBATCH --mem=48g
+# #SBATCH --time=12:00:00
+# 
+# module load anaconda3_gpu/23.9.0
+# cd $WORKINGDIR
+# tdir="$(mktemp -d /tmp/foo.XXXXXXXXX)"
+# mkdir \$tdir
+# cp -r $DATADIR \$tdir/
+# "
 
-module load anaconda3_gpu/23.9.0
+
+HEADER="#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=8
+#SBATCH --mem=60GB
+#SBATCH --gpus=1
+#SBATCH --time=8:00:00
+#SBATCH --account=gja2_a_gpu
+#SBATCH -p sla-prio,burst
+#SBATCH -q burst4x
+#SBATCH --exclude=p-gc-3024
+
+module load anaconda
+conda activate /storage/home/wkl2/work/ChromEnh
+
 cd $WORKINGDIR
 tdir="$(mktemp -d /tmp/foo.XXXXXXXXX)"
 mkdir \$tdir
 cp -r $DATADIR \$tdir/
 "
 
-TRAIN=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer/train_network.py
+TRAIN=$WORKINGDIR/train_network.py
 
-#CELLLINE=("K562" "HepG2" "MCF7" "A549")
-CELLLINE=("K562")
+CELLLINE=("K562" "HepG2" "MCF7" "A549")
+#CELLLINE=("K562")
 CHROM=("chr10-chr17" "chr11-chr7" "chr12-chr8" "chr13-chr9" "chr15-chr16")
 
 LOGS=$WORKINGDIR/logs-chr
@@ -72,6 +93,8 @@ for CELL in ${CELLLINE[@]}; do
                 echo "wait" >> $SLURM/parameter_$CELL\_$CHRPAIR\-4.slurm
 	done
 done
+
+exit
 
 cd $SLURM
 for CELL in ${CELLLINE[@]}; do

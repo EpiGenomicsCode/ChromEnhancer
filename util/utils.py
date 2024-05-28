@@ -251,7 +251,7 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
     for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
         inputs = inputs.to(torch.float32).to(device)
         labels = labels.to(torch.float32).to(device)
-#        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         # forward
         outputs = model(inputs)
@@ -262,6 +262,7 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
 
     acc, auROC, auPRC = calcData(model, y_score, y_true, save, outputPath)
+#    import pdb; pdb.set_trace()
 
     return acc, auROC, auPRC
 
@@ -313,8 +314,6 @@ def plotPRC(model, y_score, y_true, name, save, outputPath):
         os.makedirs(outputPath+"/PRC/", exist_ok=True)
         plt.savefig("{}/PRC/{}.png".format(outputPath, name))
         plt.clf()
-
-    
 
     return recall, precision, auc_score
 

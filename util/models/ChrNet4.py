@@ -29,6 +29,8 @@ class Chromatin_Network4(nn.Module):
 
         if input_size == 500:
             lstmIn = 3968
+        if input_size == 800:
+            lstmIn = 6400
         if input_size == 33000:
             lstmIn = 264000
 

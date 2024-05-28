@@ -21,6 +21,8 @@ class Chromatin_Network6(nn.Module):
 
         if input_size == 500:
             lstmIn = 800
+        if input_size == 800:
+            lstmIn = 1600
         if input_size == 33000:
             lstmIn = 65600
 
@@ -50,6 +52,8 @@ class Chromatin_Network6(nn.Module):
     def forward(self, x):
         if self.input_size == 500:
             x = x.view(-1, 1, 100, 5)
+        if self.input_size == 800:
+            x = x.view(-1, 1, 100, 8)
         if self.input_size == 33000:
             x = x.view(-1, 1, 100, 330)
 
