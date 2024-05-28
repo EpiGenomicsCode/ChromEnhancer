@@ -11,7 +11,7 @@ POS=../../bin/generate_rand-Chromtrack_POS.pl
 NEG=../../bin/generate_rand-Chromtrack_NEG.pl
 UNI=../../bin/generate_rand-Chromtrack.pl 
 
-for file in $HOLDOUT/*.bed; do
+for file in $HOLDOUT/*StringentEnhancer*.bed; do
 	echo $file
 
 	CELL=$(echo $file | awk -F'/' '{print $5}' | cut -d'_' -f1)
