@@ -4,14 +4,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plot_data(folder_path, output_path):
+def plot_data(folder_path, modelType, output_path):
     # Check if the folder exists
     if not os.path.exists(folder_path):
         print("Folder does not exist.")
         return
-    
+
     # Get a list of CSV files in the folder
-    files = [file for file in os.listdir(folder_path) if file.endswith(".csv")]
+    files = [file for file in os.listdir(folder_path) if file.endswith(".csv") and modelType in file]
     num_files = len(files)
     if num_files == 0:
         print("No CSV files found in the folder.")
@@ -38,10 +38,10 @@ def plot_data(folder_path, output_path):
 
 if __name__ == "__main__":
     # Check if folder path and output path are provided as command-line arguments
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         print("Usage: python script.py <folder_path> <output_path>")
     else:
         folder_path = sys.argv[1]
-        output_path = sys.argv[2]
-        plot_data(folder_path, output_path)
-
+        modelType = sys.argv[2]
+        output_path = sys.argv[3]
+        plot_data(folder_path, modelType, output_path)

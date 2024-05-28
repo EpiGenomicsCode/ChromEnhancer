@@ -1,10 +1,11 @@
-module load anaconda3_cpu/23.7.4 
+#module load anaconda3_cpu/23.7.4 
+module load anaconda
 
 # Establish folder structure
 mkdir -p ../figures/sfig2
 cd ../figures/sfig2
 
-LOSS=../../bin/visualize_Loss_StdDev.py 
+LOSS=../../bin/chart/visualize_Loss_StdDev.py 
 
 # Chromosome Holdout
 python $LOSS ../../output-chr/loss/ model1 model1_chr-holdout_Loss.svg
