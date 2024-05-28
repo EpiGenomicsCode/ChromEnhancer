@@ -26,3 +26,6 @@ while($line = <IN>) {
 }
 close IN;
 close OUT;
+
+#sacCer3 genome size
+#1.2163423E7
