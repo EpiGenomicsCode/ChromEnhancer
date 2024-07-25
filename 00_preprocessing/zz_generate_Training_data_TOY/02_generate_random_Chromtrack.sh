@@ -7,9 +7,9 @@ CELLLINE=("K562")
 CHR1=("chr10")
 CHR2=("chr17")
 
-POS=../../bin/generate_rand-Chromtrack_POS.pl
-NEG=../../bin/generate_rand-Chromtrack_NEG.pl
-UNI=../../bin/generate_rand-Chromtrack.pl 
+POS=../../bin/toy_network/generate_rand-Chromtrack_POS.pl
+NEG=../../bin/toy_network/generate_rand-Chromtrack_NEG.pl
+UNI=../../bin/toy_network/generate_rand-Chromtrack.pl 
 
 for file in $HOLDOUT/*StringentEnhancer*.bed; do
 	echo $file

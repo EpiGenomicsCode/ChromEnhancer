@@ -1,5 +1,5 @@
-#module load anaconda3_cpu/23.7.4
-module load anaconda
+module load anaconda3_cpu/23.7.4
+#module load anaconda
 
 # Establish folder structure
 mkdir -p ../figures/fig2/panelb

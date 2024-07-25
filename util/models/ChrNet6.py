@@ -14,20 +14,29 @@ class Chromatin_Network6(nn.Module):
         self.hidden_size = hidden_size
         self.input_size = input_size
 
+        if self.input_size == 500:
+            self.layerinput = 500
+            self.kerneldepth = 5
+            self.paddingrow = 2
+            self.paddingcol = 3
+        if self.input_size == 800:
+            self.layerinput = 800
+            self.kerneldepth = 8
+            self.paddingrow = 3
+            self.paddingcol = 3
+        if self.input_size == 33000:
+            self.layerinput = 66400
+            self.kerneldepth = 330
+            self.paddingrow = 165
+            self.paddingcol = 3
+
         # 2D conv layers
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=(3,3), padding=(1,1))
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=(3,3), padding=(1,1))
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=(self.kerneldepth,7), padding=(self.paddingrow,self.paddingcol))
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=(self.kerneldepth,7), padding=(self.paddingrow,self.paddingcol))
         self.pool = nn.MaxPool2d(kernel_size=(2,2), stride=(2,2))
 
-        if input_size == 500:
-            lstmIn = 800
-        if input_size == 800:
-            lstmIn = 1600
-        if input_size == 33000:
-            lstmIn = 65600
-
         # LSTM layer that takes in self.C1D output and hidden state size
-        self.lstm = nn.LSTM(input_size=lstmIn, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
+        self.lstm = nn.LSTM(input_size=self.layerinput, hidden_size=self.hidden_size, num_layers=self.num_layers, batch_first=True) 
         
         # Define the fully-connected layers
         self.dnn = nn.Sequential(
@@ -51,11 +60,11 @@ class Chromatin_Network6(nn.Module):
         
     def forward(self, x):
         if self.input_size == 500:
-            x = x.view(-1, 1, 100, 5)
+            x = x.view(-1, 1, 5, 100)
         if self.input_size == 800:
-            x = x.view(-1, 1, 100, 8)
+            x = x.view(-1, 1, 8, 100)
         if self.input_size == 33000:
-            x = x.view(-1, 1, 100, 330)
+            x = x.view(-1, 1, 330, 100)
 
         x = F.relu(self.conv1(x))
         x = self.pool(x)

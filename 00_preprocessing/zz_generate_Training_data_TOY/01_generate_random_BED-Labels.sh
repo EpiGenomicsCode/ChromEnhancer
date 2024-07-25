@@ -4,7 +4,7 @@ CELLLINE=("K562")
 CHR1=("chr10")
 CHR2=("chr17")
 
-RANDBED=../../bin/generate_random_BED-label.pl
+RANDBED=../../bin/toy_network/generate_random_BED-label.pl
 
 for CELL in ${CELLLINE[@]}; do
 	for (( i=0; i<${#CHR1[@]}; i++ )); do

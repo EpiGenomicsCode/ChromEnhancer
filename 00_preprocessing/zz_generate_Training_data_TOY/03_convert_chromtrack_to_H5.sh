@@ -1,5 +1,5 @@
 module load anaconda
-CONVERT=../../bin/convert_TOY-chromtrack_to_h5.py
+CONVERT=../../bin/toy_network/convert_TOY-chromtrack_to_h5.py
 
 HOLDOUT=../../data/TOY-HOLDOUT/
 TRAIN=../../data/TOY-TRAIN/
