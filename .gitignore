@@ -6,5 +6,6 @@ output/
 02_enhancer_validation/VennLabel
 02_enhancer_validation/GenomeWideCorrelation
 02_enhancer_validation/PeakEnrichment
+02_enhancer_validation/ENCODE-Peaks
 
 output-cell/predictions
