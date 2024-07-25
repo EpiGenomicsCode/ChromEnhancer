@@ -1,5 +1,5 @@
 module load anaconda
-CONVERT=../../bin/convert_LARGE-chromtrack_to_h5.py 
+CONVERT=../../bin/H5conversion/convert_LARGE-chromtrack_to_h5.py 
 
 HOLDOUT=../../data/LARGE-HOLDOUT/
 TRAIN=../../data/LARGE-TRAIN/

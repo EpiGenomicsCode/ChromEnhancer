@@ -17,7 +17,7 @@ mkdir -p \$tdir
 cp -r $DATADIR \$tdir/
 "
 
-SHAP=$WORKINGDIR/bin/calculate_XAI.py
+SHAP=$WORKINGDIR/bin/xai/calculate_XAI.py
 
 MODELPATH=$WORKINGDIR/output-cell/modelWeights
 

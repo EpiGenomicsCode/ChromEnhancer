@@ -16,8 +16,8 @@ mkdir -p \$tdir
 cp -r $DATADIR \$tdir/
 "
 
-PREDICT=$WORKINGDIR/bin/calculate_EnhancerProb.py
-UPDATE=$WORKINGDIR/bin/update_BED_with_EnhPred_scores.py
+PREDICT=$WORKINGDIR/bin/enhval/calculate_EnhancerProb.py
+UPDATE=$WORKINGDIR/bin/enhval/update_BED_with_EnhPred_scores.py
 
 #python calculate_EnhancerProb.py --fileInput /scratch/bbse/wklai/EnhancerNN/ChromEnhancer/data/CELL_NETWORK/ --modelPath output-cell/modelWeights/CLD_study_-_test_-_valid_-_model1_clkeep_K562-HepG2-A549_chkeep_CTCF-H3K4me3-H3K27ac-p300-PolII-H3K36me3-H3K27me3-H3K4me1_type-1_epoch_20.pt --modelType 1 --fileOutput test.tab --cellLine K562 HepG2 A549
 

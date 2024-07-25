@@ -1,5 +1,5 @@
 module load anaconda
-CONVERT=../../bin/convert_CELL-chromtrack_to_h5.py
+CONVERT=../../bin/H5conversion/convert_CELL-chromtrack_to_h5.py
 
 HOLDOUT=../../data/CELL-HOLDOUT/
 TRAIN=../../data/CELL-TRAIN/
