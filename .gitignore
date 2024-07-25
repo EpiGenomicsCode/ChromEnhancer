@@ -1,2 +1,10 @@
 __pycache__
 output/
+**/.DS_Store
+
+02_enhancer_validation/CalledEnhancers
+02_enhancer_validation/VennLabel
+02_enhancer_validation/GenomeWideCorrelation
+02_enhancer_validation/PeakEnrichment
+
+output-cell/predictions
