@@ -1,9 +1,15 @@
+
+# ROAR Collab
 module load anaconda
 module load bedtools
 
-# Establish folder structure
-mkdir -p ../figures/sfig1
-cd ../figures/sfig1
+# # Delta
+# module load anaconda3_cpu
+# source activate /scratch/bbse/wklai/EnhancerNN/bedtools/
+
+FIG1=../../figures/sfig1
+[ -d $SFIG1 ] || mkdir -p $SFIG1
+cd $SFIG1
 
 # chromHMM
 A549=../../data/chromHMM_hg38/A549_BSS00007_18_CALLS_segments.bed.gz

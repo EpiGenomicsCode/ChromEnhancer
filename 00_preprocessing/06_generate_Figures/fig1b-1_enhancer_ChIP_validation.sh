@@ -1,5 +1,6 @@
-mkdir -p ../figures/fig1/panelb
-cd ../figures/fig1/panelb
+FIG1=../../figures/fig1/panelb
+[ -d $FIG1 ] || mkdir -p $FIG1
+cd $FIG1
 
 # Panel B
 SCRIPTMANAGER=../../../bin/ScriptManager-v0.14.jar

@@ -1,9 +1,11 @@
-#module load anaconda3_cpu/23.7.4 
-module load anaconda
+# # ROAR Collab
+# module load anaconda
+# Delta
+module load anaconda3_cpu
 
 # Establish folder structure
-mkdir -p ../figures/sfig2
-cd ../figures/sfig2
+SFIG2=../../figures/sfig2
+[ -d $SFIG2 ] || mkdir -p $SFIG2
 
 LOSS=../../bin/chart/visualize_Loss_StdDev.py 
 
