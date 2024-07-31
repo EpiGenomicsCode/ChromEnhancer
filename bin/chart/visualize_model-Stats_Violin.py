@@ -51,6 +51,7 @@ def plot_box_whisker(matrix_data_file, output_file, y_min=None, y_max=None):
 
     old_len_collections = len(ax.collections)
     # Overlay strip plot
+    np.random.seed(123)
     sns.stripplot(x="Model", y="auROC", data=df, jitter=True, dodge=False, palette=palette, ax=ax, edgecolor='black', linewidth=0.5)
     for dots in ax.collections[old_len_collections:]:
         dots.set_offsets(dots.get_offsets() + np.array([0.12, 0]))
