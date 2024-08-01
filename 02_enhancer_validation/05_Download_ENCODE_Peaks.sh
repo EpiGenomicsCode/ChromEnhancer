@@ -8,13 +8,12 @@
 
 
 set -exo
-module load bedtools
+module load anaconda3_cpu
+source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
 METADATA=ENCODE_Peak_Metadata.txt
-ODIR=ENCODE-Peaks
-
-[ -d $ODIR ] || mkdir $ODIR
-[ -d logs ] || mkdir logs
+ODIR=../figures/fig3/panelc/ENCODE-Peaks
+[ -d $ODIR ] || mkdir -p $ODIR
 
 for SLURM_ARRAY_TASK_ID in {1..1449};
 do

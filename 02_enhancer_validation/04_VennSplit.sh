@@ -27,24 +27,26 @@
 
 
 set -exo
-module load bedtools
-
-[ -d VennLabel ] || mkdir VennLabel
+module load anaconda3_cpu
+source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
 SPLIT=bin/split_file_by_category.py
 VENN=bin/venn4py_CellLineParse.py
 
+OUTPUT=../figures/fig3/panelb
+[ -d $OUTPUT ] || mkdir -p $OUTPUT
+
 # Iterate model number
 for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
 do
-	IDIR=CalledEnhancers/$MODEL
+	IDIR=$OUTPUT/$MODEL
 
-	VDIR=VennLabel/$MODEL
-	[ -d $VDIR ] || mkdir $VDIR
+	VDIR=$OUTPUT/$MODEL
+	[ -d $VDIR ] || mkdir -p $VDIR
 	
 	# Do cross-cell line intersections
 	A549=$IDIR/Intersect/$MODEL\_A549.bed
-	HEPG2=$IDIR/Intersect/$MODEL\_HEPG2.bed
+	HEPG2=$IDIR/Intersect/$MODEL\_HepG2.bed
 	K562=$IDIR/Intersect/$MODEL\_K562.bed
 	MCF7=$IDIR/Intersect/$MODEL\_MCF7.bed
 

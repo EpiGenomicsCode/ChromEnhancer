@@ -37,23 +37,24 @@
 
 
 set -exo
-module load bedtools
+module load anaconda3_cpu
+source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
 CHIP=chkeep_CTCF-H3K4me3-H3K27ac-p300-PolII-H3K36me3-H3K27me3-H3K4me1
-IDIR=/storage/group/bfp2/default/wkl2-WillLai/Enhancer-NN_Project/240308_Fig1-Gen/output-cell/predictions
 IDIR=../output-cell/predictions
+OUTPUT=../figures/fig3/panelb
+
+[ -d $OUTPUT ] || mkdir -p $OUTPUT
 
 THRESH=1per
-
-[ -d CalledEnhancers ] || mkdir CalledEnhancers
 
 # Iterate model number
 for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
 do
-	ODIR=CalledEnhancers/$MODEL
-	[ -d $ODIR ] || mkdir $ODIR
-	[ -d $ODIR/Union ] || mkdir $ODIR/Union
-	[ -d $ODIR/Intersect ] || mkdir $ODIR/Intersect
+	ODIR=$OUTPUT/$MODEL
+	[ -d $ODIR ] || mkdir -p $ODIR
+	[ -d $ODIR/Union ] || mkdir -p $ODIR/Union
+	[ -d $ODIR/Intersect ] || mkdir -p $ODIR/Intersect
 
 	# Iterate replicates
 	for REP in "1" "2";
@@ -66,20 +67,20 @@ do
 		
 		# Sort Enhancer BED files
 		sort -grk5,5 $A549 > $ODIR/$MODEL\_A549_$REP\_SORT-ByEnhancerScore.bed
-		sort -grk5,5 $HEPG2 > $ODIR/$MODEL\_HEPG2_$REP\_SORT-ByEnhancerScore.bed
+		sort -grk5,5 $HEPG2 > $ODIR/$MODEL\_HepG2_$REP\_SORT-ByEnhancerScore.bed
 		sort -grk5,5 $K562 > $ODIR/$MODEL\_K562_$REP\_SORT-ByEnhancerScore.bed
 		sort -grk5,5 $MCF7 > $ODIR/$MODEL\_MCF7_$REP\_SORT-ByEnhancerScore.bed
 
 		# Call top 1 percent
 		head -n 29596 $ODIR/$MODEL\_A549_$REP\_SORT-ByEnhancerScore.bed > $ODIR/$MODEL\_A549_$REP-$THRESH.bed
-		head -n 29596 $ODIR/$MODEL\_HEPG2_$REP\_SORT-ByEnhancerScore.bed > $ODIR/$MODEL\_HEPG2_$REP-$THRESH.bed
+		head -n 29596 $ODIR/$MODEL\_HepG2_$REP\_SORT-ByEnhancerScore.bed > $ODIR/$MODEL\_HepG2_$REP-$THRESH.bed
 		head -n 29596 $ODIR/$MODEL\_K562_$REP\_SORT-ByEnhancerScore.bed > $ODIR/$MODEL\_K562_$REP-$THRESH.bed
 		head -n 29596 $ODIR/$MODEL\_MCF7_$REP\_SORT-ByEnhancerScore.bed > $ODIR/$MODEL\_MCF7_$REP-$THRESH.bed
 
 	done
 
 	# Iterate cell lines
-	for CL in "A549" "HEPG2" "K562" "MCF7";
+	for CL in "A549" "HepG2" "K562" "MCF7";
 	do
 		EFILE=$ODIR/$MODEL\_$CL
 

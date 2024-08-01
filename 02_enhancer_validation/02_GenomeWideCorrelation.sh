@@ -19,21 +19,22 @@
 #   |--Total-48_EnhancerScores.tab
 #   |--Total-48_EnhancerScores_CORRELATE.tab
 #   |--Total-48_EnhancerScores_CORRELATE.svg
+#   |--Total-48_EnhancerScores_CORRELATE_label.tab
 
-
-set -exo
+#set -exo
+module load anaconda3_cpu
 
 # Inputs
 CHIP=chkeep_CTCF-H3K4me3-H3K27ac-p300-PolII-H3K36me3-H3K27me3-H3K4me1
-IDIR=/storage/group/bfp2/default/wkl2-WillLai/Enhancer-NN_Project/240308_Fig1-Gen/output-cell/predictions
 IDIR=../output-cell/predictions
 
-ODIR=GenomeWideCorrelation
-[ -d $ODIR ] || mkdir $ODIR
+ODIR=../figures/fig3/panela
+[ -d $ODIR ] || mkdir -p $ODIR
 
 # Outputs
 TILE=$ODIR/tile.txt
 HTILE=$ODIR/tile-header.txt
+touch $HTILE
 
 QCFILE=$ODIR/QualityControl-ID-Matching.txt
 [[ -f $QCFILE ]] && rm $QCFILE
@@ -42,15 +43,11 @@ QCFILE=$ODIR/QualityControl-ID-Matching.txt
 CORRELATION=bin/correlation-matrix.py
 HIERARCHICAL=bin/plot_hierarchical-2d.py
 
-# Get file header
-#cut -f4 $IDIR/CLD_study_-_test_-_valid_-_model1_clkeep_K562-HepG2-MCF7_$CHIP\_type-1_epoch_20.bed > $TILE
-#cat <(echo "TILE") $TILE > $HTILE
-
 # Iterate model number
 for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
 do
-	TEMP=tmp
-	[ -d $TEMP ] || mkdir $TEMP
+	TEMP=/tmp/enhscore
+	[ -d $TEMP ] || mkdir -p $TEMP
 
 	# Iterate replicates
 	for REP in "1" "2";
@@ -60,26 +57,25 @@ do
 		K562=$IDIR/CLD_study_-_test_-_valid_-_$MODEL\_clkeep_HepG2-MCF7-A549_$CHIP\_type-$REP\_epoch_20.bed
 		HEPG2=$IDIR/CLD_study_-_test_-_valid_-_$MODEL\_clkeep_K562-MCF7-A549_$CHIP\_type-$REP\_epoch_20.bed
 		MCF7=$IDIR/CLD_study_-_test_-_valid_-_$MODEL\_clkeep_K562-HepG2-A549_$CHIP\_type-$REP\_epoch_20.bed
-		
+	
 		# Pull Enhancer scores
 		cat <(echo "${MODEL}_A549_$REP") <(cut -f5 $A549) > $TEMP/A549_$REP.txt
 		cat <(echo "${MODEL}_K562_$REP") <(cut -f5 $K562) > $TEMP/K562_$REP.txt
-		cat <(echo "${MODEL}_HEPG2_$REP") <(cut -f5 $HEPG2) > $TEMP/HEPG2_$REP.txt
+		cat <(echo "${MODEL}_HepG2_$REP") <(cut -f5 $HEPG2) > $TEMP/HepG2_$REP.txt
 		cat <(echo "${MODEL}_MCF7_$REP") <(cut -f5 $MCF7) > $TEMP/MCF7_$REP.txt
 
 		# Pull ID values
-		paste $ODIR/tile.txt <(cut -f4 $A549) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_A549_$REP.id
-		paste $ODIR/tile.txt <(cut -f4 $K562) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_K562_$REP.id
-		paste $ODIR/tile.txt <(cut -f4 $HEPG2) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_HEPG2_$REP.id
-		paste $ODIR/tile.txt <(cut -f4 $MCF7) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_MCF7_$REP.id
+		paste $TILE <(cut -f4 $A549) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_A549_$REP\.id
+		paste $TILE <(cut -f4 $K562) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_K562_$REP\.id
+		paste $TILE <(cut -f4 $HEPG2) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_HepG2_$REP\.id
+		paste $TILE <(cut -f4 $MCF7) | awk '{if ($1!=$2) print}' > $TEMP/$MODEL\_MCF7_$REP\.id
 
 	done
-
 	# Concatenate model-specific files
-	paste $ODIR/tile-header.txt \
+	paste $HTILE \
 		$TEMP/A549_1.txt $TEMP/A549_2.txt \
 		$TEMP/K562_1.txt $TEMP/K562_2.txt \
-		$TEMP/HEPG2_1.txt $TEMP/HEPG2_2.txt \
+		$TEMP/HepG2_1.txt $TEMP/HepG2_2.txt \
 		$TEMP/MCF7_1.txt $TEMP/MCF7_2.txt \
 		> $ODIR/$MODEL\_aggregate.tab
 
@@ -102,7 +98,7 @@ paste $ODIR/tile-header.txt \
 
 # Correlate and cluster
 python $CORRELATION -i $TOTAL.tab -o $TOTAL\_CORRELATE.tab
-python $HIERARCHICAL -i $TOTAL\_CORRELATE.tab -o $TOTAL\_CORRELATE.svg
+python $HIERARCHICAL -i $TOTAL\_CORRELATE.tab -o $TOTAL\_CORRELATE.svg -t $TOTAL\_CORRELATE_label.tab
 
 # Clean-up
 rm $ODIR/model*.tab
