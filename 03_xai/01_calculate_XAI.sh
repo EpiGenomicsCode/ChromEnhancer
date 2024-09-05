@@ -6,7 +6,7 @@ HEADER="#!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
-#SBATCH --mem=128g
+#SBATCH --mem=64g
 #SBATCH --time=48:00:00
 
 module load anaconda3_cpu
@@ -47,7 +47,6 @@ for modelFile in $MODELPATH/*K562-HepG2-A549*type-2*pt; do
 	fi
 
 done
-exit
 
 cd $SLURM
 for file in xai_CLD*slurm; do

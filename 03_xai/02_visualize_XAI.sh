@@ -2,13 +2,11 @@ set -exo
 module load anaconda3_cpu
 #source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
-#MODEL=model5
-
 IDIR=../output-cell/xai
 ODIR=../figures/fig4/panela
 [ -d $ODIR ] || mkdir -p $ODIR
 
-SDIR=../figures/sfig3
+SDIR=../figures/sfig4
 [ -d $SDIR ] || mkdir -p $SDIR
 
 # Heatmap
@@ -22,7 +20,7 @@ MODEL=1
 FILEID="${FILEHEAD}_model${MODEL}_$FILETAIL"
 python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_saliency.tsv --linkVMax 50 --outputFile $ODIR/model$MODEL\_saliency.svg --outputDendrogram --outputDendrogramFile $ODIR/model$MODEL\_dendrogram.svg
 python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_gradient.tsv --linkVMin 0 --outputFile $ODIR/model$MODEL\_gradient.svg
-python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_shap.tsv --linkVMin 0 --linkVMax 1 --outputFile $SDIR/model$MODEL\_shap.svg #--outputDendrogram --outputDendrogramFile $SDIR/model$MODEL\_dendrogram.svg
+python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_shap.tsv --linkVMin 0 --linkVMax 1 --outputFile $SDIR/model$MODEL\_shap.svg --outputDendrogram --outputDendrogramFile $SDIR/model$MODEL\_dendrogram.svg
 
 MODEL=2
 FILEID="${FILEHEAD}_model${MODEL}_$FILETAIL"
@@ -49,6 +47,12 @@ python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID
 python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_shap.tsv --linkVMin 0 --linkVMax 1 --outputFile $SDIR/model$MODEL\_shap.svg #--outputDendrogram --outputDendrogramFile $SDIR/model$MODEL\_dendrogram.svg
 
 MODEL=6
+FILEID="${FILEHEAD}_model${MODEL}_$FILETAIL"
+python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_saliency.tsv --linkVMax 50 --outputFile $ODIR/model$MODEL\_saliency.svg --outputDendrogram --outputDendrogramFile $ODIR/model$MODEL\_dendrogram.svg
+python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_gradient.tsv --linkVMin 0 --outputFile $ODIR/model$MODEL\_gradient.svg
+python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_shap.tsv --linkVMin 0 --linkVMax 1 --outputFile $SDIR/model$MODEL\_shap.svg #--outputDendrogram --outputDendrogramFile $SDIR/model$MODEL\_dendrogram.svg
+
+MODEL=7
 FILEID="${FILEHEAD}_model${MODEL}_$FILETAIL"
 python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_saliency.tsv --linkVMax 50 --outputFile $ODIR/model$MODEL\_saliency.svg --outputDendrogram --outputDendrogramFile $ODIR/model$MODEL\_dendrogram.svg
 python $HEATMAP --clustData $IDIR/$FILEID\_xai_orig.tsv --linkData $IDIR/$FILEID\_xai_gradient.tsv --linkVMin 0 --outputFile $ODIR/model$MODEL\_gradient.svg
