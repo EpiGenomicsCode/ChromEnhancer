@@ -15,12 +15,13 @@ def logicOrder(directory, cellLines, chromList, files, output="temp.h5"):
     print(f"directory: {directory}, output: {output}")
 
     # Rows to process at once
-    chunk_size=10000
+    chunk_size=25000
 
     # create an empty hdf5 file
     with h5py.File(output, 'w') as f:
         pass
 
+    print(chromList)
     for cell in cellLines:
         for chrt in chromList:
             print(f"\tProcessing {cell} {chrt}  from {directory} to {output}\n")
@@ -30,7 +31,7 @@ def logicOrder(directory, cellLines, chromList, files, output="temp.h5"):
             datashape = pd.read_csv(directory[:-1]+fileSubset[0], sep=" ", header=None).shape
             length = datashape[0]
             columns = datashape[1]*len(fileSubset)
-#            print(datashape)
+            print(datashape)
             print("Final matrix size\nLength: " + str(length) + " Columns: " + str(columns))
 
             # get the number of chunks
@@ -41,15 +42,15 @@ def logicOrder(directory, cellLines, chromList, files, output="temp.h5"):
             # Iterate over the chunks
             for i in range(num_chunks):
                 data = []
+
+                # calculate the start and end row for the current chunk
+                start_row = i * chunk_size
+                end_row = min((i + 1) * chunk_size, length)
+                print("Chunk start and end: " + str(start_row) + "\t" + str(end_row))
                 # go through every file
                 for f in fileSubset:
-                   # calculate the start and end row for the current chunk
-                   start_row = i * chunk_size
-                   end_row = min((i + 1) * chunk_size, length)
-
                    # skip rows and load in the chunk
                    df = pd.read_csv(directory[:-1] + f, sep=" ", header=None, skiprows=start_row, nrows=end_row - start_row)
-
                    # add it to the data list
                    data.append(df.values)
 
@@ -60,13 +61,14 @@ def logicOrder(directory, cellLines, chromList, files, output="temp.h5"):
                 with h5py.File(output, 'a') as f:
                     if cell+"_"+chrt not in f.keys():
                         print("\t\t\tcreating dataset")
-                        f.create_dataset(cell+"_"+chrt, data=data ,compression='gzip', compression_opts=6, maxshape=(length, columns))
+#                        f.create_dataset(cell+"_"+chrt, data=data ,compression='gzip', compression_opts=6, maxshape=(None, columns))
+                        f.create_dataset(cell+"_"+chrt, (length, columns), compression='gzip', compression_opts=6)
+                        f[cell+"_"+chrt][:end_row] = data
                     else:
                         # concatenate the data to the end of the dataset
-                        current_length = f[cell+"_"+chrt].shape[0]
-                        print(f"\t\t\tappending to dataset left: {length - current_length}")
-                        f[cell+"_"+chrt].resize((current_length + data.shape[0], data.shape[1]))      
-                        f[cell+"_"+chrt][current_length:] = data
+                        print(f"\t\t\tappending to dataset left: {length - end_row}")
+#                        f[cell+"_"+chrt].resize((new_length, data.shape[1]))      
+                        f[cell+"_"+chrt][start_row:end_row] = data
 
 def compressTrainData(input_directory, output_directory):
     directory = f"{input_directory}*"
@@ -74,6 +76,7 @@ def compressTrainData(input_directory, output_directory):
     files = glob.glob(directory)
     files = [i.split("/")[-1] for i in files if not ".bed" in i and i.endswith('.chromtrack.gz')]
     chromList = np.unique([i.split("_")[1] for i in files if i.endswith('.chromtrack.gz')])
+    print(chromList)
     output_file = f"{output_directory}/trainData.h5"
     nested_dict = logicOrder(directory, cellLines, chromList, files, output_file)
     return nested_dict
@@ -144,8 +147,6 @@ def compressHoldoutLabels(input_directory, output_directory):
     studies = np.unique([i.split("_")[1] for i in files])
     chrs = np.unique([i.split("_")[2].split(".")[0] for i in files])
     output_file = f"{output_directory}/holdoutLabels.h5"
-
-    print(studies)
 
     dict = {}
     for cell in cellLines:
