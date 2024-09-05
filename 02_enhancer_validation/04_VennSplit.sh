@@ -31,13 +31,13 @@ module load anaconda3_cpu
 source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
 SPLIT=bin/split_file_by_category.py
-VENN=bin/venn4py_CellLineParse.py
+VENN=../bin/chart/venn4py_CellLineParse.py
 
 OUTPUT=../figures/fig3/panelb
 [ -d $OUTPUT ] || mkdir -p $OUTPUT
 
 # Iterate model number
-for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
+for MODEL in "model1" "model2" "model3" "model4" "model5" "model6" "model7";
 do
 	IDIR=$OUTPUT/$MODEL
 

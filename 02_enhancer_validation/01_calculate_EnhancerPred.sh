@@ -60,7 +60,7 @@ for modelFile in $MODELPATH/*pt; do
 	fi
 done
 
-# cd $SLURM
-# for file in pred_CLD*slurm; do
-# 	sbatch $file;
-# done
+cd $SLURM
+for file in pred_CLD*slurm; do
+	sbatch $file;
+done

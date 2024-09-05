@@ -49,7 +49,7 @@ OUTPUT=../figures/fig3/panelb
 THRESH=1per
 
 # Iterate model number
-for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
+for MODEL in "model1" "model2" "model3" "model4" "model5" "model6" "model7";
 do
 	ODIR=$OUTPUT/$MODEL
 	[ -d $ODIR ] || mkdir -p $ODIR

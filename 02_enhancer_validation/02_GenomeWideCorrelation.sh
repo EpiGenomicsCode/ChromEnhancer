@@ -44,7 +44,7 @@ CORRELATION=bin/correlation-matrix.py
 HIERARCHICAL=bin/plot_hierarchical-2d.py
 
 # Iterate model number
-for MODEL in "model1" "model2" "model3" "model4" "model5" "model6";
+for MODEL in "model1" "model2" "model3" "model4" "model5" "model6" "model7";
 do
 	TEMP=/tmp/enhscore
 	[ -d $TEMP ] || mkdir -p $TEMP
@@ -94,6 +94,7 @@ paste $ODIR/tile-header.txt \
 	<(cut -f2-9 $ODIR/model4_aggregate.tab) \
 	<(cut -f2-9 $ODIR/model5_aggregate.tab) \
 	<(cut -f2-9 $ODIR/model6_aggregate.tab) \
+        <(cut -f2-9 $ODIR/model7_aggregate.tab) \
 	> $TOTAL.tab
 
 # Correlate and cluster
