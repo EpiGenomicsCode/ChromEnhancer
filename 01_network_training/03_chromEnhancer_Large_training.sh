@@ -20,7 +20,7 @@ cp -r $DATADIR \$tdir/
 TRAIN=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer/train_network.py
 
 CELLLINE=("K562")
-CHROM=("chr12-chr8")
+CHROM=("chr10-chr17" "chr11-chr7" "chr12-chr8" "chr13-chr9" "chr15-chr16")
 
 LOGS=$WORKINGDIR/logs-large
 mkdir -p $LOGS
@@ -58,6 +58,9 @@ for CELL in ${CELLLINE[@]}; do
                 echo "$HEADER" > $SLURM/large_$CELL\_$CHRPAIR\-6.slurm
                 echo "python $TRAIN --fileInput="\$tdir/LARGE_NETWORK/" --fileOutput=$OUTPUT --parameterLDS --cellLine=\"$CELL\" --chrPair=\"$CHRPAIR\" --model=\"6\" --epochs 100 --batch_size 512 > $LOGS/$CELL\_$CHRPAIR\_6log.out" >> $SLURM/large_$CELL\_$CHRPAIR\-6.slurm
 
+                # Output header
+                echo "$HEADER" > $SLURM/large_$CELL\_$CHRPAIR\-7.slurm
+                echo "python $TRAIN --fileInput="\$tdir/LARGE_NETWORK/" --fileOutput=$OUTPUT --parameterLDS --cellLine=\"$CELL\" --chrPair=\"$CHRPAIR\" --model=\"7\" --epochs 100 --batch_size 512 > $LOGS/$CELL\_$CHRPAIR\_7log.out" >> $SLURM/large_$CELL\_$CHRPAIR\-7.slurm
 	done
 done
 
@@ -70,5 +73,6 @@ for CELL in ${CELLLINE[@]}; do
                 sbatch large_$CELL\_$CHRPAIR\-4.slurm
                 sbatch large_$CELL\_$CHRPAIR\-5.slurm
                 sbatch large_$CELL\_$CHRPAIR\-6.slurm
+		sbatch large_$CELL\_$CHRPAIR\-7.slurm
 	done
 done

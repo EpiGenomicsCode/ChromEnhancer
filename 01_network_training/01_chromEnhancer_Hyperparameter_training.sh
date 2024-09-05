@@ -20,7 +20,6 @@ cp -r $DATADIR \$tdir/
 TRAIN=/scratch/bbse/wklai/EnhancerNN/ChromEnhancer/train_network.py
 
 CELLLINE=("K562" "HepG2" "MCF7" "A549")
-#CELLLINE=("K562")
 CHROM=("chr10-chr17" "chr11-chr7" "chr12-chr8" "chr13-chr9" "chr15-chr16")
 
 LOGS=$WORKINGDIR/logs-chr
@@ -70,6 +69,13 @@ for CELL in ${CELLLINE[@]}; do
                 echo "sleep 2" >> $SLURM/parameter_$CELL\_$CHRPAIR\-4.slurm
                 echo "python $TRAIN --fileInput="\$tdir/CHR_NETWORK/" --fileOutput=$OUTPUT --parameterCHR --cellLine=\"$CELL\" --chrPair=\"$CHRPAIR\" --model=\"6\" --index=\"-2\" > $LOGS/$CELL\_$CHRPAIR\_12log.out" >> $SLURM/parameter_$CELL\_$CHRPAIR\-4.slurm
                 echo "wait" >> $SLURM/parameter_$CELL\_$CHRPAIR\-4.slurm
+
+                echo "$HEADER" > $SLURM/parameter_$CELL\_$CHRPAIR\-5.slurm
+                echo "python $TRAIN --fileInput="\$tdir/CHR_NETWORK/" --fileOutput=$OUTPUT --parameterCHR --cellLine=\"$CELL\" --chrPair=\"$CHRPAIR\" --model=\"7\" --index=\"-1\" > $LOGS/$CELL\_$CHRPAIR\_11log.out &" >> $SLURM/parameter_$CELL\_$CHRPAIR\-5.slurm
+                echo "sleep 2" >> $SLURM/parameter_$CELL\_$CHRPAIR\-5.slurm
+                echo "python $TRAIN --fileInput="\$tdir/CHR_NETWORK/" --fileOutput=$OUTPUT --parameterCHR --cellLine=\"$CELL\" --chrPair=\"$CHRPAIR\" --model=\"7\" --index=\"-2\" > $LOGS/$CELL\_$CHRPAIR\_12log.out" >> $SLURM/parameter_$CELL\_$CHRPAIR\-5.slurm
+                echo "wait" >> $SLURM/parameter_$CELL\_$CHRPAIR\-5.slurm
+
 	done
 done
 
@@ -81,5 +87,6 @@ for CELL in ${CELLLINE[@]}; do
                 sbatch parameter_$CELL\_$CHRPAIR\-2.slurm
                 sbatch parameter_$CELL\_$CHRPAIR\-3.slurm
                 sbatch parameter_$CELL\_$CHRPAIR\-4.slurm
+                sbatch parameter_$CELL\_$CHRPAIR\-5.slurm
 	done
 done
