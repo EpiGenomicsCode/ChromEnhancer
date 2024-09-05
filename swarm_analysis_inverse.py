@@ -9,7 +9,7 @@ from util.Adversarial_Observation.Adversarial_Observation.Attacks import *
 
 from captum.attr import IntegratedGradients, Saliency
 
-from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5, ChrNet6
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5, ChrNet6, ChrNet7
 import matplotlib.pyplot as plt
 
 from PIL import Image
@@ -162,19 +162,27 @@ def create_gif(input_folder, output_path, file_type, duration):
     for img in images:
         os.remove(os.path.join(input_folder, img))
 
-def load_model(model_number, name="", input_size=500):
-    model_classes = {
-        1: ChrNet1.Chromatin_Network1,
-        2: ChrNet2.Chromatin_Network2,
-        3: ChrNet3.Chromatin_Network3,
-        4: ChrNet4.Chromatin_Network4,
-        5: ChrNet5.Chromatin_Network5,
-        6: ChrNet6.Chromatin_Network6
-    }
-    if model_number in model_classes:
-        return model_classes[model_number](name, input_size)
+def loadModel(modelNumber, name="", input_size=500):
+    """
+        Loads the model based on the model number   
+    """
+    modelNumber = int(modelNumber)
+    if modelNumber == 1:
+        return ChrNet1.Chromatin_Network1(name, input_size)
+    elif modelNumber == 2:
+        return ChrNet2.Chromatin_Network2(name, input_size)
+    elif modelNumber == 3:
+        return ChrNet3.Chromatin_Network3(name, input_size)
+    elif modelNumber == 4:
+        return ChrNet4.Chromatin_Network4(name, input_size)
+    elif modelNumber == 5:
+        return ChrNet5.Chromatin_Network5(name, input_size)
+    elif modelNumber == 6:
+        return ChrNet6.Chromatin_Network6(name, input_size)
+    elif modelNumber ==7:
+        return ChrNet7.Chromatin_Network7(name, [input_size, 64, 1])
     else:
-        raise ValueError(f"Invalid model number {model_number}")
+        raise Exception("Invalid model number {}".format(modelNumber))
 
 def main():
     args = parse_arguments()
@@ -207,7 +215,7 @@ def main():
         initialPoints.append(arr)
 
     # Load the trained model
-    model = load_model(args.modelType, "", modelSize)
+    model = loadModel(args.modelType, "", modelSize)
     model.load_state_dict(torch.load(args.modelPath, map_location=torch.device('cpu')))
     model.eval()
 

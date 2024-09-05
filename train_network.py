@@ -29,7 +29,6 @@ args = parser.parse_args()
 
 ALLCELLS = ["A549", "MCF7", "HepG2", "K562"]
 ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"]
-#ALLCHROM = ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII"]
  
 def main():
     clearCache()
@@ -56,7 +55,7 @@ def main():
 
     if not args.parameterLDS:
         print("Running Parameter Study with Large Dataset")
-        parameterLDS(fileInput, fileOutput)
+        parameterLDS(fileInput, fileOutput, cellLine, chrPair, epochs, batch_size, bin_size)
 
 def parameterCHR(fileInput, outputPath, cellLines=["A549", "MCF7", "HepG2", "K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=20, batch_size=1024, bin_size=4096):
     """
@@ -116,19 +115,47 @@ def parameterCLD(fileInput, outputPath, cellUse=["A549", "MCF7", "HepG2", "K562"
     # run the study
     parseParam("paramCLD.log", params)
 
-def parameterLDS(fileInput, outputPath):
+def parameterLDS(fileInput, outputPath, cellLines=["K562"], chrPairs=["chr10-chr17", "chr11-chr7", "chr12-chr8", "chr13-chr9", "chr15-chr16"], epochs=100, batch_size=512, bin_size=4096):
     fileLocation = fileInput
     fileOutput = outputPath
 
-    chromPair = "chr12-chr8"
-    cellLine = "K562"
+    #chromPair = "chr12-chr8"
+    #cellLine = "K562"
 
-    for modelType in args.model:
-        name = f"study_{chromPair}_test_chr12_valid_chr8_model{modelType}_clkeep_{cellLine}"
-        param1 = ["chr12-chr8", "chr12", "chr8", [], [cellLine], [cellLine], "", f"LargeDataset1_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
-        parseParam("paramLDS.log", [param1])
+#    for modelType in args.model:
+#        name = f"study_{chromPair}_test_chr12_valid_chr8_model{modelType}_clkeep_{cellLine}"
+#        param1 = ["chr12-chr8", "chr12", "chr8", [], [cellLine], [cellLine], "", f"LargeDataset1_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
+#        parseParam("paramLDS.log", [param1])
 #        param2 = ["chr12-chr8", "chr8", "chr12", [], [cellLine], [cellLine], "", f"LargeDataset2_{modelType}", args.epochs, args.batch_size, args.bin_size, modelType, fileLocation, fileOutput]
 #        parseParam("paramLDS.log", [param2])
+
+    for cellLine in cellLines:
+        # go through each study
+        for chromPair in chrPairs:
+            data1, data2 = chromPair.split("-")
+            # process the data for each model train, test and test, train
+            for data  in [ [data1, data2], [data2, data1]]:
+                test = data[0]
+                valid = data[1]
+                for modelType in args.model:
+                    name = f"LargeDataset_{chromPair}_test_{test}_valid_{valid}_model{modelType}_clkeep_{cellLine}"
+                    param = [
+                        chromPair, # chr10-chr17
+                        test, # chr10
+                        valid, # chr17
+                        [], # chUse
+                        [cellLine], # clUse: ["A549"]
+                        [cellLine],
+                        "", # -1
+                        name, # LargeDataset_chr10-chr17_test_chr10_valid_chr17_model1_clkeep_K562_type-1
+                        epochs, # 100
+                        batch_size, # 512
+                        bin_size,
+                        modelType, # 1
+                        fileLocation, # ./Data/220802_DATA/ 
+                        fileOutput # ./output/
+                    ]
+                    parseParam("paramLDS.log", [param])
 
 def simulation_started(started_file, simulation_name):
     sim =  open(started_file, "r")
@@ -189,7 +216,7 @@ def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs,
                                                 cellHold=cellHold,
                                                 bin_size=bin_size,
                                                 fileLocation=fileLocation,
-                                                dataTypes =types)
+                                                dataTypes=types)
     # cast each dataset to a pytorch dataloader
     train_loader = DataLoader(ds_train, batch_size=batch_size )
     test_loader = DataLoader(ds_test, batch_size=batch_size )
@@ -197,6 +224,7 @@ def runStudy(study, test, valid, chrUse, cellUse, cellHold, types, name, epochs,
 
     # load the model
     if "LARGE" in fileLocation:
+#        model = loadModel(modelconfig, name, 71800)
         model = loadModel(modelconfig, name, 33000)
     else:
         model = loadModel(modelconfig, name, 800)

@@ -1,16 +1,13 @@
 import numpy as np
 import torch.optim as optim
 import tqdm
-from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5, ChrNet6
+from util.models import ChrNet1, ChrNet2, ChrNet3, ChrNet4, ChrNet5, ChrNet6, ChrNet7
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import roc_curve, auc, accuracy_score, precision_recall_curve
 import gc 
-import seaborn as sns
 import torch
-import datetime
 from torch import nn
 
 # Set seed for initializing network
@@ -49,6 +46,8 @@ def loadModel(modelNumber, name="", input_size=500):
         return ChrNet5.Chromatin_Network5(name, input_size)
     elif modelNumber == 6:
         return ChrNet6.Chromatin_Network6(name, input_size)
+    elif modelNumber ==7:
+        return ChrNet7.Chromatin_Network7(name, [input_size, 256, 256, 256, 256, 1])
     else:
         raise Exception("Invalid model number {}".format(modelNumber))
 
@@ -62,9 +61,7 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
             test_loader: The testing data
             valid_loader: The validation data
             epochs: The number of epochs to run
-            criterion: The loss function
-            optimizer: The optimizer
-        
+            outputPath: Location of output path    
         returns:
             model: The model
             loss_values: The loss values
@@ -73,6 +70,9 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
     """
     criterion = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
+    #optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.0001)
+    #scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.8)
+
     # send the model to the gpu if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print(f"Name: {model.name}\t Device: {device}")
@@ -98,13 +98,11 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
 
         # test the model
         model.eval()
-        accuracy, auROC, auPRC = testModel(model, test_loader, criterion, outputPath, save=False)
+        accuracy, auROC, auPRC = testModel(model, test_loader, criterion, outputPath, epoch, save=False)
         testing_accuaracy.append(accuracy)
         test_auROC.append(auROC)
         test_auPRC.append(auPRC)
 
-        
-        best_accuracy = accuracy
         # check if the output folder exists
         #os.makedirs("./output/modelWeights", exist_ok=True)
         #torch.save(model.state_dict(), "./output/modelWeights/{}_epoch_{}.pt".format(model.name, epoch))
@@ -146,10 +144,11 @@ def trainModel(model, train_loader, test_loader, valid_loader, epochs, outputPat
         df = pd.DataFrame(training_loss)
         df.to_csv(outputPath+"/loss/" + model.name + ".csv")
 
-        
+        # Update learning rate at end of each epoch
+        #scheduler.step()
                 
     # test the model on the validation data
-    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, outputPath, save=True)
+    accuracy, auROC, auPRC = testModel(model, valid_loader, criterion, outputPath, epochs, save=True)
     test_auPRC.append(auPRC)
     test_auROC.append(auROC)
 
@@ -192,8 +191,6 @@ def runEpoch(model, train_loader, criterion, optimizer):
    
     # initialize the values
     loss = 0
-    accuracy = 0
-    count = 0
     y_score = []
     y_true = []
 
@@ -206,8 +203,6 @@ def runEpoch(model, train_loader, criterion, optimizer):
         labels = labels.to(torch.float32).to(device)
         # zero the parameter gradients
         optimizer.zero_grad()
-
-#        import pdb; pdb.set_trace()
 
         # forward + backward + optimize
         outputs = model(inputs)
@@ -227,7 +222,7 @@ def runEpoch(model, train_loader, criterion, optimizer):
     return model, accuracy_score(np.concatenate(y_true), np.concatenate(y_score).round()), epochloss/len(train_loader)
 
 # test the model
-def testModel(model, test_loader, criterion, outputPath, save=False):
+def testModel(model, test_loader, criterion, outputPath, epoch, save=False):
     """
         Tests the model
 
@@ -247,6 +242,7 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
     y_true = []
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+#    f=open(f"{outputPath}/{epoch}_inputs.tsv",'a')
     # validate the model
     for inputs, labels in tqdm.tqdm(test_loader,  desc="processing testing batches", leave=False):
         inputs = inputs.to(torch.float32).to(device)
@@ -260,6 +256,11 @@ def testModel(model, test_loader, criterion, outputPath, save=False):
         # save the output and label
         y_score.append(np.array(outputs.detach().cpu().numpy().tolist()).flatten())
         y_true.append(np.array(labels.detach().cpu().numpy().tolist()).flatten())
+#        np.savetxt(f, np.array(inputs.detach().cpu().numpy().tolist()), delimiter='\t', fmt='%.6f')
+ 
+#    # Code to check each epoch's auPRC and auROC calculation
+#    np.savetxt(f"{outputPath}/{epoch}_y_score.tsv", np.concatenate(y_score), delimiter='\t')
+#    np.savetxt(f"{outputPath}/{epoch}_y_true.tsv", np.concatenate(y_true), delimiter='\t')
 
     acc, auROC, auPRC = calcData(model, y_score, y_true, save, outputPath)
 #    import pdb; pdb.set_trace()

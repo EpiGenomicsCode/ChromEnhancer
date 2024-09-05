@@ -34,10 +34,9 @@ class Chromatin_Dataset(Dataset):
         self.fileLocation = fileLocation
         self.mode = mode
         self.chromatin =  ["CTCF", "H3K4me3", "H3K27ac", "p300", "PolII", "H3K36me3", "H3K27me3", "H3K4me1"]
-        self.missing = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
         self.AllcellLines =  ["A549", "MCF7", "HepG2", "K562"]
         self.holdoutcellLines = [i for i in range(len(self.AllcellLines)) if self.AllcellLines[i] not in self.cellLine]
-        self.chunk_size = chunk_size
+        self.chunk_size = 20000#chunk_size
         self.start_chunk = 0
         self.end_chunk = self.chunk_size
         self.chunk_counter = 0
@@ -49,7 +48,6 @@ class Chromatin_Dataset(Dataset):
             elif self.mode == "test":
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
-#                import pdb; pdb.set_trace()
             else:
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
                 self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
@@ -67,17 +65,12 @@ class Chromatin_Dataset(Dataset):
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.label}"
                 self.labelName = f"{self.cellLine}_{self.label}_labels"
-                print(self.dataName + "\t" + self.labelName)
             elif self.mode == "test":
                 self.dataName = f"{self.cellLine}_{self.label}"
                 self.labelName = f"{self.cellLine}_{self.label}_StringentEnhancer_labels"
-                print(self.dataName + "\t" + self.labelName)
-                #import pdb; pdb.set_trace()
             else:
                 self.dataName = f"{self.cellLine}_{self.label}"
                 self.labelName = f"{self.cellLine}_{self.label}_LenientEnhancer_labels"
-                print(self.dataName + "\t" + self.labelName)
-#                import pdb; pdb.set_trace()
         elif "TOY_NETWORK" in fileLocation:
             if self.mode == "train":
                 self.dataName = f"{self.cellLine}_{self.label}_{self.dataTypes}"
@@ -122,36 +115,19 @@ class Chromatin_Dataset(Dataset):
         """
         Returns a data-label pair.
         """
-        # find the index of the missing chromatin type
-        missing_index = [i for i in range(len(self.chromatin)) if self.chromatin[i] not in self.chrUse]
-
-        if self.chunk_counter % self.chunk_size == 0:
-            self.start_chunk = self.end_chunk
-            self.end_chunk = min(self.end_chunk + self.chunk_size, self.length)
-            # load the next chunk
-            self.loadData()
-        
-
-        if self.chunk_counter >= self.length or self.start_chunk >= self.end_chunk:
-            self.chunk_counter = 0
+        if index == 0:
             self.start_chunk = 0
             self.end_chunk = self.chunk_size
             self.loadData()
+        elif index >= self.end_chunk:
+            self.start_chunk = min(self.end_chunk, self.length)
+            self.end_chunk = min(self.end_chunk + self.chunk_size, self.length)
+            self.loadData()
 
-
-        pos = index % (self.end_chunk - self.start_chunk)
-       
-#        import pdb; pdb.set_trace()
+        pos = index - self.start_chunk
 
         data = self.Dataset[pos]
         label = torch.tensor([int(self.Labelset[pos][4])])
-
-#        import pdb; pdb.set_trace()
-
-        if self.mode == "train" and not "Large" in self.fileLocation:
-            # zero out the missing chromatin type
-            for i in missing_index:
-                data[i*100:(i+1)*100] = 0
 
         self.chunk_counter += 1
 
