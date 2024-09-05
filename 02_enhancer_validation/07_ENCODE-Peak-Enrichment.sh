@@ -22,9 +22,7 @@ set -exo
 module load anaconda3_cpu
 source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
-MODEL=model5
-
-ODIR=../figures/fig3/panelc/PeakEnrichment
+ODIR=../tables/table1/PeakEnrichment
 [ -d $ODIR ] || mkdir -p $ODIR
 
 # Outputs
@@ -44,7 +42,7 @@ tail -n +2 $ODIR/TF-BoundMetrics_MCF7.txt >> $ODIR/TF-BoundMetrics.txt
 # Check signficance (per row basis)
 python $POISSON -i $BOUNDMETRICS -o $ODIR/PoissonMetrics.txt
 
-# Reorganize by CL - reshape table by CL into p-value matrix and fill blanks with NaNs
+# Reorganize by CL - reshape table by CL into matrix
 python $RESHAPE $ODIR/PoissonMetrics.txt $ODIR/PoissonMetrics_filter.txt
 
 # Heatmap

@@ -19,9 +19,9 @@ GTILE=$IDIR/CLD_study_-_test_-_valid_-_$MODEL\_clkeep_K562-HepG2-MCF7_$CHIP\_typ
 RANDOMCOORD=../data/Random_Coord/hg38_25KRand_1000bp.bed.gz
 
 EDIR=../figures/fig3/panelb/$MODEL/Intersect
-PDIR=../figures/fig3/panelc/ENCODE-Peaks
+PDIR=../tables/table1/ENCODE-Peaks
 
-ODIR=../figures/fig3/panelc/PeakEnrichment
+ODIR=../tables/table1/PeakEnrichment
 [ -d $ODIR ] || mkdir -p $ODIR
 
 # Iterate by cell line

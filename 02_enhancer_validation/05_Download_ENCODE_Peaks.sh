@@ -12,7 +12,7 @@ module load anaconda3_cpu
 source activate /scratch/bbse/wklai/EnhancerNN/bedtools
 
 METADATA=ENCODE_Peak_Metadata.txt
-ODIR=../figures/fig3/panelc/ENCODE-Peaks
+ODIR=../tables/table1/ENCODE-Peaks
 [ -d $ODIR ] || mkdir -p $ODIR
 
 for SLURM_ARRAY_TASK_ID in {1..1449};
